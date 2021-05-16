@@ -1,0 +1,419 @@
+
+#include "Json.h"
+#include "MemManger.h"
+#include "JsonParse.h"
+#include "util.h"
+#include "sion.h"
+#include "Runtime.h"
+#include "PreDefineFn.h"
+
+
+using namespace std;
+const string json = LoadFile("tweet.json");
+const String color_red_s = "\033[31m";
+const String color_green_s = "\033[32m";
+const String color_blue_s = "\033[34m";
+const String color_e = "\033[0m";
+
+void TestMemMange()
+{
+    auto &mem = MemManger::Get();
+    mem.gc_root["c"] = JsArray();
+    mem.gc_root["c"].Array().Src().resize(10);
+    mem.gc_root["c"][1] = 1;
+    mem.gc_root["c"][6] = JsObject({
+        {"fuck", "ass"},
+        {"cao s", JsObject({{"fuck", "cao"}})},
+        {"emmm", JsArray({1, 2, 3, 4, 5, 6, 7, 23333.666, mem.gc_root["c"], JsObject(), JsObject()})},
+    });
+    mem.gc_root["cao"] = JsObject({
+        {"fuck", "ass"},
+        {"cao s", JsObject({{"fuck", "cao"}})},
+        {"emmm", 23333},
+    });
+    mem.gc_root["hl"] = mem.gc_root["cao"];
+
+    ASS_2UL(mem.gc_root["hl"].Object().Ptr(), mem.gc_root["cao"].Object().Ptr())
+    auto o1 = mem.gc_root["cao"];
+    o1["emmmm"] = 12345;
+    ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == (double)12345, "object的引用修改异常")
+    auto &olv = o1["emmmm"].Get<double>();
+    olv = 2333.1;
+    ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == 2333.1, "object的引用修改异常")
+    JsValue obj = JsObject();
+    o1["test-obj"] = obj;
+    ASS_2UL(o1["test-obj"].Type(), JsType::object);
+    o1["test-obj"] = nullptr;
+    mem.GC();
+    ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
+    ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Object().Ptr()))
+    ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Object().Ptr()))
+    JsValue v1 = JsArray();
+    auto v2 = v1;
+    ASS_2UL(v1.Array().Ptr(), v2.Array().Ptr())
+}
+
+void TestGcPref(int count = 100 * 1000)
+{
+    vector<int> ms_vec;
+    auto &mem = MemManger::Get();
+    Profile p;
+    p.Start();
+    auto c = [&] {
+        auto arr = JsArray();
+        mem.gc_root["ccc"] = arr;
+        for (int i = count - 1; i >= 0; i--)
+        {
+            auto arr2 = JsArray();
+            arr.Src().push_back(arr2);
+            arr = arr2;
+        }
+        mem.GC();
+    };
+    c();
+    p.Pause();
+    ms_vec.push_back(p.ToMs());
+    p.Reset();
+    mem.gc_root["ccc"] = nullptr;
+    mem.GC();
+    p.Pause();
+    ms_vec.push_back(p.ToMs());
+    cout << String::Format("保持count:{} gc:{}ms, count:{}->0 gc:{}ms", count, ms_vec[0], count, ms_vec[1]) << endl;
+}
+
+void TestJsonNextPref(int count = 1000)
+{
+    auto &mem = MemManger::Get();
+    mem.GC();
+    int start_arr_size = MemAllocCollect::vec_quene.size();
+    int start_obj_size = MemAllocCollect::obj_quene.size();
+    Profile p;
+    p.Start();
+    for (int i = count - 1; i >= 0; i--)
+    {
+        JsonNext().JsonParse(json);
+    }
+    p.Pause();
+    cout << String::Format("JsonNext all:{}ms count:{} per:{}ms", p.ToMs(), count, p.ToMs(count)) << endl
+         << String::Format("新增 数组数量:{} 对象数量:{}", MemAllocCollect::vec_quene.size() - start_arr_size, MemAllocCollect::obj_quene.size() - start_obj_size) << endl;
+    ;
+}
+
+
+void TestJson()
+{
+    auto &mem = MemManger::Get();
+    ASS(mem.gc_root["__23333"].ToString(), "undefined") // get一个未定义的值
+    ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
+    ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
+    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](JsValue i) { return i.ToString(); }).Join(), "1,2,3,4,2")
+    ASS(JSON_PARSE(" true").Get<bool>(), true)
+    ASS(JSON_PARSE("false").Get<bool>(), false)
+    ASS(JSON_PARSE(R"( "hello world" )").ToString(), "hello world")
+    ASS_2UL(JSON_PARSE("null").Type(), JsType::null)
+    auto parse_obj = JSON_PARSE(R"({
+    "exc": 2333,
+    "c": {
+        "c": "{}\"",
+        "ec": { // 歪比歪比
+            "ddd": true,
+            "f\"": "c[cc{c&%$"
+        }
+    },
+    "dddd": [
+        123.233,
+        /* 歪比巴卜 */
+        1,
+        [1234,
+            -12.1,
+            -2,
+            3.3,
+            null,
+            {
+                "艹":/* are you good 马来西亚 */ ["中文","// 22333","/* 222*/",null]
+            }
+        ],
+        "2ca]o",
+        "3\"2',2$%^&^&2",
+        {
+            "dd": null
+        },
+        "32]{{22"
+    ],
+    "shit": null,
+    "eeee": true
+})");
+    // cout << Json::Stringify(parse_obj) << endl;
+    ASS(parse_obj["dddd"][0].Get<double>(), 123.233)
+    ASS(parse_obj["dddd"][2][0].Get<double>(), double(1234))
+    ASS(parse_obj["dddd"].Array().Src().back().ToString(), "32]{{22")
+    ASS(parse_obj["dddd"][2][5]["艹"].Array().Src().size(), 4)
+    ASS_T(parse_obj["c"]["ec"]["ddd"].Get<bool>())
+    ASS(parse_obj["c"]["ec"]["f\""].ToString(), "c[cc{c&%$")
+    ASS_T(parse_obj["eeee"].Get<bool>())
+    ASS_2UL(parse_obj["shit"].Type(), JsType::null)
+    ASS_2UL(parse_obj["emmm"].Type(), JsType::undefined)
+    ASS_T(mem.gc_root.DeepCompare(mem.gc_root))
+    // 测试json序列化再解析有没有变化，因为字典序会变所以不能直接比字符串，因为会有环形引用所不能用gc根
+    auto str = Json::Stringify(mem.gc_root);
+    auto jsv = JSON_PARSE(str);
+    auto str_2nd = Json::Stringify(jsv);
+    auto jsv_2nd = JSON_PARSE(str_2nd);
+    ASS(jsv, jsv_2nd)
+    mem.GC();
+}
+
+void TestToken()
+{
+    ASS_T(Token("1").IsNumericLiteral())
+    ASS_T(Token("1234").IsNumericLiteral())
+    ASS_T(!Token("123l4").IsNumericLiteral())
+    ASS_T(!Token("123,4").IsNumericLiteral())
+    ASS_T(Token("123.4").IsNumericLiteral())
+    ASS_T(Token("-123.4").IsNumericLiteral())
+    ASS_T(!Token("123__").IsNumericLiteral())
+    ASS_T(Token("true").IsBoolLiteral())
+    ASS_T(Token("true").IsLiteral())
+    ASS_T(!Token("_S$abcd_").IsBoolLiteral())
+    ASS_T(Token("_").IsIdentifier())
+    ASS_T(Token("$").IsIdentifier())
+    ASS_T(!Token("12334").IsIdentifier())
+    ASS_T(Token("abcd").IsIdentifier())
+    ASS_T(Token("ab$_cd").IsIdentifier())
+    ASS_T(Token("_S$abcd_").IsIdentifier())
+    ASS_T(!Token("_S$abcd_").IsKeyWord())
+    ASS_T(Token("_S$abcd_").IsIdentifier())
+}
+
+void TestAst()
+{
+    /* {
+        auto tf = GeneralTokenizer(R"(const a = 1;)", GeneralTokenizer::js).Start();
+        ASS(tf.size(), 5)
+        ASS_T(tf[0].IsKeyWord())
+        ASS_T(tf[0].Is(const_))
+        ASS_T(tf[3].IsNumericLiteral())
+        auto p1 = ConstructAST(tf);
+        ASS(p1.body.size(), 1)
+        auto variable_declaration_sp = p1.body[0];
+        ASS_2UL(variable_declaration_sp->Type(), StatementType::variableDeclaration);
+        auto variable_declaration_p = static_cast<VariableDeclaration *>(variable_declaration_sp.get());
+        ASS(variable_declaration_p->declarations.size(), 1)
+        auto var_decl_item_sp = variable_declaration_p->declarations[0];
+        ASS(var_decl_item_sp->initialed, true)
+        ASS(var_decl_item_sp->id.tok.kw, "a")
+        ASS_2UL(var_decl_item_sp->init->Type(), StatementType::numberLiteralInit)
+        auto number_p = *static_cast<NumberLiteralInit *>(var_decl_item_sp->init.get());
+        ASS(number_p.tok.kw, "1")
+    }*/
+}
+
+void TestVec()
+{
+    auto v = Vector<int>::From({1, 2, 3, 4});
+    ASS(v.Join(), "1,2,3,4")
+    ASS(Vector<int>::From({1}).Join(), "1")
+    ASS(Vector<int>().Join(), "")
+}
+
+void TestString()
+{
+    // split和js的基本一致.不过默认丢弃空的元素
+    ASS(String("     ").Split(""), Vector<String>({" ", " ", " ", " ", " "}));
+    ASS(String("123  123").Split("123"), Vector<String>({"  "}));
+    ASS(String("123").Split("123"), Vector<String>());
+    ASS(String("123").Split("1234"), Vector<String>({"123"}));
+    ASS(String("1,2,3,4,54").FindAll(","), Vector<int>({1, 3, 5, 7}))
+    ASS(String::Format("hello {}", "world"), "hello world")
+    ASS(String::Format("hello {}", "world{}", "123"), "hello world{}")
+    ASS(String::Format("hello {} {} {}", "world{}"), "hello world{} {} {}")
+    ASS(String(R"({ "hello\"": "world" })").Unescape(), R"({ "hello"": "world" })")
+    ASS(String(R"({ "hello\\\"": "world\"" })").Unescape().Unescape().Unescape(), R"({ "hello"": "world"" })")
+    ASS(String(R"({ "hello": "world" })").Escape(), R"({ \"hello\": \"world\" })")
+    ASS(String(R"({ "hello": "world" })").Escape().Escape(), R"({ \\"hello\\": \\"world\\" })")
+    ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
+}
+
+auto test_js = LoadFile("./src/test.leaf.js");
+
+int main(int argc, char **argv)
+{
+    Token::Init();
+    auto undefined = JsValue();
+    auto arg = CreateVecFromStartParams(argc, argv);
+    if (argc < 1)
+    {
+        return 1;
+    }
+    JsValue conf = JsObject({{"hello", "world"}});
+    for (auto i : arg)
+    {
+        if (i.StartWith('-'))
+        {
+            if (i.find('=') != string::npos)
+            {
+                auto kv = String(i.substr(1)).Split('=', 1);
+                conf[kv[0]] = kv[1];
+            }
+            else
+            {
+                conf[i.substr(1)] = true;
+            }
+        }
+    }
+    auto escape = conf["escape"].ToBool();
+    auto indent = conf.In("indent") ? stoi(conf["indent"].ToString()) : 4;
+    auto path = conf["path"];
+    auto request = conf["request"];
+    auto tokenizer = conf["tokenizer"].ToBool();
+    auto test = conf["test"];
+    auto print_conf = conf["print-conf"];
+    auto ast_c = conf["ast"].ToBool();
+    auto mem = conf["mem"];
+    auto run = conf["run"];
+    auto token = conf["token"];
+    auto repl = conf["repl"].ToBool();
+    if (repl)
+    {
+        VM vm;
+        auto o1 = JsObject({{"d", "hello world"}});
+        auto o2 = JsObject({{"hello", o1}});
+        auto o3 = JsObject({{"o3", o2}});
+        vm.ctx_stack[0].var["b"] = JsObject({{"dd", o3}, {"cc", 01}});
+        AddPreDefine(vm);
+        array<char, 1000> buf = {0};
+        auto ptr = &buf.at(0);
+        cout << color_green_s << "input :" << color_e << "\t";
+        while (cin.getline(ptr, 999))
+        {
+            
+            try
+            {
+                String src = ptr;
+                auto tfv = GeneralTokenizer::Js(src);
+                if (tokenizer)
+                {
+                    for (auto &&i : tfv)
+                    {
+                        cout << i.ToDebugStr() << endl;
+                    }
+                }
+
+                auto ast = Compiler().ConstructAST(tfv);
+                if (ast_c)
+                {
+
+                    cout << Json::Stringify(ast.ToJson()) << endl;
+                }
+                // else
+                {
+
+                    auto res = vm.Run(ast);
+                    cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
+                }
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr
+                    << color_red_s << "error :" << color_e << "\t" << e.what() << '\n';
+            }
+
+            buf.fill(0);
+            cout << color_green_s << "input :" << color_e << "\t";
+        }
+
+        return -1;
+    }
+
+    auto tfv = GeneralTokenizer::Js(test_js);
+    if (token.NotUndef())
+    {
+        cout << "-- token start --" << endl;
+
+        auto iter = tfv.begin();
+        while (iter != tfv.end())
+        {
+            cout << iter->ToDebugStr() << endl;
+            iter++;
+        }
+
+        cout << "-- token end --" << endl;
+    }
+
+    auto ast = Compiler().ConstructAST(tfv);
+    VM vm;
+    if (run.NotUndef())
+    {
+        cout << Json::Stringify(vm.Run(ast)) << endl;
+    }
+
+    if (print_conf.NotUndef())
+    {
+        cout << "启动参数 argc:" << argc << "  args:" << arg.Join(" ") << endl;
+        cout << Json::Stringify(conf) << endl;
+    }
+    if (ast_c)
+    {
+        cout << Json::Stringify(ast.ToJson()) << endl;
+    }
+    if (mem.NotUndef())
+    {
+        cout << Json::Stringify(vm.CurrCtx().var) << endl;
+    }
+
+    if (request.NotUndef())
+    {
+        auto resp = sion::Fetch(request.ToString());
+        if (resp.ContentType().find("json") != string::npos)
+        {
+            auto jsv = JsonNext().JsonParse(resp.Body());
+            cout << Json::Stringify(jsv, indent, escape) << endl;
+        }
+        else
+        {
+            cout << resp.Source() << endl;
+        }
+    }
+    else if (path.NotUndef())
+    {
+        auto src = LoadFile(path.ToString());
+        if (tokenizer)
+        {
+            GeneralTokenizer tokenizer(src);
+            auto tfv = tokenizer.Start();
+            for (auto &&i : tfv)
+            {
+                cout << i.ToDebugStr() << endl;
+            }
+        }
+        else
+        {
+            auto jsv = JSON_PARSE(src);
+            cout << Json::Stringify(jsv, indent, escape) << endl;
+        }
+    }
+    else if (test.NotUndef())
+    {
+        string e = R"(
+        {
+            "hello\"": "world,\"\"\"\"&&&&"
+        }
+    )";
+        auto v = JsonNext().JsonParse(e);
+        cout << Json::Stringify(v) << endl;
+        cout << Json::Stringify(v, 2, false) << endl;
+        // cout<<sion::Fetch("http://baidu.com").BodyStr<<endl;
+        // TestJsonPrefSimd();
+        TestJsonNextPref();
+        TestString();
+        TestVec();
+        TestToken();
+        TestGcPref();
+        TestMemMange();
+        TestJson();
+
+        // p.Print();
+        // TestAst();
+    }
+    return 1;
+}

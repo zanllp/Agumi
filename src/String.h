@@ -1,0 +1,70 @@
+#pragma once
+#include "stdafx.h"
+#include "Vector.h"
+class JsValue;
+
+using namespace std;
+class String : public string
+{
+public:
+    String();
+    ~String();
+    template <class T>
+    String(T &&arg) : string(std::forward<T>(arg)) {}
+
+    template <typename U>
+    String(Vector<U> arg) : string(arg.Join()) {}
+    
+    String(JsValue arg);
+
+    String(int arg);
+
+    String(bool arg);
+
+    String(unsigned long arg);
+
+    String(double arg);
+
+    String(char arg);
+
+    // 使用字符串分割
+    // flag 分割标志,返回的字符串向量会剔除,flag不要用char，会重载不明确
+    // num 分割次数，默认-1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            即分割到结束，例num=1,返回开头到flag,flag到结束size=2的字符串向量
+    // skipEmpty 跳过空字符串，即不压入length==0的字符串
+    Vector<String> Split(String flag, int num = -1, bool skipEmpty = true) const;
+
+    // 清除前后的字符
+    // target 需要清除的字符默认空格
+    String Trim(String empty_set = " \n\r\t") const;
+
+    String Unescape() const;
+    String Escape() const;
+    String ToLowerCase() const;
+
+    String ToUpperCase() const;
+    // 返回搜索到的所有位置
+    // flag 定位标志
+    // num 搜索数量，默认直到结束
+    Vector<int> FindAll(String flag, int num = -1) const;
+
+    // 字符串替换
+    // oldStr 被替换的字符串
+    // newStr 新换上的字符串
+    // count 替换次数，默认1，大于0时替换到足够次数或找不到旧字符串为止，小于0时替换到结束
+    String &Replace(String oldStr, String newStr, int count = 1, int start = 0, int step = 1);
+
+    bool StartWith(String sub);
+
+    static String Format(String str, std::vector<String> args);
+
+    template <typename... Ts>
+    static String Format(String str, Ts... args)
+    {
+        return String::Format(str, {args...});
+    }
+
+    static bool IncludeSym(const String & syms, char sym);
+    String Repeat(int num) const;
+
+    bool Test(String reg) const;
+};
