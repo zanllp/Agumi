@@ -15,7 +15,7 @@ make
 ## 例子
 1. 进入repl
 ```shell
-./bin/agumi
+./bin/agumi -repl
 ```
 2. 斐波那契
 ```js
