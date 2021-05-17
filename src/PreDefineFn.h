@@ -16,7 +16,7 @@ namespace agumi
         };
         auto json_stringify = [&](Vector<JsValue> args) -> JsValue
         {
-            return Json::Stringify(args.GetOrDefault(0).ToString());
+            return Json::Stringify(args.GetOrDefault(0));
         };
         auto json_module = JsObject({{"parse", vm.DefineFunc(json_parse)},
                                      {"stringify", vm.DefineFunc(json_stringify)}});
@@ -69,7 +69,7 @@ namespace agumi
 
         // 定义本地类成员函数
         LocalClassDefine string_def;
-        string_define.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
+        string_def.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
         {
             return static_cast<int>(_this.GetC<String>().length());
         };
