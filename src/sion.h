@@ -64,7 +64,8 @@ namespace sion
         vector<String> Split(String flag, int num = -1, bool skip_empty = true) const
         {
             vector<String> data_set;
-            auto push_data = [&](String line) {
+            auto push_data = [&](String line)
+            {
                 if (line.length() != 0 || !skip_empty)
                 {
                     data_set.push_back(line);
@@ -124,14 +125,16 @@ namespace sion
         String ToLowerCase()
         {
             String s = *this;
-            std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+            std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c)
+                           { return std::tolower(c); });
             return s;
         }
 
         String ToUpperCase()
         {
             String s = *this;
-            std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::toupper(c); });
+            std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c)
+                           { return std::toupper(c); });
             return s;
         }
 
@@ -226,7 +229,6 @@ namespace sion
         if ((err = getaddrinfo(hostname.c_str(), NULL, &hints, &res)) != 0)
         {
             Throw<std::runtime_error>("错误" + std::to_string(err) + String(gai_strerror(err)));
-            cout<<1<<endl;
         }
         addr.s_addr = ((sockaddr_in *)(res->ai_addr))->sin_addr.s_addr;
         char str[INET_ADDRSTRLEN];
@@ -426,7 +428,8 @@ namespace sion
                 vector<char> pure_source_char;
                 // 获取下一个\r\n的位置
                 int crlf_pos = 0;
-                auto get_next_crlf = [&](int leap) {
+                auto get_next_crlf = [&](int leap)
+                {
                     for (int i = crlf_pos + leap; i < (sc.size() - 1); i++)
                     {
                         if (sc[i] == '\r' && sc[i + 1] == '\n')
@@ -471,7 +474,8 @@ namespace sion
                 String pure_str;
                 // 获取下一个\r\n的位置
                 int crlf_pos = 0;
-                auto get_next_crlf = [&](int leap) {
+                auto get_next_crlf = [&](int leap)
+                {
                     crlf_pos = rb.find("\r\n", crlf_pos + leap);
                     return crlf_pos;
                 };
@@ -692,7 +696,8 @@ namespace sion
         {
             const int buf_size = 2048;
             array<char, buf_size> buf{0};
-            auto Read = [&]() {
+            auto Read = [&]()
+            {
                 buf.fill(0);
                 int status = 0;
                 if (protocol_ == "http")
@@ -726,7 +731,8 @@ namespace sion
             }
             auto len_header = resp.source_.length() - resp.body_str_.length(); // 响应头长度
             // 检查是否接收完
-            auto check_end = [&] {
+            auto check_end = [&]
+            {
                 if (resp.save_by_char_vec_)
                 {
                     if (resp.is_chunked_)

@@ -7,8 +7,8 @@
 #include "Runtime.h"
 #include "PreDefineFn.h"
 
-
 using namespace std;
+using namespace agumi;
 const string json = LoadFile("tweet.json");
 const String color_red_s = "\033[31m";
 const String color_green_s = "\033[32m";
@@ -59,7 +59,8 @@ void TestGcPref(int count = 100 * 1000)
     auto &mem = MemManger::Get();
     Profile p;
     p.Start();
-    auto c = [&] {
+    auto c = [&]
+    {
         auto arr = JsArray();
         mem.gc_root["ccc"] = arr;
         for (int i = count - 1; i >= 0; i--)
@@ -99,14 +100,16 @@ void TestJsonNextPref(int count = 1000)
     ;
 }
 
-
 void TestJson()
 {
     auto &mem = MemManger::Get();
     ASS(mem.gc_root["__23333"].ToString(), "undefined") // get一个未定义的值
     ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
-    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](JsValue i) { return i.ToString(); }).Join(), "1,2,3,4,2")
+    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](JsValue i)
+                                                             { return i.ToString(); })
+            .Join(),
+        "1,2,3,4,2")
     ASS(JSON_PARSE(" true").Get<bool>(), true)
     ASS(JSON_PARSE("false").Get<bool>(), false)
     ASS(JSON_PARSE(R"( "hello world" )").ToString(), "hello world")
@@ -234,6 +237,20 @@ void TestString()
     ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
 }
 
+void TestScriptExec()
+{
+    VM vm;
+    auto vm_run = [&](String src) -> JsValue
+    {
+        auto tfv = GeneralTokenizer::Js(src);
+        auto ast = Compiler().ConstructAST(tfv);
+        return vm.Run(ast);
+    };
+    vm_run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
+    auto res = vm_run("fib(10)");
+    ASS(res.ToString(), "55")
+}
+
 auto test_js = LoadFile("./src/test.leaf.js");
 
 int main(int argc, char **argv)
@@ -286,7 +303,7 @@ int main(int argc, char **argv)
         cout << color_green_s << "input :" << color_e << "\t";
         while (cin.getline(ptr, 999))
         {
-            
+
             try
             {
                 String src = ptr;
@@ -411,7 +428,7 @@ int main(int argc, char **argv)
         TestGcPref();
         TestMemMange();
         TestJson();
-
+        TestScriptExec();
         // p.Print();
         // TestAst();
     }

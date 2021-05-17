@@ -17,31 +17,34 @@
 #include <optional>
 #include "String.h"
 #include "Vector.h"
-class String;
-enum class JsType
+namespace agumi
 {
-    string,
-    number,
-    undefined,
-    null,
-    boolean,
-    object,
-    array,
-    function
-    //  bigint,
-    // symbol
-};
-static std::vector<std::string> jstype_emun2str {
-    "string",
-    "number",
-    "undefined",
-    "null",
-    "boolean",
-    "JsObject",
-    "array",
-    "function"};
-class JsValue;
-using JsObjectMap = std::map<String, JsValue>;
-using JsArrayVec = Vector<JsValue>;
+    class String;
+    enum class JsType
+    {
+        string,
+        number,
+        undefined,
+        null,
+        boolean,
+        object,
+        array,
+        function
+        //  bigint,
+        // symbol
+    };
+    static std::vector<std::string> jstype_emun2str{
+        "string",
+        "number",
+        "undefined",
+        "null",
+        "boolean",
+        "JsObject",
+        "array",
+        "function"};
+    class JsValue;
+    using JsObjectMap = std::map<String, JsValue>;
+    using JsArrayVec = Vector<JsValue>;
 
-#define THROW_MSG(msg, ...) throw logic_error(String::Format("{} \n\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), __FILE__, __LINE__));
+#define THROW_MSG(msg, ...) throw std::logic_error(String::Format("{} \n\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), __FILE__, __LINE__));
+}

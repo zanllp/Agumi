@@ -6,50 +6,54 @@
 #include "JsObject.h"
 #include "sion.h"
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
-void AddPreDefine (VM& vm)
+namespace agumi
 {
-    auto json_module = JsObject();
-        vm.ctx_stack[0].var["json"] = json_module;
-        json_module["parse"] = vm.DefineFunc([&](Vector<JsValue> args) -> JsValue {
+    void AddPreDefine(VM &vm)
+    {
+        auto json_parse = [&](Vector<JsValue> args) -> JsValue
+        {
             return JSON_PARSE(args.GetOrDefault(0).ToString());
-        });
-        json_module["stringify"] = vm.DefineFunc([&](Vector<JsValue> args) -> JsValue {
+        };
+        auto json_stringify = [&](Vector<JsValue> args) -> JsValue
+        {
             return Json::Stringify(args.GetOrDefault(0).ToString());
-        });
-        vm.DefineGlobalFunc("request", [&](Vector<JsValue> args) -> JsValue {
+        };
+        auto json_module = JsObject({{"parse", vm.DefineFunc(json_parse)},
+                                     {"stringify", vm.DefineFunc(json_stringify)}});
+        vm.ctx_stack[0].var["json"] = json_module;
+        auto fetch_bind = [&](Vector<JsValue> args) -> JsValue
+        {
             auto resp = sion::Fetch(args[0].ToString());
             auto res = JsObject();
-            res["data"] = resp.Body();
+            res["data"] = resp.Body().c_str();
             return res;
-        });
-        vm.DefineGlobalFunc("eval", [&](Vector<JsValue> args) -> JsValue {
+        };
+        vm.DefineGlobalFunc("fetch", fetch_bind);
+        auto eval = [&](Vector<JsValue> args) -> JsValue
+        {
             auto script = args.GetOrDefault(0).ToString();
             auto enable_curr_vm = args.GetOrDefault(1).ToBool();
             auto tfv = GeneralTokenizer::Js(script);
             auto ast = Compiler().ConstructAST(tfv);
             return enable_curr_vm ? vm.Run(ast) : VM().Run(ast);
-        });
-        vm.DefineGlobalFunc("str", [&](Vector<JsValue> args) -> JsValue {
-            if (args.size() == 0)
-            {
-                return "";
-            }
-            auto tpl = args[0].ToString();
-            if (args.size() != 1)
-            {
-                return String::Format(tpl);
-            }
-            
-            return tpl;
-        });
-        vm.DefineGlobalFunc("log", [&](Vector<JsValue> args) -> JsValue {
-            cout << args.Map<String>([](JsValue arg) { return arg.ToString(); }).Join() << endl;
+        };
+        vm.DefineGlobalFunc("eval", eval);
+        auto log = [&](Vector<JsValue> args) -> JsValue
+        {
+            auto out = args.Map<String>([](JsValue arg)
+                                        { return arg.ToString(); })
+                           .Join();
+            std::cout << out << std::endl;
             return JsValue::undefined;
-        });
-        vm.DefineGlobalFunc("loadFile", [&](Vector<JsValue> args) -> JsValue {\
+        };
+        vm.DefineGlobalFunc("log", log);
+        auto load_file_bind = [&](Vector<JsValue> args) -> JsValue
+        {
             return LoadFile(args.GetOrDefault(0).ToString());
-        });
-        vm.DefineGlobalFunc("mem", [&](Vector<JsValue> args) -> JsValue {
+        };
+        vm.DefineGlobalFunc("loadFile", load_file_bind);
+        auto mem_bind = [&](Vector<JsValue> args) -> JsValue
+        {
             size_t idx = 0;
             if (args.size())
             {
@@ -60,5 +64,7 @@ void AddPreDefine (VM& vm)
                 }
             }
             return vm.ctx_stack[idx].var;
-        });
+        };
+        vm.DefineGlobalFunc("mem", mem_bind);
+    }
 }
