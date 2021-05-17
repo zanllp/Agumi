@@ -66,5 +66,33 @@ namespace agumi
             return vm.ctx_stack[idx].var;
         };
         vm.DefineGlobalFunc("mem", mem_bind);
+
+        // 定义本地类成员函数
+        LocalClassDefine string_def;
+        string_define.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
+        {
+            return static_cast<int>(_this.GetC<String>().length());
+        };
+        vm.class_define[JsType::string] = string_def;
+
+        LocalClassDefine array_def;
+        array_def.member_func["push"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
+        {
+            for (auto &i : args)
+            {
+                _this.Array().Src().push_back(i);
+            }
+            return _this;
+        };
+        array_def.member_func["get"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
+        {
+            if (args.size() < 1)
+            {
+                THROW
+            }
+            int idx = args[0].GetC<double>();
+            return _this[idx];
+        };
+        vm.class_define[JsType::array] = array_def;
     }
 }

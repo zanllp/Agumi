@@ -18,6 +18,21 @@ namespace agumi
         std::function<JsValue(Vector<JsValue>)> native_fn;
     };
 
+    class LocalClassDefine
+    {
+    public:
+        std::map<String, std::function<JsValue(JsValue &, Vector<JsValue>)>> member_func;
+        JsValue ExecFunc(String key, JsValue &val, Vector<JsValue> args)
+        {
+            auto iter = member_func.find(key);
+            if (iter == member_func.end())
+            {
+                THROW_MSG("{} is not a function", key)
+            }
+            return iter->second(val, args);
+        }
+    };
+
     class VM
     {
     public:
@@ -27,6 +42,7 @@ namespace agumi
         }
         Vector<Context> ctx_stack;
         std::map<String, Function> func_mem;
+        std::map<JsType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
             return ctx_stack.back();
@@ -175,6 +191,22 @@ namespace agumi
 
             return v;
         }
+        JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key,JsValue &val)
+        {
+            SRC_REF(fn_call, FunctionCall, stat)
+            Vector<JsValue> args;
+            for (size_t i = 0; i < fn_call.arguments.size(); i++)
+            {
+                auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
+                args.push_back(incoming_val);
+            }
+            auto class_iter = class_define.find(t);
+            if (class_iter == class_define.end())
+            {
+                THROW_MSG("class {} is not a defined", jstype_emun2str[(int)t])
+            }
+            return class_iter->second.ExecFunc(key, val, args);
+        }
         JsValue ResolveVariableDeclaration(StatPtr stat)
         {
             SRC_REF(decl, VariableDeclaration, stat)
@@ -307,7 +339,14 @@ namespace agumi
             if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
             {
                 SRC_REF(key, Identifier, stat);
-                return par[key.tok.kw];
+                if (par.Type() == JsType::object)
+                {
+                    return par[key.tok.kw];
+                }
+                else
+                {
+                    // todo 类成员set get
+                }
             }
             if (stat->Type() == StatementType::indexStatement)
             {
@@ -320,16 +359,25 @@ namespace agumi
                 else
                 {
                     auto key = idx.object->tok.kw;
-                    auto next_par = par[key];
-                    return ResolveObjectIndex(idx.property, next_par);
+                    if (par.Type() == JsType::object)
+                    {
+                        auto next_par = par[key];
+                        return ResolveObjectIndex(idx.property, next_par);
+                    }
+                     // todo 类成员set get
                 }
             }
             if (stat->Type() == StatementType::functionCall)
             {
                 SRC_REF(fn, FunctionCall, stat);
                 SRC_REF(key, Identifier, fn.id);
-                auto fn_loc = par[key.tok.kw];
-                return ResolveFuncCall(stat, fn_loc);
+                auto t = par.Type();
+                auto key_str = key.tok.kw;
+                if (t == JsType::object)
+                {
+                    return ResolveFuncCall(stat, par[key_str]);
+                }
+                return ResolveLocalClassFuncCall(stat, t, key_str, par);
             }
             THROW
         }
