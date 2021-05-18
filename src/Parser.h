@@ -288,7 +288,7 @@ namespace agumi
             JsValue r = JsObject();
             r["type"] = "IndexStatement";
             r["propetry"] = property->ToJson();
-            r["JsObject"] = object->ToJson();
+            r["object"] = object->ToJson();
             return r;
         }
     };

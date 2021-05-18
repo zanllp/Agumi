@@ -94,5 +94,12 @@ namespace agumi
             return _this[idx];
         };
         vm.class_define[JsType::array] = array_def;
+
+        LocalClassDefine num_def;
+        num_def.member_func["incr"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
+        {
+            return ++_this.Get<double>();
+        };
+        vm.class_define[JsType::number] = num_def;
     }
 }

@@ -80,7 +80,7 @@ namespace agumi
         type = JsType::number;
         data_ptr = new double(data);
     }
-    JsValue::JsValue(nullptr_t null)
+    JsValue::JsValue(std::nullptr_t null)
     {
         type = JsType::null;
     }

@@ -19,7 +19,7 @@ namespace agumi
         JsValue(bool data);
         JsValue(const char *data);
         JsValue(int data);
-        JsValue(nullptr_t null);
+        JsValue(std::nullptr_t null);
         JsValue(double data);
         JsValue(std::string data);
         JsValue(JsObject obj);

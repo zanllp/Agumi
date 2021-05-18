@@ -59,7 +59,7 @@ namespace agumi
             }
             return {JsValue::undefined, false};
         }
-        JsValue ValueOrUndef(String key)
+        JsValue &ValueOrUndef(String key)
         {
             for (size_t i = 0; i < ctx_stack.size(); i++)
             {
@@ -191,7 +191,7 @@ namespace agumi
 
             return v;
         }
-        JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key,JsValue &val)
+        JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, JsValue &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)
             Vector<JsValue> args;
@@ -334,7 +334,7 @@ namespace agumi
             // auto& ctx  = CurrCtx();
             return init.tok.toStringContent();
         }
-        JsValue ResolveObjectIndex(StatPtr stat, JsValue par = JsValue::undefined)
+        JsValue ResolveObjectIndex(StatPtr stat, JsValue &par)
         {
             if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
             {
@@ -353,7 +353,7 @@ namespace agumi
                 SRC_REF(idx, IndexStatement, stat);
                 if (par == JsValue::undefined)
                 {
-                    JsValue obj = ResolveExecutable(idx.object);
+                    JsValue &obj = ValueOrUndef(idx.object->tok.kw);
                     return ResolveObjectIndex(idx.property, obj);
                 }
                 else
@@ -361,10 +361,10 @@ namespace agumi
                     auto key = idx.object->tok.kw;
                     if (par.Type() == JsType::object)
                     {
-                        auto next_par = par[key];
+                        auto &next_par = par[key];
                         return ResolveObjectIndex(idx.property, next_par);
                     }
-                     // todo 类成员set get
+                    // todo 类成员set get
                 }
             }
             if (stat->Type() == StatementType::functionCall)
@@ -414,7 +414,7 @@ namespace agumi
             case StatementType::functionCall:
                 return ResolveFuncCall(stat);
             case StatementType::indexStatement:
-                return ResolveObjectIndex(stat);
+                return ResolveObjectIndex(stat, JsValue::undefined);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
             }
