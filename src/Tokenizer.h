@@ -285,6 +285,11 @@ namespace agumi
             return kw.Test(R"(^[_a-z$][_a-z$\w]*$)");
         }
 
+        KW ToKwEnum()
+        {
+            return Token::Str2kw(this->kw);
+        }
+
         // 去掉两边的’”·
         String toStringContent(bool ignore_check = false) const
         {
@@ -363,6 +368,19 @@ namespace agumi
             }
 
             return res;
+        }
+
+        static KW Str2kw(String kw)
+        {
+            for (size_t i = 0; i <  KeyWordMap.size(); i++)
+            {
+                if (KeyWordMap[i] == kw)
+                {
+                    return static_cast<KW>(i);
+                }
+                
+            }
+            THROW
         }
 
         static void Init();

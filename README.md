@@ -33,9 +33,7 @@ repl时开启输出语法树
 repl时开启输出令牌化
 ### -test
 运行测试
-## 内置函数
-参考[pre define func](./src/PreDefineFn.h)
-## 如何与c++ bind
+## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ## 已知问题
 1. 运算符优先级有时会表现异常，后面改用调度场重新写

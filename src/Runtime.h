@@ -22,6 +22,7 @@ namespace agumi
     {
     public:
         std::map<String, std::function<JsValue(JsValue &, Vector<JsValue>)>> member_func;
+        std::map<JsType, std::map<KW, std::function<JsValue(JsValue &, JsValue &)>>> binary_operator_overload;
         JsValue ExecFunc(String key, JsValue &val, Vector<JsValue> args)
         {
             auto iter = member_func.find(key);
@@ -30,6 +31,21 @@ namespace agumi
                 THROW_MSG("{} is not a function", key)
             }
             return iter->second(val, args);
+        }
+        JsValue ExecBinaryOperator(JsType t, KW op, JsValue &l, JsValue &r)
+        {
+            auto type_def = binary_operator_overload.find(t);
+            if (type_def == binary_operator_overload.end())
+            {
+                String t_str = jstype_emun2str[static_cast<int>(t)];
+                THROW_MSG("{} is not defined", t_str)
+            }
+            auto op_def = type_def->second.find(op);
+            if (op_def == type_def->second.end())
+            {
+                THROW_MSG("{} is not defined", Token::Kw2Str(op))
+            }
+            return op_def->second(l, r);
         }
     };
 
@@ -261,62 +277,20 @@ namespace agumi
             auto type = left.Type();
             auto type_r = right.Type();
 #define ERR_ResolveBinaryExpression THROW_MSG("type:{} {} type:{} is not defined", jstype_emun2str[(int)type], expr.op.kw, jstype_emun2str[(int)type_r])
-            auto &op = expr.op;
-            if (op.Is(eqeq_) || op.Is(eqeqeq_))
-            {
-                return left == right;
-            }
-            else if (op.Is(not_eq_) || op.Is(not_eqeq_))
-            {
-                return !(left == right);
-            }
-
-            if (type != type_r && (type == JsType::string || type == JsType::number))
+            auto left_type_def = class_define.find(type);
+            if (left_type_def == class_define.end())
             {
                 ERR_ResolveBinaryExpression
             }
-            if (type == JsType::number)
+            auto r_type_def_set = left_type_def->second.binary_operator_overload;
+            auto target_type_def = r_type_def_set.find(type_r);
+            if (target_type_def == r_type_def_set.end())
             {
-                auto l_n = left.GetC<double>();
-                auto r_n = right.GetC<double>();
-                switch (expr.op.kw[0])
-                {
-                case '*':
-                    return l_n * r_n;
-                case '/':
-                    return l_n / r_n;
-                case '+':
-                    return l_n + r_n;
-                case '-':
-                    return l_n - r_n;
-                case '%':
-                    return fmod(l_n, r_n);
-                }
-                if (op.Is(more_than_))
-                {
-                    return l_n > r_n;
-                }
-                if (op.Is(more_than_equal_))
-                {
-                    return l_n >= r_n;
-                }
-                if (op.Is(less_than_))
-                {
-                    return l_n < r_n;
-                }
-                if (op.Is(less_than_equal_))
-                {
-                    return l_n <= r_n;
-                }
+                ERR_ResolveBinaryExpression
             }
-            else if (type == JsType::string && expr.op.kw[0] == '+')
-            {
-                auto s1 = left.GetC<String>();
-                auto s2 = right.GetC<String>();
-                return s1 + s2;
-            }
-
-            ERR_ResolveBinaryExpression
+            auto op = expr.op.ToKwEnum();
+            auto target_op_def = target_type_def->second.find(op);
+            return target_op_def->second(left, right);
         }
         JsValue ResolveBoolLiteralInit(StatPtr stat)
         {

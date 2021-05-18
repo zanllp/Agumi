@@ -6,6 +6,7 @@
 #include "JsObject.h"
 #include "sion.h"
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
+#define BIN_OPERATOR(body) [](JsValue &l, JsValue &r) { return body; };
 namespace agumi
 {
     void AddPreDefine(VM &vm)
@@ -69,6 +70,9 @@ namespace agumi
 
         // 定义本地类成员函数
         LocalClassDefine string_def;
+        std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> str_op_def;
+        str_op_def[add_] = BIN_OPERATOR(l.GetC<String>() + r.GetC<String>());
+        string_def.binary_operator_overload[JsType::string] = str_op_def;
         string_def.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
         {
             return static_cast<int>(_this.GetC<String>().length());
@@ -91,6 +95,11 @@ namespace agumi
                 THROW
             }
             int idx = args[0].GetC<double>();
+            if (idx >= _this.ArrayC().SrcC().size())
+            {
+                THROW
+            }
+
             return _this[idx];
         };
         vm.class_define[JsType::array] = array_def;
@@ -100,6 +109,21 @@ namespace agumi
         {
             return ++_this.Get<double>();
         };
+        std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> num_op_def;
+        num_op_def[eqeq_] = BIN_OPERATOR(l.GetC<double>() == r.GetC<double>());
+        num_op_def[eqeqeq_] = BIN_OPERATOR(l.GetC<double>() == r.GetC<double>());
+        num_op_def[not_eq_] = BIN_OPERATOR(l.GetC<double>() != r.GetC<double>());
+        num_op_def[not_eqeq_] = BIN_OPERATOR(l.GetC<double>() != r.GetC<double>());
+        num_op_def[more_than_] = BIN_OPERATOR(l.GetC<double>() > r.GetC<double>());
+        num_op_def[more_than_equal_] = BIN_OPERATOR(l.GetC<double>() >= r.GetC<double>());
+        num_op_def[less_than_] = BIN_OPERATOR(l.GetC<double>() < r.GetC<double>());
+        num_op_def[less_than_equal_] = BIN_OPERATOR(l.GetC<double>() <= r.GetC<double>());
+        num_op_def[add_] = BIN_OPERATOR(l.GetC<double>() + r.GetC<double>());
+        num_op_def[sub_] = BIN_OPERATOR(l.GetC<double>() - r.GetC<double>());
+        num_op_def[mul_] = BIN_OPERATOR(l.GetC<double>() * r.GetC<double>());
+        num_op_def[div_] = BIN_OPERATOR(l.GetC<double>() / r.GetC<double>());
+        num_op_def[mod_] = BIN_OPERATOR(fmod(l.GetC<double>(), r.GetC<double>()));
+        num_def.binary_operator_overload[JsType::number] = num_op_def;
         vm.class_define[JsType::number] = num_def;
     }
 }
