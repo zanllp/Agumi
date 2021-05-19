@@ -57,6 +57,7 @@ namespace agumi
             ctx_stack.resize(1);
         }
         Vector<Context> ctx_stack;
+        Vector<JsValue> temp_stack;
         std::map<String, Function> func_mem;
         std::map<JsType, LocalClassDefine> class_define;
         Context &CurrCtx()
@@ -308,7 +309,7 @@ namespace agumi
             // auto& ctx  = CurrCtx();
             return init.tok.toStringContent();
         }
-        JsValue ResolveObjectIndex(StatPtr stat, JsValue &par)
+        JsValue ResolveObjectIndex(StatPtr stat, JsValue &par, bool is_literal = false)
         {
             if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
             {
@@ -327,8 +328,19 @@ namespace agumi
                 SRC_REF(idx, IndexStatement, stat);
                 if (par == JsValue::undefined)
                 {
-                    JsValue &obj = ValueOrUndef(idx.object->tok.kw);
-                    return ResolveObjectIndex(idx.property, obj);
+                    auto obj_p = idx.object;
+                    auto obj_is_idx = obj_p->Type() == StatementType::identifier;
+                    if (obj_is_idx)
+                    {
+                        JsValue &obj = ValueOrUndef(obj_p->tok.kw);
+                        return ResolveObjectIndex(idx.property, obj);
+                    }
+                    else
+                    {
+                        auto v = ResolveExecutable(obj_p); // 可能是字面量
+                        temp_stack.push_back(v); //  压入临时栈
+                        return ResolveObjectIndex(idx.property, temp_stack.back(), true); // 持有刚才值的引用，并标明是一个字面量
+                    }
                 }
                 else
                 {
@@ -351,7 +363,12 @@ namespace agumi
                 {
                     return ResolveFuncCall(stat, par[key_str]);
                 }
-                return ResolveLocalClassFuncCall(stat, t, key_str, par);
+                auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
+                if (is_literal) 
+                {
+                    temp_stack.pop_back(); // 释放临时的字面量
+                }
+                return v;
             }
             THROW
         }
