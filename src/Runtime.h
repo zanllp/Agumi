@@ -291,6 +291,10 @@ namespace agumi
             }
             auto op = expr.op.ToKwEnum();
             auto target_op_def = target_type_def->second.find(op);
+            if (target_op_def == target_type_def->second.end())
+            {
+                ERR_ResolveBinaryExpression
+            }
             return target_op_def->second(left, right);
         }
         JsValue ResolveBoolLiteralInit(StatPtr stat)

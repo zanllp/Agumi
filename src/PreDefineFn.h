@@ -72,7 +72,8 @@ namespace agumi
         LocalClassDefine string_def;
         std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> str_op_def;
         str_op_def[add_] = BIN_OPERATOR(l.GetC<String>() + r.GetC<String>());
-        str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())))
+        str_op_def[add_equal_] = BIN_OPERATOR(l.Get<String>() += r.GetC<String>());
+        str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())));
         string_def.binary_operator_overload[JsType::string] = str_op_def;
         string_def.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
         {
@@ -124,6 +125,8 @@ namespace agumi
         num_op_def[mul_] = BIN_OPERATOR(l.GetC<double>() * r.GetC<double>());
         num_op_def[div_] = BIN_OPERATOR(l.GetC<double>() / r.GetC<double>());
         num_op_def[mod_] = BIN_OPERATOR(fmod(l.GetC<double>(), r.GetC<double>()));
+        num_op_def[sub_equal_] = BIN_OPERATOR(l.Get<double>() -= r.GetC<double>());
+        num_op_def[add_equal_] = BIN_OPERATOR(l.Get<double>() += r.GetC<double>());
         num_def.binary_operator_overload[JsType::number] = num_op_def;
         vm.class_define[JsType::number] = num_def;
     }

@@ -29,7 +29,7 @@ namespace agumi
         }
         void Print(double scale = 1)
         {
-            std::cout << ToMs(scale) << " ms" <<  std::endl;
+            std::cout << ToMs(scale) << " ms" << std::endl;
         }
         double ToMs(double scale = 1)
         {
@@ -160,7 +160,15 @@ namespace agumi
         // =>
         arrow_,
         // .
-        dot_
+        dot_,
+        // +=
+        add_equal_,
+        // ++
+        add_add_,
+        // -=
+        sub_equal_,
+        // --
+        sub_sub_,
 
     };
     // 表达式支持的运算符
@@ -168,9 +176,22 @@ namespace agumi
         question_mask_, add_, sub_, mul_, div_,
         mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_,
         more_than_, more_than_equal_, less_than_,
-        less_than_equal_, brackets_start_};
+        less_than_equal_, brackets_start_,
+        add_equal_,sub_equal_};
     // 多字符的运算符
-    Vector<KW> multi_char_operator{eqeq_, eqeqeq_, not_eq_, not_eqeq_, more_than_equal_, less_than_equal_, arrow_};
+    Vector<KW> multi_char_operator{
+        eqeq_,
+        eqeqeq_,
+        not_eq_,
+        not_eqeq_,
+        more_than_equal_,
+        less_than_equal_,
+        arrow_,
+        add_equal_,
+        add_add_,
+        sub_equal_,
+        sub_sub_,
+    };
 
     class Token : public ViewEnd
     {
@@ -372,13 +393,12 @@ namespace agumi
 
         static KW Str2kw(String kw)
         {
-            for (size_t i = 0; i <  KeyWordMap.size(); i++)
+            for (size_t i = 0; i < KeyWordMap.size(); i++)
             {
                 if (KeyWordMap[i] == kw)
                 {
                     return static_cast<KW>(i);
                 }
-                
             }
             THROW
         }
@@ -704,6 +724,10 @@ namespace agumi
         m[less_than_equal_] = "<=";
         m[arrow_] = "=>";
         m[dot_] = '.';
+        m[add_add_] = "++";
+        m[add_equal_] = "+=";
+        m[sub_sub_] = "--";
+        m[sub_equal_] = "-=";
         for (int i = m.size() - 1; i >= 0; i--)
         {
             if (m[i] != "")
