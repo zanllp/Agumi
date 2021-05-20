@@ -700,7 +700,8 @@ namespace agumi
 
             if (iter->Is(brackets_start_))
             {
-                return ResolveArrayInit(iter);
+                auto [left_stat, end_iter] = ResolveArrayInit(iter);
+                return SeekIfExpr(left_stat, end_iter - 1);
             }
 
             if (iter->IsLiteral())

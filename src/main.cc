@@ -240,15 +240,17 @@ void TestString()
 void TestScriptExec()
 {
     VM vm;
-    auto vm_run = [&](String src) -> JsValue
+    AddPreDefine(vm);
+    auto run = [&](String src) -> JsValue
     {
         auto tfv = GeneralTokenizer::Js(src);
         auto ast = Compiler().ConstructAST(tfv);
         return vm.Run(ast);
     };
-    vm_run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
-    auto res = vm_run("fib(10)");
-    ASS(res.ToString(), "55")
+    run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
+    ASS(run("fib(10)").ToString(), "55")
+    ASS(run("\"hello world\".length()").ToString(), "11")
+    ASS(Json::Stringify(run("[1,2,3,4].push(5,6)"), 0), "[" + Vector<double>::From({1, 2, 3, 4, 5, 6}).Join() + "]")
 }
 
 auto test_js = LoadFile("./src/test.leaf.js");

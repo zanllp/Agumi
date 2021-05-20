@@ -72,6 +72,7 @@ namespace agumi
         LocalClassDefine string_def;
         std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> str_op_def;
         str_op_def[add_] = BIN_OPERATOR(l.GetC<String>() + r.GetC<String>());
+        str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())))
         string_def.binary_operator_overload[JsType::string] = str_op_def;
         string_def.member_func["length"] = [](JsValue &_this, Vector<JsValue> args) -> JsValue
         {

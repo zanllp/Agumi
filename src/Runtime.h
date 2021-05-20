@@ -337,8 +337,8 @@ namespace agumi
                     }
                     else
                     {
-                        auto v = ResolveExecutable(obj_p); // 可能是字面量
-                        temp_stack.push_back(v); //  压入临时栈
+                        auto v = ResolveExecutable(obj_p);                                // 可能是字面量
+                        temp_stack.push_back(v);                                          //  压入临时栈
                         return ResolveObjectIndex(idx.property, temp_stack.back(), true); // 持有刚才值的引用，并标明是一个字面量
                     }
                 }
@@ -364,7 +364,7 @@ namespace agumi
                     return ResolveFuncCall(stat, par[key_str]);
                 }
                 auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
-                if (is_literal) 
+                if (is_literal)
                 {
                     temp_stack.pop_back(); // 释放临时的字面量
                 }

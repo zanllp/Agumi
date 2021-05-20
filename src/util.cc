@@ -48,7 +48,7 @@ namespace agumi
             else if (i == 0 && c == '-')
             {
             }
-            else if (c == '.')
+            else if (c == '.' && i != 0)
             {
             }
             else
