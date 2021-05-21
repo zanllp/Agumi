@@ -30,6 +30,11 @@ namespace agumi
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
+        auto typeof_bind = [&](Vector<JsValue> args) -> JsValue
+        {
+            return jstype_emun2str[static_cast<int>(args.GetOrDefault(0).Type())];
+        };
+        vm.DefineGlobalFunc("typeof", typeof_bind);
         auto eval = [&](Vector<JsValue> args) -> JsValue
         {
             auto script = args.GetOrDefault(0).ToString();
@@ -72,6 +77,8 @@ namespace agumi
         LocalClassDefine string_def;
         std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> str_op_def;
         str_op_def[add_] = BIN_OPERATOR(l.GetC<String>() + r.GetC<String>());
+        str_op_def[eqeq_] = BIN_OPERATOR(l.GetC<String>() == r.GetC<String>());
+        str_op_def[eqeqeq_] = BIN_OPERATOR(l.GetC<String>() == r.GetC<String>());
         str_op_def[add_equal_] = BIN_OPERATOR(l.Get<String>() += r.GetC<String>());
         str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())));
         string_def.binary_operator_overload[JsType::string] = str_op_def;

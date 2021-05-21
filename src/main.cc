@@ -249,8 +249,10 @@ void TestScriptExec()
     };
     run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
     ASS(run("fib(10)").ToString(), "55")
-    ASS(run("\"hello world\".length()").ToString(), "11")
-    ASS(Json::Stringify(run("[1,2,3,4].push(5,6)"), 0), "[" + Vector<double>::From({1, 2, 3, 4, 5, 6}).Join() + "]")
+    ASS(run("'hello world'.length()").ToString(), "11")
+#define STR(x) Json::Stringify(x, 0)
+    ASS(STR(run("[1,2,3,4].push(5,6)")), "[" + Vector<double>::From({1, 2, 3, 4, 5, 6}).Join() + "]")
+    ASS(STR(run("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]")), "[\"array\",\"string\",\"number\",\"function\"]")
 }
 
 auto test_js = LoadFile("./src/test.leaf.js");
