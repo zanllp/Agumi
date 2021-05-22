@@ -27,6 +27,7 @@ fib(10)
 ## 启动参数
 ### -exec=[file path]
 执行文件
+
 ![image](https://user-images.githubusercontent.com/25872019/119235882-2b744d80-bb67-11eb-9b2a-57444f2dc294.png)
 ### -repl
 进入repl
