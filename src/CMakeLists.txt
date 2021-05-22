@@ -12,3 +12,10 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DSION_DISABLE_SSL)
 set(CMAKE_BUILD_TYPE "Debug")
 add_executable(agumi ${DIR_SRCS})
+
+enable_testing()
+
+# 测试程序是否成功运行
+add_test (test_run agumi -test)
+set_tests_properties (test_run
+  PROPERTIES PASS_REGULAR_EXPRESSION "TestPassed;All ok")

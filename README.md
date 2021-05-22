@@ -6,7 +6,7 @@
 mkdir bin
 cd bin
 cmake -S ../src -B .
-make
+cmake --build . 或者 make
 ```
 ## 运行
 ```shell

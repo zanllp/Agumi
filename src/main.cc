@@ -247,12 +247,12 @@ void TestScriptExec()
         auto ast = Compiler().ConstructAST(tfv);
         return vm.Run(ast);
     };
+#define RUN2STR(x) Json::Stringify(run(x), 0)
     run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
-    ASS(run("fib(10)").ToString(), "55")
-    ASS(run("'hello world'.length()").ToString(), "11")
-#define STR(x) Json::Stringify(x, 0)
-    ASS(STR(run("[1,2,3,4].push(5,6)")), "[" + Vector<double>::From({1, 2, 3, 4, 5, 6}).Join() + "]")
-    ASS(STR(run("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]")), "[\"array\",\"string\",\"number\",\"function\"]")
+    ASS(RUN2STR("fib(10)"), "55")
+    ASS(RUN2STR("'hello world'.length()"), "11")
+    ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
+    ASS(RUN2STR("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]"), "[\"array\",\"string\",\"number\",\"function\"]")
 }
 
 auto test_js = LoadFile("./src/test.leaf.js");
@@ -262,8 +262,9 @@ int main(int argc, char **argv)
     Token::Init();
     auto undefined = JsValue();
     auto arg = CreateVecFromStartParams(argc, argv);
-    if (argc < 1)
+    if (argc < 2)
     {
+        std::cout<<"see https://github.com/zanllp/agumi for more help information"<<std::endl;
         return 1;
     }
     JsValue conf = JsObject({{"hello", "world"}});
@@ -435,6 +436,7 @@ int main(int argc, char **argv)
         TestScriptExec();
         // p.Print();
         // TestAst();
+        std::cout<<"TestPassed;All ok"<<std::endl;
     }
     return 1;
 }
