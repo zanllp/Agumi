@@ -17,7 +17,8 @@ namespace agumi
         };
         auto json_stringify = [&](Vector<JsValue> args) -> JsValue
         {
-            return Json::Stringify(args.GetOrDefault(0));
+            auto indent = args.GetOrDefault(1);
+            return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4);
         };
         auto json_module = JsObject({{"parse", vm.DefineFunc(json_parse)},
                                      {"stringify", vm.DefineFunc(json_stringify)}});
@@ -32,7 +33,7 @@ namespace agumi
         vm.DefineGlobalFunc("fetch", fetch_bind);
         auto typeof_bind = [&](Vector<JsValue> args) -> JsValue
         {
-            return jstype_emun2str[static_cast<int>(args.GetOrDefault(0).Type())];
+            return args.GetOrDefault(0).TypeString();
         };
         vm.DefineGlobalFunc("typeof", typeof_bind);
         auto eval = [&](Vector<JsValue> args) -> JsValue

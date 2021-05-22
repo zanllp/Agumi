@@ -53,6 +53,7 @@ namespace agumi
         bool DeepCompare(const JsValue &r) const;
         bool operator==(const JsValue &rhs);
         bool ToBool() const;
+        String TypeString() const;
 
         static JsValue CreateFunc(String mem_key)
         {

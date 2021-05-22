@@ -1,6 +1,6 @@
 #include "util.h"
 #include "Json.h"
-#include "JsValue.h" 
+#include "JsValue.h"
 namespace agumi
 {
     JsValue::~JsValue()
@@ -60,7 +60,7 @@ namespace agumi
             break;
         }
     }
-    JsValue::JsValue(JsValue && v)
+    JsValue::JsValue(JsValue &&v)
     {
         std::swap(type, v.type);
         std::swap(data_ptr, v.data_ptr);
@@ -140,6 +140,12 @@ namespace agumi
     JsValue &JsValue::operator[](String key)
     {
         return Object()[key];
+    }
+
+    String JsValue::TypeString() const
+    {
+        auto t = Type();
+        return jstype_emun2str[static_cast<int>(t)];
     }
 
     JsObject &JsValue::Object()

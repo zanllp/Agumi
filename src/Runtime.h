@@ -64,6 +64,10 @@ namespace agumi
         {
             return ctx_stack.back();
         }
+        JsValue &CurrScope()
+        {
+            return ctx_stack.back().var;
+        }
         std::tuple<JsValue, bool> Value(String key)
         {
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
@@ -227,11 +231,10 @@ namespace agumi
         JsValue ResolveVariableDeclaration(StatPtr stat)
         {
             SRC_REF(decl, VariableDeclaration, stat)
-            auto &ctx = CurrCtx();
             for (auto &i : decl.declarations)
             {
                 auto key = i->id.tok.kw;
-                if (ctx.var.In(key))
+                if (CurrScope().In(key))
                 {
                     THROW_MSG("Identifier '{}' has already been declared", key)
                 }
@@ -240,7 +243,7 @@ namespace agumi
                     THROW_MSG("Missing initializer in const declaration")
                 }
                 auto val = i->initialed ? ResolveExecutable(i->init) : JsValue::undefined;
-                return ctx.var[key] = val;
+                return CurrScope()[key] = val;
             }
         }
         JsValue ResolveConditionExpression(StatPtr stat)
@@ -277,7 +280,7 @@ namespace agumi
             auto right = ResolveExecutable(expr.right);
             auto type = left.Type();
             auto type_r = right.Type();
-#define ERR_ResolveBinaryExpression THROW_MSG("type:{} {} type:{} is not defined", jstype_emun2str[(int)type], expr.op.kw, jstype_emun2str[(int)type_r])
+#define ERR_ResolveBinaryExpression THROW_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
             auto left_type_def = class_define.find(type);
             if (left_type_def == class_define.end())
             {

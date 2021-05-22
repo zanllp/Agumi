@@ -28,6 +28,13 @@ namespace agumi
         {
             return StatementType::statement;
         }
+        virtual bool IsLiteral()
+        {
+            auto t = Type();
+            return t == StatementType::boolLiteralInit ||
+                   t == StatementType::numberLiteralInit ||
+                   t == StatementType::stringLiteralInit;
+        }
         virtual JsValue ToJson()
         {
             return "base statement";
@@ -606,11 +613,11 @@ namespace agumi
                 iter++;
                 while (iter != end_iter)
                 {
-                    auto [body, end_iter] = ResolveExecutableStatment(iter);
+                    auto [body, end_iter] = Dispatch(iter);
                     iter = end_iter;
                     stat->body.push_back(body);
                 }
-                return {stat, end_iter};
+                return {stat, end_iter + 1};
             }
             auto [body, end_iter] = ResolveExecutableStatment(iter);
             stat->body.push_back(body);
@@ -791,7 +798,7 @@ namespace agumi
             {
                 return ResolveExpr(left_stat, next_iter);
             }
-            if (next_iter->Is(parenthesis_start_))
+            if (next_iter->Is(parenthesis_start_) && !left_stat->IsLiteral())
             {
                 return ResolveFuncCall(left_stat, next_iter);
             }
@@ -826,6 +833,28 @@ namespace agumi
             return ResolveExecutableStatment(iter);
         }
 
+        StatPtrWithEnd Dispatch(TokenFlowView tfv)
+        {
+            auto iter = tfv.BeginIter();
+            if (iter->IsDeclear())
+            {
+                return ResolveDeclearStatment(iter);
+            }
+            else if (iter->Is(if_))
+            {
+                ResolveIfStatment(iter);
+            }
+            else if (iter->IsIdentifier())
+            {
+                return ResovleAssigmentOrIdentify(iter);
+            }
+            else
+            {
+                return ResolveExecutableStatment(iter);
+            }
+            THROW
+        }
+
         Program ConstructAST(Vector<Token> &token_flow)
         {
             Program p;
@@ -842,27 +871,13 @@ namespace agumi
             };
             while (!tfv.IsEnd(iter))
             {
+
                 if (iter->IsLineEndToken())
                 {
                     iter++;
                     continue;
                 }
-                if (iter->IsDeclear())
-                {
-                    accept(ResolveDeclearStatment(iter));
-                }
-                else if (iter->Is(if_))
-                {
-                    ResolveIfStatment(iter);
-                }
-                else if (iter->IsIdentifier())
-                {
-                    accept(ResovleAssigmentOrIdentify(iter));
-                }
-                else
-                {
-                    accept(ResolveExecutableStatment(iter));
-                }
+                accept(Dispatch(iter));
             }
             return p;
         }

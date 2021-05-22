@@ -237,18 +237,19 @@ void TestString()
     ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
 }
 
+JsValue VmRunScript(VM &vm, String src)
+{
+    auto tfv = GeneralTokenizer::Js(src);
+    auto ast = Compiler().ConstructAST(tfv);
+    return vm.Run(ast);
+}
+
 void TestScriptExec()
 {
     VM vm;
     AddPreDefine(vm);
-    auto run = [&](String src) -> JsValue
-    {
-        auto tfv = GeneralTokenizer::Js(src);
-        auto ast = Compiler().ConstructAST(tfv);
-        return vm.Run(ast);
-    };
-#define RUN2STR(x) Json::Stringify(run(x), 0)
-    run("const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
+#define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
+    VmRunScript(vm, "const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a");
     ASS(RUN2STR("fib(10)"), "55")
     ASS(RUN2STR("'hello world'.length()"), "11")
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
@@ -264,7 +265,7 @@ int main(int argc, char **argv)
     auto arg = CreateVecFromStartParams(argc, argv);
     if (argc < 2)
     {
-        std::cout<<"see https://github.com/zanllp/agumi for more help information"<<std::endl;
+        std::cout << "see https://github.com/zanllp/agumi for more help information" << std::endl;
         return 1;
     }
     JsValue conf = JsObject({{"hello", "world"}});
@@ -295,6 +296,7 @@ int main(int argc, char **argv)
     auto run = conf["run"];
     auto token = conf["token"];
     auto repl = conf["repl"].ToBool();
+    auto exec = conf["exec"];
     if (repl)
     {
         VM vm;
@@ -344,7 +346,15 @@ int main(int argc, char **argv)
             cout << color_green_s << "input :" << color_e << "\t";
         }
 
-        return -1;
+        return 1;
+    }
+
+    if (exec.ToBool())
+    {
+        VM vm;
+        AddPreDefine(vm);
+        VmRunScript(vm, LoadFile(exec.ToString()));
+        return 1;
     }
 
     auto tfv = GeneralTokenizer::Js(test_js);
@@ -436,7 +446,7 @@ int main(int argc, char **argv)
         TestScriptExec();
         // p.Print();
         // TestAst();
-        std::cout<<"TestPassed;All ok"<<std::endl;
+        std::cout << "TestPassed;All ok" << std::endl;
     }
     return 1;
 }

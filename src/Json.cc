@@ -7,7 +7,7 @@ namespace agumi
     bool Json::error_if_circle_ref = false;
     String Json::StringifyInternalArray(const JsArray &next,
                                         std::set<const JsObjectMap *> &json_obj_rec, std::set<const JsArrayVec *> &json_arr_rec,
-                                        int ident_step, int ident, bool escape)
+                                        int indent_step, int indent, bool escape)
     {
         json_arr_rec.insert(next.Ptr());
         Vector<String> res_vec;
@@ -19,7 +19,7 @@ namespace agumi
             }
             res_vec.push_back("\"circle ref\"");
         };
-        int next_ident = ident + ident_step;
+        int next_indent = indent + indent_step;
         for (auto &i : next.SrcC())
         {
             auto type = i.Type();
@@ -27,7 +27,7 @@ namespace agumi
             {
                 if (json_obj_rec.find(i.ObjectC().Ptr()) == json_obj_rec.end())
                 {
-                    auto next_v = Json::StringifyInternal(i.ObjectC(), json_obj_rec, json_arr_rec, ident_step, next_ident, escape);
+                    auto next_v = Json::StringifyInternal(i.ObjectC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     res_vec.push_back(next_v);
                 }
                 else
@@ -39,7 +39,7 @@ namespace agumi
             {
                 if (json_arr_rec.find(i.ArrayC().Ptr()) == json_arr_rec.end())
                 {
-                    auto next_v = Json::StringifyInternalArray(i.ArrayC(), json_obj_rec, json_arr_rec, ident_step, next_ident, escape);
+                    auto next_v = Json::StringifyInternalArray(i.ArrayC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     res_vec.push_back(next_v);
                 }
                 else
@@ -55,11 +55,11 @@ namespace agumi
                 res_vec.push_back(value_str);
             }
         }
-        return SameLevelCompisition(res_vec, ident_step, next_ident, {"[", "]"});
+        return SameLevelCompisition(res_vec, indent_step, next_indent, {"[", "]"});
     }
     String Json::StringifyInternal(const JsObject &next,
                                    std::set<const JsObjectMap *> &json_obj_rec, std::set<const JsArrayVec *> &json_arr_rec,
-                                   int ident_step, int ident, bool escape)
+                                   int indent_step, int indent, bool escape)
     {
         json_obj_rec.insert(next.Ptr());
         std::vector<String> res_vec;
@@ -71,7 +71,7 @@ namespace agumi
             }
             res_vec.push_back(String::Format("\"{}\": \"circle ref\"", key));
         };
-        int next_ident = ident + ident_step;
+        int next_indent = indent + indent_step;
         for (auto &i : next.SrcC())
         {
             auto key = escape ? i.first.Escape() : i.first;
@@ -80,7 +80,7 @@ namespace agumi
             {
                 if (json_obj_rec.find(i.second.ObjectC().Ptr()) == json_obj_rec.end())
                 {
-                    auto next_v = Json::StringifyInternal(i.second.ObjectC(), json_obj_rec, json_arr_rec, ident_step, next_ident, escape);
+                    auto next_v = Json::StringifyInternal(i.second.ObjectC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     auto str = String::Format("\"{}\": {}", key, next_v);
                     res_vec.push_back(str);
                 }
@@ -93,7 +93,7 @@ namespace agumi
             {
                 if (json_arr_rec.find(i.second.ArrayC().Ptr()) == json_arr_rec.end())
                 {
-                    auto next_v = Json::StringifyInternalArray(i.second.ArrayC(), json_obj_rec, json_arr_rec, ident_step, next_ident, escape);
+                    auto next_v = Json::StringifyInternalArray(i.second.ArrayC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     auto str = String::Format("\"{}\": {}", key, next_v);
                     res_vec.push_back(str);
                 }
@@ -110,42 +110,42 @@ namespace agumi
                 res_vec.push_back(String::Format("\"{}\": {}", key, value_str));
             }
         }
-        return SameLevelCompisition(res_vec, ident_step, next_ident, {"{", "}"});
+        return SameLevelCompisition(res_vec, indent_step, next_indent, {"{", "}"});
     }
 
-    String Json::SameLevelCompisition(std::vector<String> &src_vec, int ident_step, int ident, std::tuple<String, String> start_end_symbol)
+    String Json::SameLevelCompisition(std::vector<String> &src_vec, int indent_step, int indent, std::tuple<String, String> start_end_symbol)
     {
-        bool zero_ident = ident_step == 0;
+        bool zero_indent = indent_step == 0;
         bool is_empty = src_vec.size() == 0;
-        String cr_if_not_zero_ident = (zero_ident || is_empty) ? "" : "\n";
+        String cr_if_not_zero_indent = (zero_indent || is_empty) ? "" : "\n";
         std::stringstream res;
-        res << std::get<0>(start_end_symbol) << cr_if_not_zero_ident;
+        res << std::get<0>(start_end_symbol) << cr_if_not_zero_indent;
         int vec_size = src_vec.size();
         for (size_t i = 0; i < vec_size; i++)
         {
-            res << (zero_ident ? "" : String(" ").Repeat(ident));
+            res << (zero_indent ? "" : String(" ").Repeat(indent));
             res << src_vec[i];
             if (i != src_vec.size() - 1)
             {
                 res << ",";
             }
-            res << cr_if_not_zero_ident;
+            res << cr_if_not_zero_indent;
         }
-        res << ((zero_ident || is_empty) ? "" : String(" ").Repeat(ident - ident_step));
+        res << ((zero_indent || is_empty) ? "" : String(" ").Repeat(indent - indent_step));
         res << std::get<1>(start_end_symbol);
         return res.str();
     }
 
-    String Json::Stringify(const JsValue &v, int ident, bool escape)
+    String Json::Stringify(const JsValue &v, int indent, bool escape)
     {
         std::set<const JsObjectMap *> json_obj_rec;
         std::set<const JsArrayVec *> json_arr_rec;
         switch (v.Type())
         {
         case JsType::object:
-            return Json::StringifyInternal(v.ObjectC(), json_obj_rec, json_arr_rec, ident, 0, escape);
+            return Json::StringifyInternal(v.ObjectC(), json_obj_rec, json_arr_rec, indent, 0, escape);
         case JsType::array:
-            return Json::StringifyInternalArray(v.ArrayC(), json_obj_rec, json_arr_rec, ident, 0, escape);
+            return Json::StringifyInternalArray(v.ArrayC(), json_obj_rec, json_arr_rec, indent, 0, escape);
         case JsType::string:
             return String::Format("\"{}\"", v.ToString());
         default:
