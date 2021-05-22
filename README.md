@@ -1,6 +1,7 @@
 # Agumi
-可作为c++的内嵌语言或一门单独的语言使用
 [![test](https://github.com/zanllp/agumi/actions/workflows/test.yml/badge.svg)](https://github.com/zanllp/agumi/actions/workflows/test.yml)
+
+可作为c++的内嵌语言或一门单独的语言使用
 ## 编译
 ```shell
 mkdir bin
