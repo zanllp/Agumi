@@ -642,7 +642,7 @@ namespace sion
 #ifdef _WIN32
                 WSACleanup();
 #endif
-                throw e;
+                throw std::runtime_error(e.what());
             }
             throw std::runtime_error("");
         }
@@ -680,10 +680,12 @@ namespace sion
             saddr.sin_addr = sa;
             if (::connect(socket, (sockaddr *)&saddr, sizeof(saddr)) != 0)
             {
+                String err = "连接失败:\nHost:" + host_ + "\n";
+                err += "Ip:" + ip_ + "\n";
 #ifdef _WIN32
-                std::string err = "连接失败错误码：" + std::to_string(WSAGetLastError());
+                err += "错误码：" + std::to_string(WSAGetLastError());
 #else
-                std::string err = "连接失败";
+                err += String("error str:") + strerror(errno);
 #endif
                 Throw<std::runtime_error>(err);
             }
@@ -719,10 +721,11 @@ namespace sion
             resp.source_ += buf.data();
             resp.ParseFromSource(true);
             auto is_close = resp.HeaderValue("connection") == "close";
-            if (resp.HeaderValue("location") != "" && resp.code_[0] == '3') // 3xx
+            if (resp.code_[0] == '3' && resp.HeaderValue("location") != "") // 3xx
             {
                 return resp;
             }
+
             if (resp.save_by_char_vec_)
             { // 把除头外多余的响应体部分移过去
                 auto bodyPos = resp.source_.find("\r\n\r\n");

@@ -4,10 +4,8 @@
 可作为c++的内嵌语言或一门单独的语言使用
 ## 编译
 ```shell
-mkdir bin
-cd bin
-cmake -S ../src -B .
-cmake --build . 或者 make
+cmake -S src -B bin -DVCPKG_PATH=/home/vcpkg 
+cmake --build bin
 ```
 ## 运行
 ```shell

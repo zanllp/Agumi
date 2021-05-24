@@ -39,7 +39,7 @@ namespace agumi
         "undefined",
         "null",
         "boolean",
-        "JsObject",
+        "object",
         "array",
         "function"};
     class JsValue;

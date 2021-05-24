@@ -1,21 +1,21 @@
 # CMake 最低版本号要求
 cmake_minimum_required (VERSION 3.5)
 
-# 项目信息
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_TOOLCHAIN_FILE ${VCPKG_PATH}/scripts/buildsystems/vcpkg.cmake)
 project (agumi)
 
-# 查找目录下的所有源文件
-# 并将名称保存到 DIR_SRCS 变量
+find_package(OpenSSL REQUIRED)
+
 aux_source_directory(. DIR_SRCS)
 
-set(CMAKE_CXX_STANDARD 17)
-add_definitions(-DSION_DISABLE_SSL)
+# add_definitions(-DSION_DISABLE_SSL)
 set(CMAKE_BUILD_TYPE "Debug")
 add_executable(agumi ${DIR_SRCS})
 
-enable_testing()
+target_link_libraries(agumi PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
-# 测试程序是否成功运行
+enable_testing()
 add_test (test_run agumi -test)
 set_tests_properties (test_run
   PROPERTIES PASS_REGULAR_EXPRESSION "TestPassed;All ok")
