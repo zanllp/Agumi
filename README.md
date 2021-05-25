@@ -3,8 +3,17 @@
 
 可作为c++的内嵌语言或一门单独的语言使用
 ## 编译
+可选的ssl支持
+### 启用ssl支持
+agumi的网络io通过调用[sion](https://github.com/zanllp/sion)来实现，sion的https支持需要openssl，这边先使用[vcpkg](https://github.com/microsoft/vcpkg)安装openssl，再
 ```shell
-cmake -S src -B bin -DVCPKG_PATH=/home/vcpkg 
+cmake -S src -B bin -DVCPKG_PATH=/home/vcpkg # /home/vcpkg替换变成自己的vcpkg文件夹
+cmake --build bin
+```
+### 不使用openssl
+仍可进行http协议的请求，不需要c++17标准库外的其他东西
+```shell
+cmake -S src -B bin
 cmake --build bin
 ```
 ## 运行
