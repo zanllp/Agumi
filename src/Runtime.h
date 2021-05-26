@@ -138,6 +138,48 @@ namespace agumi
             return fn;
         }
 
+        
+        template <typename... Ts>
+        JsValue FuncCall(JsValue loc, Ts... args)
+        {
+            return FuncCall(loc, Vector<JsValue>::From({args...}));
+        }
+
+        
+        JsValue FuncCall(JsValue loc, Vector<JsValue> args)
+        {
+            auto fn_iter = func_mem.find(loc.GetC<String>());
+            if (fn_iter == func_mem.end())
+            {
+                THROW_MSG("function {} is not defined", loc.ToString())
+            }
+            Context fn_ctx;
+            JsValue v;
+            auto &fn = fn_iter->second;
+            if (fn.is_native_func)
+            {
+                v = fn.native_fn(args);
+            }
+            else
+            {
+                auto &src_args = fn.src->arguments;
+                for (size_t i = 0; i < src_args.size(); i++)
+                {
+                    auto arg = src_args[i];
+                    auto key = arg.name.kw;
+                    fn_ctx.var[key] = args[i];
+                }
+                ctx_stack.push_back(fn_ctx);
+                for (auto &stat : fn.src->body)
+                {
+                    v = Dispatch(stat);
+                }
+                ctx_stack.pop_back();
+            }
+            return v;
+        }
+
+
     private:
         JsValue Dispatch(StatPtr stat)
         {
@@ -212,6 +254,8 @@ namespace agumi
 
             return v;
         }
+
+
         JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, JsValue &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)

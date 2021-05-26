@@ -137,5 +137,18 @@ namespace agumi
         num_op_def[add_equal_] = BIN_OPERATOR(l.Get<double>() += r.GetC<double>());
         num_def.binary_operator_overload[JsType::number] = num_op_def;
         vm.class_define[JsType::number] = num_def;
+
+        LocalClassDefine fn_def;
+        std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> fn_op_def;
+        fn_op_def[add_] = [&](JsValue& l, JsValue& r)
+        {
+            auto new_fn = [=, &vm](Vector<JsValue> args) -> JsValue
+            {
+                return vm.FuncCall(r, vm.FuncCall(l, args));
+            };
+            return vm.DefineFunc(new_fn);
+        };
+        fn_def.binary_operator_overload[JsType::function] = fn_op_def;
+        vm.class_define[JsType::function] = fn_def;
     }
 }

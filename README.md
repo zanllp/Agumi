@@ -47,5 +47,21 @@ repl时开启输出令牌化
 运行测试
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
+### 例子：使用运算符重载实现函数式语言pipe的功能
+```cpp
+LocalClassDefine fn_def;
+std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> fn_op_def;
+fn_op_def[add_] = [&](JsValue &l, JsValue &r)
+{
+    auto new_fn = [=, &vm](Vector<JsValue> args) -> JsValue
+    {
+        return vm.FuncCall(r, vm.FuncCall(l, args));
+    };
+    return vm.DefineFunc(new_fn);
+};
+fn_def.binary_operator_overload[JsType::function] = fn_op_def;
+vm.class_define[JsType::function] = fn_def;
+```
+![image](https://user-images.githubusercontent.com/25872019/119687653-f5421100-be79-11eb-9441-95174cff6068.png)
 ## 已知问题
 1. 运算符优先级有时会表现异常，后面改用调度场重新写
