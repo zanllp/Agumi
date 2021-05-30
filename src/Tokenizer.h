@@ -425,7 +425,7 @@ namespace agumi
         enum TokenType
         {
             json,
-            js
+            agumi
         };
         GeneralTokenizer(const String &src_, TokenType type_ = json, String file_ = String(++GeneralTokenizer::uniq_id))
         {
@@ -439,9 +439,9 @@ namespace agumi
             Dispatch();
             return res;
         }
-        static Vector<Token> Js(const String &js)
+        static Vector<Token> Agumi(const String &script)
         {
-            return GeneralTokenizer(js, GeneralTokenizer::js)
+            return GeneralTokenizer(script, GeneralTokenizer::agumi)
                 .Start()
                 .Filter([](Token tok)
                         {
@@ -519,7 +519,7 @@ namespace agumi
                 }
             }
             auto tok = CreateToken(c);
-            if (type == js) // js才贪婪匹配
+            if (type == agumi) // agumi才贪婪匹配
             {
                 auto filter_fn = [&](String s)
                 {

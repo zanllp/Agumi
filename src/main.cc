@@ -239,7 +239,7 @@ void TestString()
 
 Value VmRunScript(VM &vm, String src)
 {
-    auto tfv = GeneralTokenizer::Js(src);
+    auto tfv = GeneralTokenizer::Agumi(src);
     auto ast = Compiler().ConstructAST(tfv);
     return vm.Run(ast);
 }
@@ -255,8 +255,6 @@ void TestScriptExec()
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
     ASS(RUN2STR("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]"), "[\"array\",\"string\",\"number\",\"function\"]")
 }
-
-auto test_js = LoadFile("./src/test.leaf.js");
 
 int main(int argc, char **argv)
 {
@@ -314,7 +312,7 @@ int main(int argc, char **argv)
             try
             {
                 String src = ptr;
-                auto tfv = GeneralTokenizer::Js(src);
+                auto tfv = GeneralTokenizer::Agumi(src);
                 if (tokenizer)
                 {
                     for (auto &&i : tfv)
@@ -357,40 +355,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto tfv = GeneralTokenizer::Js(test_js);
-    if (token.NotUndef())
-    {
-        cout << "-- token start --" << endl;
-
-        auto iter = tfv.begin();
-        while (iter != tfv.end())
-        {
-            cout << iter->ToDebugStr() << endl;
-            iter++;
-        }
-
-        cout << "-- token end --" << endl;
-    }
-
-    auto ast = Compiler().ConstructAST(tfv);
-    VM vm;
-    if (run.NotUndef())
-    {
-        cout << Json::Stringify(vm.Run(ast)) << endl;
-    }
-
     if (print_conf.NotUndef())
     {
         cout << "启动参数 argc:" << argc << "  args:" << arg.Join(" ") << endl;
         cout << Json::Stringify(conf) << endl;
-    }
-    if (ast_c)
-    {
-        cout << Json::Stringify(ast.ToJson()) << endl;
-    }
-    if (mem.NotUndef())
-    {
-        cout << Json::Stringify(vm.CurrCtx().var) << endl;
     }
 
     if (request.NotUndef())

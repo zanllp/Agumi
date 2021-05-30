@@ -40,7 +40,7 @@ namespace agumi
         {
             auto script = args.GetOrDefault(0).ToString();
             auto enable_curr_vm = args.GetOrDefault(1).ToBool();
-            auto tfv = GeneralTokenizer::Js(script);
+            auto tfv = GeneralTokenizer::Agumi(script);
             auto ast = Compiler().ConstructAST(tfv);
             return enable_curr_vm ? vm.Run(ast) : VM().Run(ast);
         };
