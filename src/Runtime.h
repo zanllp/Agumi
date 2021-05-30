@@ -66,31 +66,23 @@ namespace agumi
         }
         JsValue &CurrScope()
         {
-            return ctx_stack.back().var;
+            return CurrCtx().var;
         }
-        std::tuple<JsValue, bool> Value(String key)
+        std::optional<std::reference_wrapper<JsValue>> GetValue(String key)
         {
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
                 auto &ctx = ctx_stack[i];
                 if (ctx.var.In(key))
                 {
-                    return {ctx.var[key], true};
+                    return {ctx.var[key]};
                 }
             }
-            return {JsValue::undefined, false};
+            return {};
         }
         JsValue &ValueOrUndef(String key)
         {
-            for (size_t i = 0; i < ctx_stack.size(); i++)
-            {
-                auto &ctx = ctx_stack[i];
-                if (ctx.var.In(key))
-                {
-                    return ctx.var[key];
-                }
-            }
-            return JsValue::undefined;
+            return GetValue(key).value_or(JsValue::undefined);
         }
         JsValue SetValue(String key, JsValue val)
         {
@@ -138,14 +130,12 @@ namespace agumi
             return fn;
         }
 
-        
         template <typename... Ts>
         JsValue FuncCall(JsValue loc, Ts... args)
         {
             return FuncCall(loc, Vector<JsValue>::From({args...}));
         }
 
-        
         JsValue FuncCall(JsValue loc, Vector<JsValue> args)
         {
             auto fn_iter = func_mem.find(loc.GetC<String>());
@@ -178,7 +168,6 @@ namespace agumi
             }
             return v;
         }
-
 
     private:
         JsValue Dispatch(StatPtr stat)
@@ -255,7 +244,6 @@ namespace agumi
             return v;
         }
 
-
         JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, JsValue &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)
@@ -310,12 +298,12 @@ namespace agumi
         JsValue ResolveIdentifier(StatPtr stat)
         {
             SRC_REF(id, Identifier, stat);
-            auto [val, exist] = Value(id.tok.kw);
-            if (!exist)
+            auto val = GetValue(id.tok.kw);
+            if (!val)
             {
                 THROW_MSG("{} is not defined", id.tok.kw)
             }
-            return val;
+            return val.value();
         }
         JsValue ResolveBinaryExpression(StatPtr stat)
         {
