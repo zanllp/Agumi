@@ -136,7 +136,7 @@ namespace agumi
         return res.str();
     }
 
-    String Json::Stringify(const JsValue &v, int indent, bool escape)
+    String Json::Stringify(const Value &v, int indent, bool escape)
     {
         std::set<const JsObjectMap *> json_obj_rec;
         std::set<const JsArrayVec *> json_arr_rec;

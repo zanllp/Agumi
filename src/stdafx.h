@@ -42,9 +42,9 @@ namespace agumi
         "object",
         "array",
         "function"};
-    class JsValue;
-    using JsObjectMap = std::map<String, JsValue>;
-    using JsArrayVec = Vector<JsValue>;
+    class Value;
+    using JsObjectMap = std::map<String, Value>;
+    using JsArrayVec = Vector<Value>;
 
 #define THROW_MSG(msg, ...) throw std::logic_error(String::Format("{} \n\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), __FILE__, __LINE__));
 }

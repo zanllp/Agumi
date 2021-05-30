@@ -6,24 +6,24 @@
 namespace agumi
 {
     
-    class JsValue
+    class Value
     {
         friend JsObject;
 
     public:
-        ~JsValue();
+        ~Value();
 
-        JsValue();
-        JsValue(const JsValue &v);
-        JsValue(JsValue &&v);
-        JsValue(bool data);
-        JsValue(const char *data);
-        JsValue(int data);
-        JsValue(std::nullptr_t null);
-        JsValue(double data);
-        JsValue(std::string data);
-        JsValue(JsObject obj);
-        JsValue(JsArray arr);
+        Value();
+        Value(const Value &v);
+        Value(Value &&v);
+        Value(bool data);
+        Value(const char *data);
+        Value(int data);
+        Value(std::nullptr_t null);
+        Value(double data);
+        Value(std::string data);
+        Value(JsObject obj);
+        Value(JsArray arr);
         JsType Type() const;
         template <typename T>
         constexpr T &Get()
@@ -39,30 +39,30 @@ namespace agumi
             return *(T *)data_ptr;
         }
 
-        JsValue &operator=(const JsValue &v);
-        JsValue &operator[](String key);
+        Value &operator=(const Value &v);
+        Value &operator[](String key);
         JsObject &Object();
         const JsObject &ObjectC() const;
-        JsValue &operator[](int key);
+        Value &operator[](int key);
         JsArray &Array();
         const JsArray &ArrayC() const;
         String ToString() const;
         bool NotUndef();
         bool In(const String &key) const;
         bool In(size_t idx) const;
-        bool DeepCompare(const JsValue &r) const;
-        bool operator==(const JsValue &rhs);
+        bool DeepCompare(const Value &r) const;
+        bool operator==(const Value &rhs);
         bool ToBool() const;
         String TypeString() const;
 
-        static JsValue CreateFunc(String mem_key)
+        static Value CreateFunc(String mem_key)
         {
-            JsValue val = mem_key;
+            Value val = mem_key;
             val.type = JsType::function;
             return val;
         }
 
-        static JsValue undefined;
+        static Value undefined;
 
     private:
         JsType type = JsType::undefined;
@@ -86,7 +86,7 @@ namespace agumi
                 Assest(typeid(nullptr).hash_code(), t.hash_code(), "类型不对");
                 break;
             case JsType::undefined:
-                THROW_MSG("get了一个未定义的JsValue实例");
+                THROW_MSG("get了一个未定义的Value实例");
                 break;
             case JsType::array:
             case JsType::object:

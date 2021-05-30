@@ -5,7 +5,7 @@ namespace agumi
     class Context
     {
     public:
-        JsValue var = JsObject();
+        Value var = JsObject();
         Context(){};
         ~Context(){};
     };
@@ -15,15 +15,15 @@ namespace agumi
     public:
         std::shared_ptr<FunctionDeclaration> src;
         bool is_native_func = false;
-        std::function<JsValue(Vector<JsValue>)> native_fn;
+        std::function<Value(Vector<Value>)> native_fn;
     };
 
     class LocalClassDefine
     {
     public:
-        std::map<String, std::function<JsValue(JsValue &, Vector<JsValue>)>> member_func;
-        std::map<JsType, std::map<KW, std::function<JsValue(JsValue &, JsValue &)>>> binary_operator_overload;
-        JsValue ExecFunc(String key, JsValue &val, Vector<JsValue> args)
+        std::map<String, std::function<Value(Value &, Vector<Value>)>> member_func;
+        std::map<JsType, std::map<KW, std::function<Value(Value &, Value &)>>> binary_operator_overload;
+        Value ExecFunc(String key, Value &val, Vector<Value> args)
         {
             auto iter = member_func.find(key);
             if (iter == member_func.end())
@@ -32,7 +32,7 @@ namespace agumi
             }
             return iter->second(val, args);
         }
-        JsValue ExecBinaryOperator(JsType t, KW op, JsValue &l, JsValue &r)
+        Value ExecBinaryOperator(JsType t, KW op, Value &l, Value &r)
         {
             auto type_def = binary_operator_overload.find(t);
             if (type_def == binary_operator_overload.end())
@@ -57,18 +57,18 @@ namespace agumi
             ctx_stack.resize(1);
         }
         Vector<Context> ctx_stack;
-        Vector<JsValue> temp_stack;
+        Vector<Value> temp_stack;
         std::map<String, Function> func_mem;
         std::map<JsType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
             return ctx_stack.back();
         }
-        JsValue &CurrScope()
+        Value &CurrScope()
         {
             return CurrCtx().var;
         }
-        std::optional<std::reference_wrapper<JsValue>> GetValue(String key)
+        std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
@@ -80,11 +80,11 @@ namespace agumi
             }
             return {};
         }
-        JsValue &ValueOrUndef(String key)
+        Value &ValueOrUndef(String key)
         {
-            return GetValue(key).value_or(JsValue::undefined);
+            return GetValue(key).value_or(Value::undefined);
         }
-        JsValue SetValue(String key, JsValue val)
+        Value SetValue(String key, Value val)
         {
             for (size_t i = 0; i < ctx_stack.size(); i++)
             {
@@ -96,9 +96,9 @@ namespace agumi
             }
             THROW_MSG("{} is not defined", key)
         }
-        JsValue Run(Program prog)
+        Value Run(Program prog)
         {
-            JsValue v;
+            Value v;
             for (auto &stat : prog.body)
             {
                 v = Dispatch(stat);
@@ -106,11 +106,11 @@ namespace agumi
             return v;
         }
 
-        void DefineGlobalFunc(String name, const std::function<JsValue(Vector<JsValue>)> &native_fn)
+        void DefineGlobalFunc(String name, const std::function<Value(Vector<Value>)> &native_fn)
         {
             static int id = 0;
             auto fn_unique_id = String::Format("native global func code:{}", ++id);
-            auto fn = JsValue::CreateFunc(fn_unique_id);
+            auto fn = Value::CreateFunc(fn_unique_id);
             ctx_stack[0].var[name] = fn;
             Function fn_src;
             fn_src.is_native_func = true;
@@ -118,11 +118,11 @@ namespace agumi
             func_mem[fn_unique_id] = fn_src;
         }
 
-        JsValue DefineFunc(const std::function<JsValue(Vector<JsValue>)> &native_fn)
+        Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn)
         {
             static int id = 0;
             auto fn_unique_id = String::Format("native func code:{}", ++id);
-            auto fn = JsValue::CreateFunc(fn_unique_id);
+            auto fn = Value::CreateFunc(fn_unique_id);
             Function fn_src;
             fn_src.is_native_func = true;
             fn_src.native_fn = native_fn;
@@ -131,12 +131,12 @@ namespace agumi
         }
 
         template <typename... Ts>
-        JsValue FuncCall(JsValue loc, Ts... args)
+        Value FuncCall(Value loc, Ts... args)
         {
-            return FuncCall(loc, Vector<JsValue>::From({args...}));
+            return FuncCall(loc, Vector<Value>::From({args...}));
         }
 
-        JsValue FuncCall(JsValue loc, Vector<JsValue> args)
+        Value FuncCall(Value loc, Vector<Value> args)
         {
             auto fn_iter = func_mem.find(loc.GetC<String>());
             if (fn_iter == func_mem.end())
@@ -144,7 +144,7 @@ namespace agumi
                 THROW_MSG("function {} is not defined", loc.ToString())
             }
             Context fn_ctx;
-            JsValue v;
+            Value v;
             auto &fn = fn_iter->second;
             if (fn.is_native_func)
             {
@@ -170,7 +170,7 @@ namespace agumi
         }
 
     private:
-        JsValue Dispatch(StatPtr stat)
+        Value Dispatch(StatPtr stat)
         {
             switch (stat->Type())
             {
@@ -192,7 +192,7 @@ namespace agumi
             }
             THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
-        JsValue ResolveFuncCall(StatPtr stat, JsValue fn_loc_optional = JsValue::undefined)
+        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = Value::undefined)
         {
             SRC_REF(fn_call, FunctionCall, stat)
             auto fn_loc = fn_loc_optional.Type() == JsType::function ? fn_loc_optional : ResolveExecutable(fn_call.id);
@@ -206,11 +206,11 @@ namespace agumi
                 THROW_MSG("function {} is not defined", fn_loc)
             }
             Context fn_ctx;
-            JsValue v;
+            Value v;
             auto &fn = fn_iter->second;
             if (fn.is_native_func)
             {
-                Vector<JsValue> args;
+                Vector<Value> args;
                 for (size_t i = 0; i < fn_call.arguments.size(); i++)
                 {
                     auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
@@ -244,10 +244,10 @@ namespace agumi
             return v;
         }
 
-        JsValue ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, JsValue &val)
+        Value ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, Value &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)
-            Vector<JsValue> args;
+            Vector<Value> args;
             for (size_t i = 0; i < fn_call.arguments.size(); i++)
             {
                 auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
@@ -260,7 +260,7 @@ namespace agumi
             }
             return class_iter->second.ExecFunc(key, val, args);
         }
-        JsValue ResolveVariableDeclaration(StatPtr stat)
+        Value ResolveVariableDeclaration(StatPtr stat)
         {
             SRC_REF(decl, VariableDeclaration, stat)
             for (auto &i : decl.declarations)
@@ -274,11 +274,11 @@ namespace agumi
                 {
                     THROW_MSG("Missing initializer in const declaration")
                 }
-                auto val = i->initialed ? ResolveExecutable(i->init) : JsValue::undefined;
+                auto val = i->initialed ? ResolveExecutable(i->init) : Value::undefined;
                 return CurrScope()[key] = val;
             }
         }
-        JsValue ResolveConditionExpression(StatPtr stat)
+        Value ResolveConditionExpression(StatPtr stat)
         {
             SRC_REF(expr, ConditionExpression, stat);
             auto cond = ResolveExecutable(expr.cond).ToBool();
@@ -288,14 +288,14 @@ namespace agumi
             }
             return ResolveExecutable(expr.right);
         }
-        JsValue ResolveAssigmentStat(StatPtr stat)
+        Value ResolveAssigmentStat(StatPtr stat)
         {
             SRC_REF(assig, AssigmentStatement, stat);
             auto id = assig.id.kw;
             auto val = ResolveExecutable(assig.value);
             return SetValue(id, val);
         }
-        JsValue ResolveIdentifier(StatPtr stat)
+        Value ResolveIdentifier(StatPtr stat)
         {
             SRC_REF(id, Identifier, stat);
             auto val = GetValue(id.tok.kw);
@@ -305,7 +305,7 @@ namespace agumi
             }
             return val.value();
         }
-        JsValue ResolveBinaryExpression(StatPtr stat)
+        Value ResolveBinaryExpression(StatPtr stat)
         {
             SRC_REF(expr, BinaryExpression, stat);
             auto left = ResolveExecutable(expr.left);
@@ -332,23 +332,23 @@ namespace agumi
             }
             return target_op_def->second(left, right);
         }
-        JsValue ResolveBoolLiteralInit(StatPtr stat)
+        Value ResolveBoolLiteralInit(StatPtr stat)
         {
             SRC_REF(init, BoolLiteralInit, stat);
             return init.tok.kw == "true";
         }
-        JsValue ResolveNumberLiteralInit(StatPtr stat)
+        Value ResolveNumberLiteralInit(StatPtr stat)
         {
             SRC_REF(init, NumberLiteralInit, stat);
             return stod(init.tok.kw);
         }
-        JsValue ResolveStringLiteralInit(StatPtr stat)
+        Value ResolveStringLiteralInit(StatPtr stat)
         {
             SRC_REF(init, StringLiteralInit, stat);
             // auto& ctx  = CurrCtx();
             return init.tok.toStringContent();
         }
-        JsValue ResolveObjectIndex(StatPtr stat, JsValue &par, bool is_literal = false)
+        Value ResolveObjectIndex(StatPtr stat, Value &par, bool is_literal = false)
         {
             if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
             {
@@ -365,13 +365,13 @@ namespace agumi
             if (stat->Type() == StatementType::indexStatement)
             {
                 SRC_REF(idx, IndexStatement, stat);
-                if (par == JsValue::undefined)
+                if (par == Value::undefined)
                 {
                     auto obj_p = idx.object;
                     auto obj_is_idx = obj_p->Type() == StatementType::identifier;
                     if (obj_is_idx)
                     {
-                        JsValue &obj = ValueOrUndef(obj_p->tok.kw);
+                        Value &obj = ValueOrUndef(obj_p->tok.kw);
                         return ResolveObjectIndex(idx.property, obj);
                     }
                     else
@@ -412,7 +412,7 @@ namespace agumi
             THROW
         }
 
-        JsValue ResolveArrayInit(StatPtr stat)
+        Value ResolveArrayInit(StatPtr stat)
         {
             SRC_REF(arr, ArrayInit, stat)
             JsArray arr_src;
@@ -423,7 +423,7 @@ namespace agumi
             return arr_src;
         }
 
-        JsValue ResolveExecutable(StatPtr stat)
+        Value ResolveExecutable(StatPtr stat)
         {
             switch (stat->Type())
             {
@@ -444,20 +444,20 @@ namespace agumi
             case StatementType::functionCall:
                 return ResolveFuncCall(stat);
             case StatementType::indexStatement:
-                return ResolveObjectIndex(stat, JsValue::undefined);
+                return ResolveObjectIndex(stat, Value::undefined);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
             }
             THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
-        JsValue ResolveFuncDeclear(StatPtr stat)
+        Value ResolveFuncDeclear(StatPtr stat)
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
             auto func_id = fn_stat.start.UniqId();
             Function fn;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
             func_mem[func_id] = fn;
-            return JsValue::CreateFunc(func_id);
+            return Value::CreateFunc(func_id);
         }
     };
 }

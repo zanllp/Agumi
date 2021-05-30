@@ -3,7 +3,7 @@
 #include "JsValue.h"
 namespace agumi
 {
-    JsValue::~JsValue()
+    Value::~Value()
     {
         if (data_ptr != nullptr)
         {
@@ -32,10 +32,10 @@ namespace agumi
         }
     };
 
-    JsValue::JsValue()
+    Value::Value()
     {
     }
-    JsValue::JsValue(const JsValue &v)
+    Value::Value(const Value &v)
     {
         type = v.type;
         switch (v.type)
@@ -60,57 +60,57 @@ namespace agumi
             break;
         }
     }
-    JsValue::JsValue(JsValue &&v)
+    Value::Value(Value &&v)
     {
         std::swap(type, v.type);
         std::swap(data_ptr, v.data_ptr);
     }
-    JsValue::JsValue(bool data)
+    Value::Value(bool data)
     {
         type = JsType::boolean;
         data_ptr = new bool(data);
     }
-    JsValue::JsValue(const char *data)
+    Value::Value(const char *data)
     {
         type = JsType::string;
         data_ptr = new String(data);
     }
-    JsValue::JsValue(int data)
+    Value::Value(int data)
     {
         type = JsType::number;
         data_ptr = new double(data);
     }
-    JsValue::JsValue(std::nullptr_t null)
+    Value::Value(std::nullptr_t null)
     {
         type = JsType::null;
     }
-    JsValue::JsValue(double data)
+    Value::Value(double data)
     {
         type = JsType::number;
         data_ptr = new double(data);
     }
-    JsValue::JsValue(std::string data)
+    Value::Value(std::string data)
     {
         type = JsType::string;
         data_ptr = new String(data);
     }
 
-    JsValue::JsValue(JsObject obj)
+    Value::Value(JsObject obj)
     {
         type = JsType::object;
         data_ptr = new JsObject(obj);
     }
-    JsValue::JsValue(JsArray arr)
+    Value::Value(JsArray arr)
     {
         type = JsType::array;
         data_ptr = new JsArray(arr);
     }
-    JsType JsValue::Type() const
+    JsType Value::Type() const
     {
         return type;
     }
 
-    JsValue &JsValue::operator=(const JsValue &v)
+    Value &Value::operator=(const Value &v)
     {
         type = v.type;
         switch (v.type)
@@ -137,71 +137,71 @@ namespace agumi
         return *this;
     }
 
-    JsValue &JsValue::operator[](String key)
+    Value &Value::operator[](String key)
     {
         return Object()[key];
     }
 
-    String JsValue::TypeString() const
+    String Value::TypeString() const
     {
         auto t = Type();
         return jstype_emun2str[static_cast<int>(t)];
     }
 
-    JsObject &JsValue::Object()
+    JsObject &Value::Object()
     {
         if (type != JsType::object)
         {
-            THROW_MSG("get object了一个不是Object的JsValue实例");
+            THROW_MSG("get object了一个不是Object的Value实例");
         }
         return *(JsObject *)data_ptr;
     }
 
-    const JsObject &JsValue::ObjectC() const
+    const JsObject &Value::ObjectC() const
     {
         if (type != JsType::object)
         {
-            THROW_MSG("get object了一个不是Object的JsValue实例");
+            THROW_MSG("get object了一个不是Object的Value实例");
         }
         return *(JsObject *)data_ptr;
     }
 
-    JsValue &JsValue::operator[](int key)
+    Value &Value::operator[](int key)
     {
         return Array()[key];
     }
-    JsArray &JsValue::Array()
+    JsArray &Value::Array()
     {
         if (type != JsType::array)
         {
-            THROW_MSG("get array了一个不是array的JsValue实例");
+            THROW_MSG("get array了一个不是array的Value实例");
         }
         return *(JsArray *)data_ptr;
     }
 
-    bool JsValue::In(const String &key) const
+    bool Value::In(const String &key) const
     {
         return this->ObjectC().In(key);
     }
-    bool JsValue::In(size_t idx) const
+    bool Value::In(size_t idx) const
     {
         return this->ArrayC().In(idx);
     }
 
-    const JsArray &JsValue::ArrayC() const
+    const JsArray &Value::ArrayC() const
     {
         if (type != JsType::array)
         {
-            THROW_MSG("get array了一个不是array的JsValue实例");
+            THROW_MSG("get array了一个不是array的Value实例");
         }
         return *(JsArray *)data_ptr;
     }
-    bool JsValue::NotUndef()
+    bool Value::NotUndef()
     {
         return type != JsType::undefined;
     }
 
-    String JsValue::ToString() const
+    String Value::ToString() const
     {
         switch (type)
         {
@@ -224,7 +224,7 @@ namespace agumi
         }
     }
 
-    bool JsValue::ToBool() const
+    bool Value::ToBool() const
     {
         switch (type)
         {
@@ -245,7 +245,7 @@ namespace agumi
         return false;
     }
 
-    bool JsValue::DeepCompare(const JsValue &r) const
+    bool Value::DeepCompare(const Value &r) const
     {
         const auto &l = *this;
         if (l.data_ptr == r.data_ptr)
@@ -302,9 +302,9 @@ namespace agumi
         return true;
     }
 
-    bool JsValue::operator==(const JsValue &rhs)
+    bool Value::operator==(const Value &rhs)
     {
         return DeepCompare(rhs);
     }
-    JsValue JsValue::undefined = JsValue();
+    Value Value::undefined = Value();
 }

@@ -9,12 +9,12 @@ namespace agumi
         data_ptr = new JsArrayVec();
         MemAllocCollect::vec_quene.push_back(data_ptr);
     }
-    JsArray::JsArray(std::initializer_list<JsValue> arg)
+    JsArray::JsArray(std::initializer_list<Value> arg)
     {
         data_ptr = new JsArrayVec(arg);
         MemAllocCollect::vec_quene.push_back(data_ptr);
     }
-    JsValue &JsArray::operator[](int key)
+    Value &JsArray::operator[](int key)
     {
         return (*data_ptr)[key];
     }

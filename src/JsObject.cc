@@ -10,12 +10,12 @@ namespace agumi
         data_ptr = new JsObjectMap();
         MemAllocCollect::obj_quene.push_back(data_ptr);
     }
-    JsObject::JsObject(std::initializer_list<std::pair<const String, JsValue>> arg)
+    JsObject::JsObject(std::initializer_list<std::pair<const String, Value>> arg)
     {
         data_ptr = new JsObjectMap(arg);
         MemAllocCollect::obj_quene.push_back(data_ptr);
     }
-    JsValue &JsObject::operator[](std::string key)
+    Value &JsObject::operator[](std::string key)
     {
         return (*data_ptr)[key];
     }

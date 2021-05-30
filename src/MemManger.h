@@ -21,7 +21,7 @@ namespace agumi
     public:
         MemManger();
         ~MemManger();
-        JsValue gc_root;
+        Value gc_root;
         bool first;
         std::set<const JsObjectMap *> can_reach_obj;
         std::set<const JsArrayVec *> can_reach_arr;

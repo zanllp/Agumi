@@ -63,9 +63,9 @@ namespace agumi
             }
         }
 
-        std::tuple<JsValue, TokenIter> ResolveValue(const TokenFlowView &tfv)
+        std::tuple<Value, TokenIter> ResolveValue(const TokenFlowView &tfv)
         {
-            JsValue res;
+            Value res;
             auto f = tfv.BeginIter();
             auto end = f;
             if (f->Is(brackets_start_))
@@ -108,9 +108,9 @@ namespace agumi
         }
 
     public:
-        JsValue JsonParse(const String &src)
+        Value JsonParse(const String &src)
         {
-            JsValue res;
+            Value res;
             const auto token_flow = GeneralTokenizer(src).Start();
             if (token_flow.size() == 0)
             {

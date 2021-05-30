@@ -10,7 +10,7 @@ namespace agumi
     {
     public:
         // 默认开启转义，性能下降
-        static String Stringify(const JsValue &v, int indent = 4, bool escape = true);
+        static String Stringify(const Value &v, int indent = 4, bool escape = true);
         static bool error_if_circle_ref;
 
     private:

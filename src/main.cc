@@ -40,7 +40,7 @@ void TestMemMange()
     auto &olv = o1["emmmm"].Get<double>();
     olv = 2333.1;
     ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == 2333.1, "object的引用修改异常")
-    JsValue obj = JsObject();
+    Value obj = JsObject();
     o1["test-obj"] = obj;
     ASS_2UL(o1["test-obj"].Type(), JsType::object);
     o1["test-obj"] = nullptr;
@@ -48,7 +48,7 @@ void TestMemMange()
     ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
     ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Object().Ptr()))
     ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Object().Ptr()))
-    JsValue v1 = JsArray();
+    Value v1 = JsArray();
     auto v2 = v1;
     ASS_2UL(v1.Array().Ptr(), v2.Array().Ptr())
 }
@@ -106,7 +106,7 @@ void TestJson()
     ASS(mem.gc_root["__23333"].ToString(), "undefined") // get一个未定义的值
     ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
-    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](JsValue i)
+    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](Value i)
                                                              { return i.ToString(); })
             .Join(),
         "1,2,3,4,2")
@@ -237,7 +237,7 @@ void TestString()
     ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
 }
 
-JsValue VmRunScript(VM &vm, String src)
+Value VmRunScript(VM &vm, String src)
 {
     auto tfv = GeneralTokenizer::Js(src);
     auto ast = Compiler().ConstructAST(tfv);
@@ -261,14 +261,14 @@ auto test_js = LoadFile("./src/test.leaf.js");
 int main(int argc, char **argv)
 {
     Token::Init();
-    auto undefined = JsValue();
+    auto undefined = Value();
     auto arg = CreateVecFromStartParams(argc, argv);
     if (argc < 2)
     {
         std::cout << "see https://github.com/zanllp/agumi for more help information" << std::endl;
         return 1;
     }
-    JsValue conf = JsObject({{"hello", "world"}});
+    Value conf = JsObject({{"hello", "world"}});
     for (auto i : arg)
     {
         if (i.StartWith('-'))

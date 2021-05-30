@@ -3,7 +3,7 @@
 #include "Vector.h"
 namespace agumi
 {
-    class JsValue;
+    class Value;
 
     class String : public std::string
     {
@@ -16,7 +16,7 @@ namespace agumi
         template <typename U>
         String(Vector<U> arg) : std::string(arg.Join()) {}
 
-        String(JsValue arg);
+        String(Value arg);
 
         String(int arg);
 

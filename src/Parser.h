@@ -35,7 +35,7 @@ namespace agumi
                    t == StatementType::numberLiteralInit ||
                    t == StatementType::stringLiteralInit;
         }
-        virtual JsValue ToJson()
+        virtual Value ToJson()
         {
             return "base statement";
         }
@@ -54,7 +54,7 @@ namespace agumi
         {
             return StatementType::identifier;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             auto r = JsObject();
             r["type"] = "Identifier";
@@ -70,9 +70,9 @@ namespace agumi
         Vector<StatPtr> body;
         Program(/* args */) = default;
         ~Program() = default;
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue res = JsArray();
+            Value res = JsArray();
             for (auto &i : body)
             {
                 res.Array().Src().push_back(i->ToJson());
@@ -94,9 +94,9 @@ namespace agumi
         {
             return StatementType::variableDeclarator;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "VariableDeclarator";
             r["id"] = id.ToJson();
             r["initialed"] = initialed;
@@ -122,7 +122,7 @@ namespace agumi
             return StatementType::variableDeclaration;
         }
 
-        JsValue ToJson()
+        Value ToJson()
         {
             auto decls = JsArray();
             for (auto &i : declarations)
@@ -146,7 +146,7 @@ namespace agumi
         {
             return StatementType::arrayInit;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             auto arr = JsArray();
             for (auto &i : src)
@@ -176,9 +176,9 @@ namespace agumi
             return StatementType::conditionExpression;
         }
 
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "ConditionExpression";
             r["cond"] = cond->ToJson();
             r["left"] = left->ToJson();
@@ -201,9 +201,9 @@ namespace agumi
         {
             return StatementType::binaryExpression;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "BinaryExpression";
             r["op"] = op.ToJson();
             r["left"] = left->ToJson();
@@ -229,14 +229,14 @@ namespace agumi
         {
             return StatementType::functionDeclaration;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "FunctionDeclaration";
             JsArray args;
             for (auto i : arguments)
             {
-                JsValue a = JsObject();
+                Value a = JsObject();
                 a["name"] = i.name.ToJson();
                 a["initialed"] = i.initialed;
                 if (i.initialed)
@@ -266,9 +266,9 @@ namespace agumi
         {
             return StatementType::functionCall;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "FunctionCall";
             JsArray args;
             for (auto &i : arguments)
@@ -290,9 +290,9 @@ namespace agumi
         {
             return StatementType::indexStatement;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
-            JsValue r = JsObject();
+            Value r = JsObject();
             r["type"] = "IndexStatement";
             r["propetry"] = property->ToJson();
             r["object"] = object->ToJson();
@@ -311,7 +311,7 @@ namespace agumi
         {
             return StatementType::numberLiteralInit;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             return JsObject({{"type", "NumberLiteral"},
                              {"value", tok.ToJson()}});
@@ -329,7 +329,7 @@ namespace agumi
         {
             return StatementType::boolLiteralInit;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             return JsObject({{"type", "BoolLiteral"},
                              {"value", tok.ToJson()}});
@@ -347,7 +347,7 @@ namespace agumi
         {
             return StatementType::stringLiteralInit;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             return JsObject({{"type", "StringLiteral"},
                              {"value", tok.ToJson()}});
@@ -364,7 +364,7 @@ namespace agumi
         {
             return StatementType::assigmentStatement;
         }
-        JsValue ToJson()
+        Value ToJson()
         {
             auto r = JsObject();
             r["id"] = id.ToJson();

@@ -9,7 +9,7 @@ namespace agumi
     {
     }
 
-    String::String(JsValue arg) : std::string(arg.ToString()) {}
+    String::String(Value arg) : std::string(arg.ToString()) {}
 
     String::String(int arg) : std::string(std::to_string(arg)) {}
 

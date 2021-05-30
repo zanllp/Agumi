@@ -2,7 +2,7 @@
 #include "stdafx.h"
 namespace agumi
 {
-    class JsValue;
+    class Value;
     class JsObject
     {
 
@@ -10,10 +10,10 @@ namespace agumi
 
     public:
         JsObject();
-        JsObject(std::initializer_list<std::pair<const String, JsValue>> arg);
+        JsObject(std::initializer_list<std::pair<const String, Value>> arg);
         ~JsObject();
         const JsObjectMap *Ptr() const;
-        JsValue &operator[](std::string key);
+        Value &operator[](std::string key);
         JsObjectMap &Src();
         const JsObjectMap &SrcC() const;
         bool In(String key) const;
