@@ -1,45 +1,45 @@
-#include "JsObject.h"
+#include "Object.h"
 #include "Value.h"
 #include "stdafx.h"
 #include "MemManger.h"
 
 namespace agumi
 {
-    JsObject::JsObject()
+    Object::Object()
     {
-        data_ptr = new JsObjectMap();
+        data_ptr = new ObjectMap();
         MemAllocCollect::obj_quene.push_back(data_ptr);
     }
-    JsObject::JsObject(std::initializer_list<std::pair<const String, Value>> arg)
+    Object::Object(std::initializer_list<std::pair<const String, Value>> arg)
     {
-        data_ptr = new JsObjectMap(arg);
+        data_ptr = new ObjectMap(arg);
         MemAllocCollect::obj_quene.push_back(data_ptr);
     }
-    Value &JsObject::operator[](std::string key)
+    Value &Object::operator[](std::string key)
     {
         return (*data_ptr)[key];
     }
-    JsObjectMap &JsObject::Src()
+    ObjectMap &Object::Src()
     {
         return *data_ptr;
     }
 
-    bool JsObject::In(String key) const
+    bool Object::In(String key) const
     {
         return this->SrcC().find(key) != this->SrcC().end();
     }
 
-    const JsObjectMap &JsObject::SrcC() const
+    const ObjectMap &Object::SrcC() const
     {
         return *data_ptr;
     }
 
-    const JsObjectMap *JsObject::Ptr() const
+    const ObjectMap *Object::Ptr() const
     {
         return this->data_ptr;
     }
 
-    JsObject::~JsObject()
+    Object::~Object()
     {
     }
 }

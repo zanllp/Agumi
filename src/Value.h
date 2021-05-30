@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include "JsObject.h"
+#include "Object.h"
 #include "Array.h"
 #include "util.h"
 namespace agumi
@@ -8,7 +8,7 @@ namespace agumi
     
     class Value
     {
-        friend JsObject;
+        friend Object;
 
     public:
         ~Value();
@@ -22,7 +22,7 @@ namespace agumi
         Value(std::nullptr_t null);
         Value(double data);
         Value(std::string data);
-        Value(JsObject obj);
+        Value(Object obj);
         Value(Array arr);
         JsType Type() const;
         template <typename T>
@@ -41,8 +41,8 @@ namespace agumi
 
         Value &operator=(const Value &v);
         Value &operator[](String key);
-        JsObject &Object();
-        const JsObject &ObjectC() const;
+        Object &Obj();
+        const Object &ObjC() const;
         Value &operator[](int key);
         Array &Arr();
         const Array &ArrC() const;

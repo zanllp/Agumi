@@ -56,7 +56,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            auto r = JsObject();
+            auto r = Object();
             r["type"] = "Identifier";
             r["name"] = tok.ToJson();
             return r;
@@ -96,7 +96,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "VariableDeclarator";
             r["id"] = id.ToJson();
             r["initialed"] = initialed;
@@ -129,7 +129,7 @@ namespace agumi
             {
                 decls.Src().push_back(i->ToJson());
             }
-            auto res = JsObject();
+            auto res = Object();
             res["type"] = "VariableDeclaration";
             res["kind"] = kind.ToJson();
             res["declarations"] = decls;
@@ -153,7 +153,7 @@ namespace agumi
             {
                 arr.Src().push_back(i->ToJson());
             }
-            auto res = JsObject();
+            auto res = Object();
             res["src"] = arr;
             res["type"] = "arrayInit";
             return res;
@@ -178,7 +178,7 @@ namespace agumi
 
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "ConditionExpression";
             r["cond"] = cond->ToJson();
             r["left"] = left->ToJson();
@@ -203,7 +203,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "BinaryExpression";
             r["op"] = op.ToJson();
             r["left"] = left->ToJson();
@@ -231,12 +231,12 @@ namespace agumi
         }
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "FunctionDeclaration";
             Array args;
             for (auto i : arguments)
             {
-                Value a = JsObject();
+                Value a = Object();
                 a["name"] = i.name.ToJson();
                 a["initialed"] = i.initialed;
                 if (i.initialed)
@@ -268,7 +268,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "FunctionCall";
             Array args;
             for (auto &i : arguments)
@@ -292,7 +292,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            Value r = JsObject();
+            Value r = Object();
             r["type"] = "IndexStatement";
             r["propetry"] = property->ToJson();
             r["object"] = object->ToJson();
@@ -313,7 +313,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            return JsObject({{"type", "NumberLiteral"},
+            return Object({{"type", "NumberLiteral"},
                              {"value", tok.ToJson()}});
         }
     };
@@ -331,7 +331,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            return JsObject({{"type", "BoolLiteral"},
+            return Object({{"type", "BoolLiteral"},
                              {"value", tok.ToJson()}});
         }
     };
@@ -349,7 +349,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            return JsObject({{"type", "StringLiteral"},
+            return Object({{"type", "StringLiteral"},
                              {"value", tok.ToJson()}});
         }
     };
@@ -366,7 +366,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            auto r = JsObject();
+            auto r = Object();
             r["id"] = id.ToJson();
             r["value"] = value->ToJson();
             r["type"] = "assigmentStatement";

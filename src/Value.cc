@@ -20,7 +20,7 @@ namespace agumi
                 delete (bool *)data_ptr;
                 break;
             case JsType::object:
-                delete (JsObject *)data_ptr;
+                delete (Object *)data_ptr;
                 break;
             case JsType::array:
                 delete (Array *)data_ptr;
@@ -51,7 +51,7 @@ namespace agumi
             data_ptr = new bool(*(bool *)(v.data_ptr));
             break;
         case JsType::object:
-            data_ptr = new JsObject(*(JsObject *)(v.data_ptr));
+            data_ptr = new Object(*(Object *)(v.data_ptr));
         case JsType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
         case JsType::null:
@@ -95,10 +95,10 @@ namespace agumi
         data_ptr = new String(data);
     }
 
-    Value::Value(JsObject obj)
+    Value::Value(Object obj)
     {
         type = JsType::object;
-        data_ptr = new JsObject(obj);
+        data_ptr = new Object(obj);
     }
     Value::Value(Array arr)
     {
@@ -125,7 +125,7 @@ namespace agumi
             data_ptr = new bool(*(bool *)(v.data_ptr)); // 传值
             break;
         case JsType::object:
-            data_ptr = new JsObject(*(JsObject *)(v.data_ptr));
+            data_ptr = new Object(*(Object *)(v.data_ptr));
         case JsType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
         case JsType::null:
@@ -139,7 +139,7 @@ namespace agumi
 
     Value &Value::operator[](String key)
     {
-        return Object()[key];
+        return Obj()[key];
     }
 
     String Value::TypeString() const
@@ -148,22 +148,22 @@ namespace agumi
         return jstype_emun2str[static_cast<int>(t)];
     }
 
-    JsObject &Value::Object()
+    Object &Value::Obj()
     {
         if (type != JsType::object)
         {
             THROW_MSG("get object了一个不是Object的Value实例");
         }
-        return *(JsObject *)data_ptr;
+        return *(Object *)data_ptr;
     }
 
-    const JsObject &Value::ObjectC() const
+    const Object &Value::ObjC() const
     {
         if (type != JsType::object)
         {
             THROW_MSG("get object了一个不是Object的Value实例");
         }
-        return *(JsObject *)data_ptr;
+        return *(Object *)data_ptr;
     }
 
     Value &Value::operator[](int key)
@@ -181,7 +181,7 @@ namespace agumi
 
     bool Value::In(const String &key) const
     {
-        return this->ObjectC().In(key);
+        return this->ObjC().In(key);
     }
     bool Value::In(size_t idx) const
     {
@@ -264,14 +264,14 @@ namespace agumi
         else if (type == JsType::object)
         {
 
-            if (l.ObjectC().SrcC().size() != r.ObjectC().SrcC().size())
+            if (l.ObjC().SrcC().size() != r.ObjC().SrcC().size())
             {
                 return false;
             }
 
-            for (auto &i : l.ObjectC().SrcC())
+            for (auto &i : l.ObjC().SrcC())
             {
-                if (!i.second.DeepCompare(r.ObjectC().SrcC().at(i.first)))
+                if (!i.second.DeepCompare(r.ObjC().SrcC().at(i.first)))
                 {
                     return false;
                 }

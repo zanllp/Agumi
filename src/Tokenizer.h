@@ -206,7 +206,7 @@ namespace agumi
         Value ToJson() const
         {
             return kw;
-            auto m = JsObject();
+            auto m = Object();
             m["src"] = kw;
             m["offset"] = offset;
             m["line"] = line;

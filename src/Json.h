@@ -14,11 +14,11 @@ namespace agumi
         static bool error_if_circle_ref;
 
     private:
-        static String StringifyInternal(const JsObject &next,
-                                        std::set<const JsObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
+        static String StringifyInternal(const Object &next,
+                                        std::set<const ObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
                                         int indent_step, int indent, bool escape);
         static String StringifyInternalArray(const Array &next,
-                                             std::set<const JsObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
+                                             std::set<const ObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
                                              int indent_step, int indent, bool escape);
         static String SameLevelCompisition(std::vector<String> &src, int indent_step, int indent, std::tuple<String, String> start_end_symbol);
     };

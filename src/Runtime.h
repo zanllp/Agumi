@@ -5,7 +5,7 @@ namespace agumi
     class Context
     {
     public:
-        Value var = JsObject();
+        Value var = Object();
         Context(){};
         ~Context(){};
     };

@@ -1,12 +1,12 @@
 #include "Json.h"
 #include "Value.h"
-#include "JsObject.h"
+#include "Object.h"
 #include "util.h"
 namespace agumi
 {
     bool Json::error_if_circle_ref = false;
     String Json::StringifyInternalArray(const Array &next,
-                                        std::set<const JsObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
+                                        std::set<const ObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
                                         int indent_step, int indent, bool escape)
     {
         json_arr_rec.insert(next.Ptr());
@@ -25,9 +25,9 @@ namespace agumi
             auto type = i.Type();
             if (type == JsType::object)
             {
-                if (json_obj_rec.find(i.ObjectC().Ptr()) == json_obj_rec.end())
+                if (json_obj_rec.find(i.ObjC().Ptr()) == json_obj_rec.end())
                 {
-                    auto next_v = Json::StringifyInternal(i.ObjectC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                    auto next_v = Json::StringifyInternal(i.ObjC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     res_vec.push_back(next_v);
                 }
                 else
@@ -57,8 +57,8 @@ namespace agumi
         }
         return SameLevelCompisition(res_vec, indent_step, next_indent, {"[", "]"});
     }
-    String Json::StringifyInternal(const JsObject &next,
-                                   std::set<const JsObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
+    String Json::StringifyInternal(const Object &next,
+                                   std::set<const ObjectMap *> &json_obj_rec, std::set<const ArrayVec *> &json_arr_rec,
                                    int indent_step, int indent, bool escape)
     {
         json_obj_rec.insert(next.Ptr());
@@ -78,9 +78,9 @@ namespace agumi
             auto type = i.second.Type();
             if (type == JsType::object)
             {
-                if (json_obj_rec.find(i.second.ObjectC().Ptr()) == json_obj_rec.end())
+                if (json_obj_rec.find(i.second.ObjC().Ptr()) == json_obj_rec.end())
                 {
-                    auto next_v = Json::StringifyInternal(i.second.ObjectC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                    auto next_v = Json::StringifyInternal(i.second.ObjC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
                     auto str = String::Format("\"{}\": {}", key, next_v);
                     res_vec.push_back(str);
                 }
@@ -138,12 +138,12 @@ namespace agumi
 
     String Json::Stringify(const Value &v, int indent, bool escape)
     {
-        std::set<const JsObjectMap *> json_obj_rec;
+        std::set<const ObjectMap *> json_obj_rec;
         std::set<const ArrayVec *> json_arr_rec;
         switch (v.Type())
         {
         case JsType::object:
-            return Json::StringifyInternal(v.ObjectC(), json_obj_rec, json_arr_rec, indent, 0, escape);
+            return Json::StringifyInternal(v.ObjC(), json_obj_rec, json_arr_rec, indent, 0, escape);
         case JsType::array:
             return Json::StringifyInternalArray(v.ArrC(), json_obj_rec, json_arr_rec, indent, 0, escape);
         case JsType::string:

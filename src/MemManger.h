@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Value.h"
-#include "JsObject.h"
+#include "Object.h"
 namespace agumi
 {
     
@@ -9,7 +9,7 @@ namespace agumi
     class MemAllocCollect
     {
     public:
-        static Vector<const JsObjectMap *> obj_quene;
+        static Vector<const ObjectMap *> obj_quene;
         static Vector<const ArrayVec *> vec_quene;
     };
 
@@ -23,9 +23,9 @@ namespace agumi
         ~MemManger();
         Value gc_root;
         bool first;
-        std::set<const JsObjectMap *> can_reach_obj;
+        std::set<const ObjectMap *> can_reach_obj;
         std::set<const ArrayVec *> can_reach_arr;
-        void ReachObjectNode(JsObject start);
+        void ReachObjectNode(Object start);
         void GC();
         static MemManger &Get();
     };

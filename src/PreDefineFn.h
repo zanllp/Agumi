@@ -3,7 +3,7 @@
 #include "Runtime.h"
 #include "Array.h"
 #include "Json.h"
-#include "JsObject.h"
+#include "Object.h"
 #include "sion.h"
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define BIN_OPERATOR(body) [](Value &l, Value &r) { return body; };
@@ -20,13 +20,13 @@ namespace agumi
             auto indent = args.GetOrDefault(1);
             return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4);
         };
-        auto json_module = JsObject({{"parse", vm.DefineFunc(json_parse)},
+        auto json_module = Object({{"parse", vm.DefineFunc(json_parse)},
                                      {"stringify", vm.DefineFunc(json_stringify)}});
         vm.ctx_stack[0].var["json"] = json_module;
         auto fetch_bind = [&](Vector<Value> args) -> Value
         {
             auto resp = sion::Fetch(args[0].ToString());
-            auto res = JsObject();
+            auto res = Object();
             res["data"] = resp.Body().c_str();
             return res;
         };

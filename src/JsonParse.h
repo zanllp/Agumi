@@ -5,7 +5,7 @@ namespace agumi
     class JsonNext
     {
         // tfv
-        void ResolveObject(const TokenFlowView &tfv, JsObject &obj)
+        void ResolveObject(const TokenFlowView &tfv, Object &obj)
         {
             auto iter = tfv.BeginIter(); // {
             iter++;
@@ -79,7 +79,7 @@ namespace agumi
             else if (f->Is(curly_brackets_start_))
             {
                 end = CalcEndBrackets(f);
-                JsObject obj;
+                Object obj;
                 res = obj;
                 TokenFlowView tfv_n(f, end);
                 ResolveObject(tfv_n, obj);

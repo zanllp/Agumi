@@ -21,33 +21,33 @@ void TestMemMange()
     mem.gc_root["c"] = Array();
     mem.gc_root["c"].Arr().Src().resize(10); 
     mem.gc_root["c"][1] = 1;
-    mem.gc_root["c"][6] = JsObject({
+    mem.gc_root["c"][6] = Object({
         {"fuck", "ass"},
-        {"cao s", JsObject({{"fuck", "cao"}})},
-        {"emmm", Array({1, 2, 3, 4, 5, 6, 7, 23333.666, mem.gc_root["c"], JsObject(), JsObject()})},
+        {"cao s", Object({{"fuck", "cao"}})},
+        {"emmm", Array({1, 2, 3, 4, 5, 6, 7, 23333.666, mem.gc_root["c"], Object(), Object()})},
     });
-    mem.gc_root["cao"] = JsObject({
+    mem.gc_root["cao"] = Object({
         {"fuck", "ass"},
-        {"cao s", JsObject({{"fuck", "cao"}})},
+        {"cao s", Object({{"fuck", "cao"}})},
         {"emmm", 23333},
     });
     mem.gc_root["hl"] = mem.gc_root["cao"];
 
-    ASS_2UL(mem.gc_root["hl"].Object().Ptr(), mem.gc_root["cao"].Object().Ptr())
+    ASS_2UL(mem.gc_root["hl"].Obj().Ptr(), mem.gc_root["cao"].Obj().Ptr())
     auto o1 = mem.gc_root["cao"];
     o1["emmmm"] = 12345;
     ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == (double)12345, "object的引用修改异常")
     auto &olv = o1["emmmm"].Get<double>();
     olv = 2333.1;
     ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == 2333.1, "object的引用修改异常")
-    Value obj = JsObject();
+    Value obj = Object();
     o1["test-obj"] = obj;
     ASS_2UL(o1["test-obj"].Type(), JsType::object);
     o1["test-obj"] = nullptr;
     mem.GC();
     ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
-    ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Object().Ptr()))
-    ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Object().Ptr()))
+    ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Obj().Ptr()))
+    ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Obj().Ptr()))
     Value v1 = Array();
     auto v2 = v1;
     ASS_2UL(v1.Arr().Ptr(), v2.Arr().Ptr())
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
         std::cout << "see https://github.com/zanllp/agumi for more help information" << std::endl;
         return 1;
     }
-    Value conf = JsObject({{"hello", "world"}});
+    Value conf = Object({{"hello", "world"}});
     for (auto i : arg)
     {
         if (i.StartWith('-'))
@@ -300,10 +300,10 @@ int main(int argc, char **argv)
     if (repl)
     {
         VM vm;
-        auto o1 = JsObject({{"d", "hello world"}});
-        auto o2 = JsObject({{"hello", o1}});
-        auto o3 = JsObject({{"o3", o2}});
-        vm.ctx_stack[0].var["b"] = JsObject({{"dd", o3}, {"cc", 01}});
+        auto o1 = Object({{"d", "hello world"}});
+        auto o2 = Object({{"hello", o1}});
+        auto o3 = Object({{"o3", o2}});
+        vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 01}});
         AddPreDefine(vm);
         array<char, 1000> buf = {0};
         auto ptr = &buf.at(0);
