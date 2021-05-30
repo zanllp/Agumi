@@ -50,10 +50,10 @@ repl时开启输出令牌化
 ### 例子：使用运算符重载实现函数式语言pipe的功能
 ```cpp
 LocalClassDefine fn_def;
-std::map<KW, std::function<JsValue(JsValue &, JsValue &)>> fn_op_def;
-fn_op_def[add_] = [&](JsValue &l, JsValue &r)
+std::map<KW, std::function<Value(Value &, Value &)>> fn_op_def;
+fn_op_def[add_] = [&](Value &l, Value &r)
 {
-    auto new_fn = [=, &vm](Vector<JsValue> args) -> JsValue
+    auto new_fn = [=, &vm](Vector<Value> args) -> Value
     {
         return vm.FuncCall(r, vm.FuncCall(l, args));
     };

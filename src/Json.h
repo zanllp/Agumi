@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "JsValue.h"
+#include "Value.h"
 #include "String.h"
 
 namespace agumi

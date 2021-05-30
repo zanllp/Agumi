@@ -1,6 +1,6 @@
 #include "String.h"
 #include "stdafx.h"
-#include "JsValue.h"
+#include "Value.h"
 
 namespace agumi
 {
