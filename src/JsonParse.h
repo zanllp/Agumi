@@ -120,7 +120,7 @@ namespace agumi
             auto root_value = ResolveValue(f);
             res = std::get<0>(root_value);
             auto root_type = res.Type();
-            if (token_flow.size() != 1 && root_type != JsType::array && root_type != JsType::object)
+            if (token_flow.size() != 1 && root_type != ValueType::array && root_type != ValueType::object)
             {
                 THROW_TOKEN(token_flow[1]);
             }

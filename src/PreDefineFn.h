@@ -82,12 +82,12 @@ namespace agumi
         str_op_def[eqeqeq_] = BIN_OPERATOR(l.GetC<String>() == r.GetC<String>());
         str_op_def[add_equal_] = BIN_OPERATOR(l.Get<String>() += r.GetC<String>());
         str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())));
-        string_def.binary_operator_overload[JsType::string] = str_op_def;
+        string_def.binary_operator_overload[ValueType::string] = str_op_def;
         string_def.member_func["length"] = [](Value &_this, Vector<Value> args) -> Value
         {
             return static_cast<int>(_this.GetC<String>().length());
         };
-        vm.class_define[JsType::string] = string_def;
+        vm.class_define[ValueType::string] = string_def;
 
         LocalClassDefine array_def;
         array_def.member_func["push"] = [](Value &_this, Vector<Value> args) -> Value
@@ -112,7 +112,7 @@ namespace agumi
 
             return _this[idx];
         };
-        vm.class_define[JsType::array] = array_def;
+        vm.class_define[ValueType::array] = array_def;
 
         LocalClassDefine num_def;
         num_def.member_func["incr"] = [](Value &_this, Vector<Value> args) -> Value
@@ -135,8 +135,8 @@ namespace agumi
         num_op_def[mod_] = BIN_OPERATOR(fmod(l.GetC<double>(), r.GetC<double>()));
         num_op_def[sub_equal_] = BIN_OPERATOR(l.Get<double>() -= r.GetC<double>());
         num_op_def[add_equal_] = BIN_OPERATOR(l.Get<double>() += r.GetC<double>());
-        num_def.binary_operator_overload[JsType::number] = num_op_def;
-        vm.class_define[JsType::number] = num_def;
+        num_def.binary_operator_overload[ValueType::number] = num_op_def;
+        vm.class_define[ValueType::number] = num_def;
 
         LocalClassDefine fn_def;
         std::map<KW, std::function<Value(Value &, Value &)>> fn_op_def;
@@ -148,7 +148,7 @@ namespace agumi
             };
             return vm.DefineFunc(new_fn);
         };
-        fn_def.binary_operator_overload[JsType::function] = fn_op_def;
-        vm.class_define[JsType::function] = fn_def;
+        fn_def.binary_operator_overload[ValueType::function] = fn_op_def;
+        vm.class_define[ValueType::function] = fn_def;
     }
 }

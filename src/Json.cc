@@ -23,7 +23,7 @@ namespace agumi
         for (auto &i : next.SrcC())
         {
             auto type = i.Type();
-            if (type == JsType::object)
+            if (type == ValueType::object)
             {
                 if (json_obj_rec.find(i.ObjC().Ptr()) == json_obj_rec.end())
                 {
@@ -35,7 +35,7 @@ namespace agumi
                     handle_circle_ref();
                 }
             }
-            else if (type == JsType::array)
+            else if (type == ValueType::array)
             {
                 if (json_arr_rec.find(i.ArrC().Ptr()) == json_arr_rec.end())
                 {
@@ -49,9 +49,9 @@ namespace agumi
             }
             else
             {
-                auto v_src = type == JsType::undefined ? "null" : i.ToString();
+                auto v_src = type == ValueType::undefined ? "null" : i.ToString();
                 auto str = escape ? v_src.Escape() : v_src;
-                auto value_str = i.Type() == JsType::string ? String::Format("\"{}\"", str) : str;
+                auto value_str = i.Type() == ValueType::string ? String::Format("\"{}\"", str) : str;
                 res_vec.push_back(value_str);
             }
         }
@@ -76,7 +76,7 @@ namespace agumi
         {
             auto key = escape ? i.first.Escape() : i.first;
             auto type = i.second.Type();
-            if (type == JsType::object)
+            if (type == ValueType::object)
             {
                 if (json_obj_rec.find(i.second.ObjC().Ptr()) == json_obj_rec.end())
                 {
@@ -89,7 +89,7 @@ namespace agumi
                     handle_circle_ref(key);
                 }
             }
-            else if (type == JsType::array)
+            else if (type == ValueType::array)
             {
                 if (json_arr_rec.find(i.second.ArrC().Ptr()) == json_arr_rec.end())
                 {
@@ -104,9 +104,9 @@ namespace agumi
             }
             else
             {
-                String v_src = (type == JsType::undefined) ? "null" : i.second.ToString();
+                String v_src = (type == ValueType::undefined) ? "null" : i.second.ToString();
                 auto str = escape ? v_src.Escape() : v_src;
-                auto value_str = i.second.Type() == JsType::string ? String::Format("\"{}\"", str.Replace('\n', "\\n", -1)) : str;
+                auto value_str = i.second.Type() == ValueType::string ? String::Format("\"{}\"", str.Replace('\n', "\\n", -1)) : str;
                 res_vec.push_back(String::Format("\"{}\": {}", key, value_str));
             }
         }
@@ -142,11 +142,11 @@ namespace agumi
         std::set<const ArrayVec *> json_arr_rec;
         switch (v.Type())
         {
-        case JsType::object:
+        case ValueType::object:
             return Json::StringifyInternal(v.ObjC(), json_obj_rec, json_arr_rec, indent, 0, escape);
-        case JsType::array:
+        case ValueType::array:
             return Json::StringifyInternalArray(v.ArrC(), json_obj_rec, json_arr_rec, indent, 0, escape);
-        case JsType::string:
+        case ValueType::string:
             return String::Format("\"{}\"", v.ToString());
         default:
             return v.ToString();

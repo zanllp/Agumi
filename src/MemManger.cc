@@ -32,13 +32,13 @@ namespace agumi
                 for (const auto &i : obj.Src())
                 {
                     auto next = i.second;
-                    if (next.Type() == JsType::object && can_reach_obj.find(next.Obj().Ptr()) == can_reach_obj.end())
+                    if (next.Type() == ValueType::object && can_reach_obj.find(next.Obj().Ptr()) == can_reach_obj.end())
                     {
                         auto object_node = next.Obj();
                         can_reach_obj.insert(object_node.Ptr());
                         obj_set.push_back(object_node);
                     }
-                    else if (next.Type() == JsType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
+                    else if (next.Type() == ValueType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
                     {
                         auto arr_node = next.Arr();
                         can_reach_arr.insert(arr_node.Ptr());
@@ -53,13 +53,13 @@ namespace agumi
                 for (const auto &i : arr.Src())
                 {
                     auto next = i;
-                    if (next.Type() == JsType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
+                    if (next.Type() == ValueType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
                     {
                         auto arr_node = next.Arr();
                         can_reach_arr.insert(arr_node.Ptr());
                         arr_set.push_back(arr_node);
                     }
-                    else if (next.Type() == JsType::object && can_reach_obj.find(next.Obj().Ptr()) == can_reach_obj.end())
+                    else if (next.Type() == ValueType::object && can_reach_obj.find(next.Obj().Ptr()) == can_reach_obj.end())
                     {
                         auto object_node = next.Obj();
                         can_reach_obj.insert(object_node.Ptr());

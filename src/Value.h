@@ -24,7 +24,7 @@ namespace agumi
         Value(std::string data);
         Value(Object obj);
         Value(Array arr);
-        JsType Type() const;
+        ValueType Type() const;
         template <typename T>
         constexpr T &Get()
         {
@@ -58,38 +58,38 @@ namespace agumi
         static Value CreateFunc(String mem_key)
         {
             Value val = mem_key;
-            val.type = JsType::function;
+            val.type = ValueType::function;
             return val;
         }
 
         static Value undefined;
 
     private:
-        JsType type = JsType::undefined;
+        ValueType type = ValueType::undefined;
         void *data_ptr = nullptr;
 
         constexpr void CheckType(const std::type_info &t) const
         {
             switch (type)
             {
-            case JsType::number:
+            case ValueType::number:
                 Assest(typeid(double).hash_code(), t.hash_code(), "类型不对");
                 break;
-            case JsType::function:
-            case JsType::string:
+            case ValueType::function:
+            case ValueType::string:
                 Assest(typeid(String).hash_code(), t.hash_code(), "类型不对");
                 break;
-            case JsType::boolean:
+            case ValueType::boolean:
                 Assest(typeid(bool).hash_code(), t.hash_code(), "类型不对");
                 break;
-            case JsType::null:
+            case ValueType::null:
                 Assest(typeid(nullptr).hash_code(), t.hash_code(), "类型不对");
                 break;
-            case JsType::undefined:
+            case ValueType::undefined:
                 THROW_MSG("get了一个未定义的Value实例");
                 break;
-            case JsType::array:
-            case JsType::object:
+            case ValueType::array:
+            case ValueType::object:
                 THROW_MSG("不应该使用get来获取jsObject/Array");
                 break;
             }

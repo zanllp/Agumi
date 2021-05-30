@@ -59,8 +59,8 @@ fn_op_def[add_] = [&](Value &l, Value &r)
     };
     return vm.DefineFunc(new_fn);
 };
-fn_def.binary_operator_overload[JsType::function] = fn_op_def;
-vm.class_define[JsType::function] = fn_def;
+fn_def.binary_operator_overload[ValueType::function] = fn_op_def;
+vm.class_define[ValueType::function] = fn_def;
 ```
 ![image](https://user-images.githubusercontent.com/25872019/119687653-f5421100-be79-11eb-9441-95174cff6068.png)
 ## 已知问题

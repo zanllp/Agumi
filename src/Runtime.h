@@ -22,7 +22,7 @@ namespace agumi
     {
     public:
         std::map<String, std::function<Value(Value &, Vector<Value>)>> member_func;
-        std::map<JsType, std::map<KW, std::function<Value(Value &, Value &)>>> binary_operator_overload;
+        std::map<ValueType, std::map<KW, std::function<Value(Value &, Value &)>>> binary_operator_overload;
         Value ExecFunc(String key, Value &val, Vector<Value> args)
         {
             auto iter = member_func.find(key);
@@ -32,7 +32,7 @@ namespace agumi
             }
             return iter->second(val, args);
         }
-        Value ExecBinaryOperator(JsType t, KW op, Value &l, Value &r)
+        Value ExecBinaryOperator(ValueType t, KW op, Value &l, Value &r)
         {
             auto type_def = binary_operator_overload.find(t);
             if (type_def == binary_operator_overload.end())
@@ -59,7 +59,7 @@ namespace agumi
         Vector<Context> ctx_stack;
         Vector<Value> temp_stack;
         std::map<String, Function> func_mem;
-        std::map<JsType, LocalClassDefine> class_define;
+        std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
             return ctx_stack.back();
@@ -195,8 +195,8 @@ namespace agumi
         Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = Value::undefined)
         {
             SRC_REF(fn_call, FunctionCall, stat)
-            auto fn_loc = fn_loc_optional.Type() == JsType::function ? fn_loc_optional : ResolveExecutable(fn_call.id);
-            if (fn_loc.Type() != JsType::function)
+            auto fn_loc = fn_loc_optional.Type() == ValueType::function ? fn_loc_optional : ResolveExecutable(fn_call.id);
+            if (fn_loc.Type() != ValueType::function)
             {
                 THROW_MSG("'{}' is not a function", fn_loc.ToString())
             }
@@ -244,7 +244,7 @@ namespace agumi
             return v;
         }
 
-        Value ResolveLocalClassFuncCall(StatPtr stat, JsType t, String key, Value &val)
+        Value ResolveLocalClassFuncCall(StatPtr stat, ValueType t, String key, Value &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)
             Vector<Value> args;
@@ -353,7 +353,7 @@ namespace agumi
             if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
             {
                 SRC_REF(key, Identifier, stat);
-                if (par.Type() == JsType::object)
+                if (par.Type() == ValueType::object)
                 {
                     return par[key.tok.kw];
                 }
@@ -384,7 +384,7 @@ namespace agumi
                 else
                 {
                     auto key = idx.object->tok.kw;
-                    if (par.Type() == JsType::object)
+                    if (par.Type() == ValueType::object)
                     {
                         auto &next_par = par[key];
                         return ResolveObjectIndex(idx.property, next_par);
@@ -398,7 +398,7 @@ namespace agumi
                 SRC_REF(key, Identifier, fn.id);
                 auto t = par.Type();
                 auto key_str = key.tok.kw;
-                if (t == JsType::object)
+                if (t == ValueType::object)
                 {
                     return ResolveFuncCall(stat, par[key_str]);
                 }

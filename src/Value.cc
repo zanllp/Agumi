@@ -9,24 +9,24 @@ namespace agumi
         {
             switch (type)
             {
-            case JsType::number:
+            case ValueType::number:
                 delete (double *)data_ptr;
                 break;
-            case JsType::function:
-            case JsType::string:
+            case ValueType::function:
+            case ValueType::string:
                 delete (String *)data_ptr;
                 break;
-            case JsType::boolean:
+            case ValueType::boolean:
                 delete (bool *)data_ptr;
                 break;
-            case JsType::object:
+            case ValueType::object:
                 delete (Object *)data_ptr;
                 break;
-            case JsType::array:
+            case ValueType::array:
                 delete (Array *)data_ptr;
                 break;
-            case JsType::null:
-            case JsType::undefined:
+            case ValueType::null:
+            case ValueType::undefined:
                 break;
             }
         }
@@ -40,22 +40,22 @@ namespace agumi
         type = v.type;
         switch (v.type)
         {
-        case JsType::number:
+        case ValueType::number:
             data_ptr = new double(*((double *)v.data_ptr));
             break;
-        case JsType::function:
-        case JsType::string:
+        case ValueType::function:
+        case ValueType::string:
             data_ptr = new String(*(String *)(v.data_ptr));
             break;
-        case JsType::boolean:
+        case ValueType::boolean:
             data_ptr = new bool(*(bool *)(v.data_ptr));
             break;
-        case JsType::object:
+        case ValueType::object:
             data_ptr = new Object(*(Object *)(v.data_ptr));
-        case JsType::array:
+        case ValueType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
-        case JsType::null:
-        case JsType::undefined:
+        case ValueType::null:
+        case ValueType::undefined:
         default:
             break;
         }
@@ -67,45 +67,45 @@ namespace agumi
     }
     Value::Value(bool data)
     {
-        type = JsType::boolean;
+        type = ValueType::boolean;
         data_ptr = new bool(data);
     }
     Value::Value(const char *data)
     {
-        type = JsType::string;
+        type = ValueType::string;
         data_ptr = new String(data);
     }
     Value::Value(int data)
     {
-        type = JsType::number;
+        type = ValueType::number;
         data_ptr = new double(data);
     }
     Value::Value(std::nullptr_t null)
     {
-        type = JsType::null;
+        type = ValueType::null;
     }
     Value::Value(double data)
     {
-        type = JsType::number;
+        type = ValueType::number;
         data_ptr = new double(data);
     }
     Value::Value(std::string data)
     {
-        type = JsType::string;
+        type = ValueType::string;
         data_ptr = new String(data);
     }
 
     Value::Value(Object obj)
     {
-        type = JsType::object;
+        type = ValueType::object;
         data_ptr = new Object(obj);
     }
     Value::Value(Array arr)
     {
-        type = JsType::array;
+        type = ValueType::array;
         data_ptr = new Array(arr);
     }
-    JsType Value::Type() const
+    ValueType Value::Type() const
     {
         return type;
     }
@@ -114,22 +114,22 @@ namespace agumi
     {
         switch (v.type)
         {
-        case JsType::number:
+        case ValueType::number:
             data_ptr = new double(*((double *)v.data_ptr));
             break;
-        case JsType::function:
-        case JsType::string:
+        case ValueType::function:
+        case ValueType::string:
             data_ptr = new String(*(String *)(v.data_ptr));
             break;
-        case JsType::boolean:
+        case ValueType::boolean:
             data_ptr = new bool(*(bool *)(v.data_ptr)); // 传值
             break;
-        case JsType::object:
+        case ValueType::object:
             data_ptr = new Object(*(Object *)(v.data_ptr));
-        case JsType::array:
+        case ValueType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
-        case JsType::null:
-        case JsType::undefined:
+        case ValueType::null:
+        case ValueType::undefined:
         default:
             break;
         }
@@ -150,7 +150,7 @@ namespace agumi
 
     Object &Value::Obj()
     {
-        if (type != JsType::object)
+        if (type != ValueType::object)
         {
             THROW_MSG("get object了一个不是Object的Value实例");
         }
@@ -159,7 +159,7 @@ namespace agumi
 
     const Object &Value::ObjC() const
     {
-        if (type != JsType::object)
+        if (type != ValueType::object)
         {
             THROW_MSG("get object了一个不是Object的Value实例");
         }
@@ -172,7 +172,7 @@ namespace agumi
     }
     Array &Value::Arr()
     {
-        if (type != JsType::array)
+        if (type != ValueType::array)
         {
             THROW_MSG("get array了一个不是array的Value实例");
         }
@@ -190,7 +190,7 @@ namespace agumi
 
     const Array &Value::ArrC() const
     {
-        if (type != JsType::array)
+        if (type != ValueType::array)
         {
             THROW_MSG("get array了一个不是array的Value实例");
         }
@@ -198,28 +198,28 @@ namespace agumi
     }
     bool Value::NotUndef()
     {
-        return type != JsType::undefined;
+        return type != ValueType::undefined;
     }
 
     String Value::ToString() const
     {
         switch (type)
         {
-        case JsType::boolean:
+        case ValueType::boolean:
             return GetC<bool>();
-        case JsType::number:
+        case ValueType::number:
             return GetC<double>();
-        case JsType::string:
+        case ValueType::string:
             return GetC<String>();
-        case JsType::null:
+        case ValueType::null:
             return "null";
-        case JsType::undefined:
+        case ValueType::undefined:
             return "undefined";
-        case JsType::array:
+        case ValueType::array:
             return "[Array]";
-        case JsType::object:
+        case ValueType::object:
             return "[Object]";
-        case JsType::function:
+        case ValueType::function:
             return String::Format("[Function loc:{}]", GetC<String>());
         }
     }
@@ -228,18 +228,18 @@ namespace agumi
     {
         switch (type)
         {
-        case JsType::boolean:
+        case ValueType::boolean:
             return GetC<bool>();
-        case JsType::number:
+        case ValueType::number:
             return GetC<double>() != 0.0;
-        case JsType::string:
+        case ValueType::string:
             return GetC<String>().size() != 0;
-        case JsType::null:
-        case JsType::undefined:
+        case ValueType::null:
+        case ValueType::undefined:
             return false;
-        case JsType::array:
-        case JsType::function:
-        case JsType::object:
+        case ValueType::array:
+        case ValueType::function:
+        case ValueType::object:
             return true;
         }
         return false;
@@ -257,11 +257,11 @@ namespace agumi
         {
             return false;
         }
-        if (type == JsType::function)
+        if (type == ValueType::function)
         {
             return l.GetC<String>() == r.GetC<String>();
         }
-        else if (type == JsType::object)
+        else if (type == ValueType::object)
         {
 
             if (l.ObjC().SrcC().size() != r.ObjC().SrcC().size())
@@ -277,7 +277,7 @@ namespace agumi
                 }
             }
         }
-        else if (type == JsType::array)
+        else if (type == ValueType::array)
         {
 
             auto &larr = l.ArrC().SrcC();

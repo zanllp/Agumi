@@ -20,7 +20,7 @@
 namespace agumi
 {
     class String;
-    enum class JsType
+    enum class ValueType
     {
         string,
         number,

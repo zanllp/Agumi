@@ -42,7 +42,7 @@ void TestMemMange()
     ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == 2333.1, "object的引用修改异常")
     Value obj = Object();
     o1["test-obj"] = obj;
-    ASS_2UL(o1["test-obj"].Type(), JsType::object);
+    ASS_2UL(o1["test-obj"].Type(), ValueType::object);
     o1["test-obj"] = nullptr;
     mem.GC();
     ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
@@ -113,7 +113,7 @@ void TestJson()
     ASS(JSON_PARSE(" true").Get<bool>(), true)
     ASS(JSON_PARSE("false").Get<bool>(), false)
     ASS(JSON_PARSE(R"( "hello world" )").ToString(), "hello world")
-    ASS_2UL(JSON_PARSE("null").Type(), JsType::null)
+    ASS_2UL(JSON_PARSE("null").Type(), ValueType::null)
     auto parse_obj = JSON_PARSE(R"({
     "exc": 2333,
     "c": {
@@ -154,8 +154,8 @@ void TestJson()
     ASS_T(parse_obj["c"]["ec"]["ddd"].Get<bool>())
     ASS(parse_obj["c"]["ec"]["f\""].ToString(), "c[cc{c&%$")
     ASS_T(parse_obj["eeee"].Get<bool>())
-    ASS_2UL(parse_obj["shit"].Type(), JsType::null)
-    ASS_2UL(parse_obj["emmm"].Type(), JsType::undefined)
+    ASS_2UL(parse_obj["shit"].Type(), ValueType::null)
+    ASS_2UL(parse_obj["emmm"].Type(), ValueType::undefined)
     ASS_T(mem.gc_root.DeepCompare(mem.gc_root))
     // 测试json序列化再解析有没有变化，因为字典序会变所以不能直接比字符串，因为会有环形引用所不能用gc根
     auto str = Json::Stringify(mem.gc_root);
