@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "JsObject.h"
-#include "JsArray.h"
+#include "Array.h"
 #include "util.h"
 namespace agumi
 {
@@ -23,7 +23,7 @@ namespace agumi
         Value(double data);
         Value(std::string data);
         Value(JsObject obj);
-        Value(JsArray arr);
+        Value(Array arr);
         JsType Type() const;
         template <typename T>
         constexpr T &Get()
@@ -44,8 +44,8 @@ namespace agumi
         JsObject &Object();
         const JsObject &ObjectC() const;
         Value &operator[](int key);
-        JsArray &Array();
-        const JsArray &ArrayC() const;
+        Array &Arr();
+        const Array &ArrC() const;
         String ToString() const;
         bool NotUndef();
         bool In(const String &key) const;

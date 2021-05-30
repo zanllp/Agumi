@@ -1,7 +1,7 @@
 #pragma once
 #include "Value.h"
 #include "Runtime.h"
-#include "JsArray.h"
+#include "Array.h"
 #include "Json.h"
 #include "JsObject.h"
 #include "sion.h"
@@ -94,7 +94,7 @@ namespace agumi
         {
             for (auto &i : args)
             {
-                _this.Array().Src().push_back(i);
+                _this.Arr().Src().push_back(i);
             }
             return _this;
         };
@@ -105,7 +105,7 @@ namespace agumi
                 THROW
             }
             int idx = args[0].GetC<double>();
-            if (idx >= _this.ArrayC().SrcC().size())
+            if (idx >= _this.ArrC().SrcC().size())
             {
                 THROW
             }

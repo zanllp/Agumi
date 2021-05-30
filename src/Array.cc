@@ -1,43 +1,43 @@
-#include "JsArray.h"
+#include "Array.h"
 #include "Value.h"
 #include "stdafx.h"
 #include "MemManger.h"
 namespace agumi
 {
-    JsArray::JsArray()
+    Array::Array()
     {
-        data_ptr = new JsArrayVec();
+        data_ptr = new ArrayVec();
         MemAllocCollect::vec_quene.push_back(data_ptr);
     }
-    JsArray::JsArray(std::initializer_list<Value> arg)
+    Array::Array(std::initializer_list<Value> arg)
     {
-        data_ptr = new JsArrayVec(arg);
+        data_ptr = new ArrayVec(arg);
         MemAllocCollect::vec_quene.push_back(data_ptr);
     }
-    Value &JsArray::operator[](int key)
+    Value &Array::operator[](int key)
     {
         return (*data_ptr)[key];
     }
-    JsArrayVec &JsArray::Src()
+    ArrayVec &Array::Src()
     {
         return *data_ptr;
     }
 
-    const JsArrayVec *JsArray::Ptr() const
+    const ArrayVec *Array::Ptr() const
     {
         return this->data_ptr;
     }
 
-    const JsArrayVec &JsArray::SrcC() const
+    const ArrayVec &Array::SrcC() const
     {
         return *data_ptr;
     }
-    bool JsArray::In(size_t idx) const
+    bool Array::In(size_t idx) const
     {
         return this->SrcC().size() > idx;
     }
 
-    JsArray::~JsArray()
+    Array::~Array()
     {
     }
 }

@@ -10,7 +10,7 @@ namespace agumi
     {
     public:
         static Vector<const JsObjectMap *> obj_quene;
-        static Vector<const JsArrayVec *> vec_quene;
+        static Vector<const ArrayVec *> vec_quene;
     };
 
     class MemManger
@@ -24,7 +24,7 @@ namespace agumi
         Value gc_root;
         bool first;
         std::set<const JsObjectMap *> can_reach_obj;
-        std::set<const JsArrayVec *> can_reach_arr;
+        std::set<const ArrayVec *> can_reach_arr;
         void ReachObjectNode(JsObject start);
         void GC();
         static MemManger &Get();

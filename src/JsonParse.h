@@ -38,7 +38,7 @@ namespace agumi
             }
         }
 
-        void ResolveArray(const TokenFlowView &tfv, JsArray &arr)
+        void ResolveArray(const TokenFlowView &tfv, Array &arr)
         {
             auto iter = tfv.BeginIter();
             iter++;
@@ -71,7 +71,7 @@ namespace agumi
             if (f->Is(brackets_start_))
             {
                 end = CalcEndBrackets(f);
-                JsArray arr;
+                Array arr;
                 res = arr;
                 TokenFlowView tfv_n(f, end);
                 ResolveArray(tfv_n, arr);

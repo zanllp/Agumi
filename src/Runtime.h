@@ -415,7 +415,7 @@ namespace agumi
         Value ResolveArrayInit(StatPtr stat)
         {
             SRC_REF(arr, ArrayInit, stat)
-            JsArray arr_src;
+            Array arr_src;
             for (auto &i : arr.src)
             {
                 arr_src.Src().push_back(ResolveExecutable(i));

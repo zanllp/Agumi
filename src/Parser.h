@@ -72,10 +72,10 @@ namespace agumi
         ~Program() = default;
         Value ToJson()
         {
-            Value res = JsArray();
+            Value res = Array();
             for (auto &i : body)
             {
-                res.Array().Src().push_back(i->ToJson());
+                res.Arr().Src().push_back(i->ToJson());
             }
             return res;
         }
@@ -124,7 +124,7 @@ namespace agumi
 
         Value ToJson()
         {
-            auto decls = JsArray();
+            auto decls = Array();
             for (auto &i : declarations)
             {
                 decls.Src().push_back(i->ToJson());
@@ -148,7 +148,7 @@ namespace agumi
         }
         Value ToJson()
         {
-            auto arr = JsArray();
+            auto arr = Array();
             for (auto &i : src)
             {
                 arr.Src().push_back(i->ToJson());
@@ -233,7 +233,7 @@ namespace agumi
         {
             Value r = JsObject();
             r["type"] = "FunctionDeclaration";
-            JsArray args;
+            Array args;
             for (auto i : arguments)
             {
                 Value a = JsObject();
@@ -247,7 +247,7 @@ namespace agumi
             }
             r["arguments"] = args;
 
-            JsArray body_stat;
+            Array body_stat;
             for (auto &i : body)
             {
                 body_stat.Src().push_back(i->ToJson());
@@ -270,7 +270,7 @@ namespace agumi
         {
             Value r = JsObject();
             r["type"] = "FunctionCall";
-            JsArray args;
+            Array args;
             for (auto &i : arguments)
             {
                 args.Src().push_back(i->ToJson());

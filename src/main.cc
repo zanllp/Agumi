@@ -18,13 +18,13 @@ const String color_e = "\033[0m";
 void TestMemMange()
 {
     auto &mem = MemManger::Get();
-    mem.gc_root["c"] = JsArray();
-    mem.gc_root["c"].Array().Src().resize(10);
+    mem.gc_root["c"] = Array();
+    mem.gc_root["c"].Arr().Src().resize(10); 
     mem.gc_root["c"][1] = 1;
     mem.gc_root["c"][6] = JsObject({
         {"fuck", "ass"},
         {"cao s", JsObject({{"fuck", "cao"}})},
-        {"emmm", JsArray({1, 2, 3, 4, 5, 6, 7, 23333.666, mem.gc_root["c"], JsObject(), JsObject()})},
+        {"emmm", Array({1, 2, 3, 4, 5, 6, 7, 23333.666, mem.gc_root["c"], JsObject(), JsObject()})},
     });
     mem.gc_root["cao"] = JsObject({
         {"fuck", "ass"},
@@ -48,9 +48,9 @@ void TestMemMange()
     ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
     ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Object().Ptr()))
     ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Object().Ptr()))
-    Value v1 = JsArray();
+    Value v1 = Array();
     auto v2 = v1;
-    ASS_2UL(v1.Array().Ptr(), v2.Array().Ptr())
+    ASS_2UL(v1.Arr().Ptr(), v2.Arr().Ptr())
 }
 
 void TestGcPref(int count = 100 * 1000)
@@ -61,11 +61,11 @@ void TestGcPref(int count = 100 * 1000)
     p.Start();
     auto c = [&]
     {
-        auto arr = JsArray();
+        auto arr = Array();
         mem.gc_root["ccc"] = arr;
         for (int i = count - 1; i >= 0; i--)
         {
-            auto arr2 = JsArray();
+            auto arr2 = Array();
             arr.Src().push_back(arr2);
             arr = arr2;
         }
@@ -106,7 +106,7 @@ void TestJson()
     ASS(mem.gc_root["__23333"].ToString(), "undefined") // get一个未定义的值
     ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
-    ASS(JSON_PARSE(" [1,2,3,4,2]").Array().Src().Map<String>([](Value i)
+    ASS(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i)
                                                              { return i.ToString(); })
             .Join(),
         "1,2,3,4,2")
@@ -149,8 +149,8 @@ void TestJson()
     // cout << Json::Stringify(parse_obj) << endl;
     ASS(parse_obj["dddd"][0].Get<double>(), 123.233)
     ASS(parse_obj["dddd"][2][0].Get<double>(), double(1234))
-    ASS(parse_obj["dddd"].Array().Src().back().ToString(), "32]{{22")
-    ASS(parse_obj["dddd"][2][5]["艹"].Array().Src().size(), 4)
+    ASS(parse_obj["dddd"].Arr().Src().back().ToString(), "32]{{22")
+    ASS(parse_obj["dddd"][2][5]["艹"].Arr().Src().size(), 4)
     ASS_T(parse_obj["c"]["ec"]["ddd"].Get<bool>())
     ASS(parse_obj["c"]["ec"]["f\""].ToString(), "c[cc{c&%$")
     ASS_T(parse_obj["eeee"].Get<bool>())

@@ -23,7 +23,7 @@ namespace agumi
                 delete (JsObject *)data_ptr;
                 break;
             case JsType::array:
-                delete (JsArray *)data_ptr;
+                delete (Array *)data_ptr;
                 break;
             case JsType::null:
             case JsType::undefined:
@@ -53,7 +53,7 @@ namespace agumi
         case JsType::object:
             data_ptr = new JsObject(*(JsObject *)(v.data_ptr));
         case JsType::array:
-            data_ptr = new JsArray(*(JsArray *)(v.data_ptr));
+            data_ptr = new Array(*(Array *)(v.data_ptr));
         case JsType::null:
         case JsType::undefined:
         default:
@@ -100,10 +100,10 @@ namespace agumi
         type = JsType::object;
         data_ptr = new JsObject(obj);
     }
-    Value::Value(JsArray arr)
+    Value::Value(Array arr)
     {
         type = JsType::array;
-        data_ptr = new JsArray(arr);
+        data_ptr = new Array(arr);
     }
     JsType Value::Type() const
     {
@@ -112,7 +112,6 @@ namespace agumi
 
     Value &Value::operator=(const Value &v)
     {
-        type = v.type;
         switch (v.type)
         {
         case JsType::number:
@@ -128,12 +127,13 @@ namespace agumi
         case JsType::object:
             data_ptr = new JsObject(*(JsObject *)(v.data_ptr));
         case JsType::array:
-            data_ptr = new JsArray(*(JsArray *)(v.data_ptr));
+            data_ptr = new Array(*(Array *)(v.data_ptr));
         case JsType::null:
         case JsType::undefined:
         default:
             break;
         }
+        this->type = v.type;
         return *this;
     }
 
@@ -168,15 +168,15 @@ namespace agumi
 
     Value &Value::operator[](int key)
     {
-        return Array()[key];
+        return Arr()[key];
     }
-    JsArray &Value::Array()
+    Array &Value::Arr()
     {
         if (type != JsType::array)
         {
             THROW_MSG("get array了一个不是array的Value实例");
         }
-        return *(JsArray *)data_ptr;
+        return *(Array *)data_ptr;
     }
 
     bool Value::In(const String &key) const
@@ -185,16 +185,16 @@ namespace agumi
     }
     bool Value::In(size_t idx) const
     {
-        return this->ArrayC().In(idx);
+        return this->ArrC().In(idx);
     }
 
-    const JsArray &Value::ArrayC() const
+    const Array &Value::ArrC() const
     {
         if (type != JsType::array)
         {
             THROW_MSG("get array了一个不是array的Value实例");
         }
-        return *(JsArray *)data_ptr;
+        return *(Array *)data_ptr;
     }
     bool Value::NotUndef()
     {
@@ -280,8 +280,8 @@ namespace agumi
         else if (type == JsType::array)
         {
 
-            auto &larr = l.ArrayC().SrcC();
-            auto &rarr = r.ArrayC().SrcC();
+            auto &larr = l.ArrC().SrcC();
+            auto &rarr = r.ArrC().SrcC();
             if (larr.size() != rarr.size())
             {
                 return false;

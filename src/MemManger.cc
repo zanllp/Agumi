@@ -8,7 +8,7 @@ namespace agumi
     MemManger::~MemManger() {}
 
     Vector<const JsObjectMap *> MemAllocCollect::obj_quene = {};
-    Vector<const JsArrayVec *> MemAllocCollect::vec_quene = {};
+    Vector<const ArrayVec *> MemAllocCollect::vec_quene = {};
     MemManger *MemManger::mem = nullptr;
     MemManger &MemManger::Get()
     {
@@ -22,7 +22,7 @@ namespace agumi
     void MemManger::ReachObjectNode(JsObject start)
     {
         std::vector<JsObject> obj_set = {start};
-        std::vector<JsArray> arr_set;
+        std::vector<Array> arr_set;
         while (obj_set.size() + arr_set.size())
         {
             if (obj_set.size())
@@ -38,9 +38,9 @@ namespace agumi
                         can_reach_obj.insert(object_node.Ptr());
                         obj_set.push_back(object_node);
                     }
-                    else if (next.Type() == JsType::array && can_reach_arr.find(next.Array().Ptr()) == can_reach_arr.end())
+                    else if (next.Type() == JsType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
                     {
-                        auto arr_node = next.Array();
+                        auto arr_node = next.Arr();
                         can_reach_arr.insert(arr_node.Ptr());
                         arr_set.push_back(arr_node);
                     }
@@ -53,9 +53,9 @@ namespace agumi
                 for (const auto &i : arr.Src())
                 {
                     auto next = i;
-                    if (next.Type() == JsType::array && can_reach_arr.find(next.Array().Ptr()) == can_reach_arr.end())
+                    if (next.Type() == JsType::array && can_reach_arr.find(next.Arr().Ptr()) == can_reach_arr.end())
                     {
-                        auto arr_node = next.Array();
+                        auto arr_node = next.Arr();
                         can_reach_arr.insert(arr_node.Ptr());
                         arr_set.push_back(arr_node);
                     }
