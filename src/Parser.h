@@ -314,7 +314,7 @@ namespace agumi
         Value ToJson()
         {
             return Object({{"type", "NumberLiteral"},
-                             {"value", tok.ToJson()}});
+                           {"value", tok.ToJson()}});
         }
     };
 
@@ -332,7 +332,7 @@ namespace agumi
         Value ToJson()
         {
             return Object({{"type", "BoolLiteral"},
-                             {"value", tok.ToJson()}});
+                           {"value", tok.ToJson()}});
         }
     };
 
@@ -350,7 +350,7 @@ namespace agumi
         Value ToJson()
         {
             return Object({{"type", "StringLiteral"},
-                             {"value", tok.ToJson()}});
+                           {"value", tok.ToJson()}});
         }
     };
 
@@ -574,34 +574,45 @@ namespace agumi
             auto iter = tfv.BeginIter();
             auto stat = std::make_shared<FunctionDeclaration>();
             stat->start = *iter;
-            iter++;
-            while (true)
+            bool is_omit_parenthesis = iter->IsIdentifier();
+            if (is_omit_parenthesis)
             {
                 FunctionArgument arg;
-                if (iter->IsIdentifier())
+                arg.name = *iter;
+                arg.initialed = false;
+                stat->arguments.push_back(arg);
+            }
+            else
+            {
+                iter++;
+                while (true)
                 {
-                    arg.name = *iter;
-                    iter++;
-                    if (iter->Is(assigment_)) // 带默认参数
+                    FunctionArgument arg;
+                    if (iter->IsIdentifier())
                     {
+                        arg.name = *iter;
                         iter++;
-                        auto [val, end_iter] = ResolveExecutableStatment(iter);
-                        arg.initialed = true;
-                        arg.init = val;
-                        iter = end_iter;
+                        if (iter->Is(assigment_)) // 带默认参数
+                        {
+                            iter++;
+                            auto [val, end_iter] = ResolveExecutableStatment(iter);
+                            arg.initialed = true;
+                            arg.init = val;
+                            iter = end_iter;
+                        }
+                        stat->arguments.push_back(arg);
+                        if (iter->Is(comma_)) // 到下一个参数
+                        {
+                            iter++;
+                            continue;
+                        }
                     }
-                    stat->arguments.push_back(arg);
-                    if (iter->Is(comma_)) // 到下一个参数
+                    if (iter->Is(parenthesis_end_)) // 结束
                     {
-                        iter++;
-                        continue;
+                        break;
                     }
+                    THROW_TOKEN(*iter)
                 }
-                if (iter->Is(parenthesis_end_)) // 结束
-                {
-                    break;
-                }
-                THROW_TOKEN(*iter)
             }
             iter++;
             iter->Expect(arrow_);
@@ -719,6 +730,11 @@ namespace agumi
             else if (iter->IsIdentifier())
             {
                 auto left_stat = std::make_shared<Identifier>(*iter);
+                auto next_end_iter = iter + 1; //id的下一个位置
+                if (next_end_iter->Is(arrow_)) // id后面跟着箭头是个函数
+                {
+                    return ResolveFunction(iter);
+                }
                 return SeekIfExpr(left_stat, iter);
             }
             THROW_TOKEN(*iter)
