@@ -7,21 +7,18 @@
 #include "sion.h"
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define BIN_OPERATOR(body) [](Value &l, Value &r) { return body; };
+#define VM_FN(body) [&](Vector<Value> args) -> Value { body; }
+
 namespace agumi
 {
     void AddPreDefine(VM &vm)
     {
-        auto json_parse = [&](Vector<Value> args) -> Value
-        {
-            return JSON_PARSE(args.GetOrDefault(0).ToString());
-        };
-        auto json_stringify = [&](Vector<Value> args) -> Value
-        {
+        auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
+        auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);
-            return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4);
-        };
+            return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4););
         auto json_module = Object({{"parse", vm.DefineFunc(json_parse)},
-                                     {"stringify", vm.DefineFunc(json_stringify)}});
+                                   {"stringify", vm.DefineFunc(json_stringify)}});
         vm.ctx_stack[0].var["json"] = json_module;
         auto fetch_bind = [&](Vector<Value> args) -> Value
         {
@@ -31,11 +28,7 @@ namespace agumi
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
-        auto typeof_bind = [&](Vector<Value> args) -> Value
-        {
-            return args.GetOrDefault(0).TypeString();
-        };
-        vm.DefineGlobalFunc("typeof", typeof_bind);
+        vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
         auto eval = [&](Vector<Value> args) -> Value
         {
             auto script = args.GetOrDefault(0).ToString();
@@ -54,11 +47,7 @@ namespace agumi
             return Value::undefined;
         };
         vm.DefineGlobalFunc("log", log);
-        auto load_file_bind = [&](Vector<Value> args) -> Value
-        {
-            return LoadFile(args.GetOrDefault(0).ToString());
-        };
-        vm.DefineGlobalFunc("loadFile", load_file_bind);
+        vm.DefineGlobalFunc("loadFile", VM_FN(return LoadFile(args.GetOrDefault(0).ToString())));
         auto mem_bind = [&](Vector<Value> args) -> Value
         {
             size_t idx = 0;
@@ -73,7 +62,26 @@ namespace agumi
             return vm.ctx_stack[idx].var;
         };
         vm.DefineGlobalFunc("mem", mem_bind);
-
+        auto lens_bind = [&](Vector<Value> keys) -> Value
+        {
+            auto fn = [=, &vm](Vector<Value> args) -> Value
+            {
+                auto self = args[0];
+                for (size_t i = 0; i < keys.size(); i++)
+                {
+                    auto key = keys[i];
+                    auto t = key.Type();
+                    if (!(t == ValueType::number || t == ValueType::string))
+                    {
+                        THROW_MSG("{} 不允许用来索引", key.TypeString())
+                    }
+                    self = t == ValueType::number ? self[key.GetC<double>()] : self[key.ToString()];
+                }
+                return self;
+            };
+            return vm.DefineFunc(fn);
+        };
+        vm.DefineGlobalFunc("lens", lens_bind);
         // 定义本地类成员函数
         LocalClassDefine string_def;
         std::map<KW, std::function<Value(Value &, Value &)>> str_op_def;
@@ -140,7 +148,7 @@ namespace agumi
 
         LocalClassDefine fn_def;
         std::map<KW, std::function<Value(Value &, Value &)>> fn_op_def;
-        fn_op_def[add_] = [&](Value& l, Value& r)
+        fn_op_def[add_] = [&](Value &l, Value &r)
         {
             auto new_fn = [=, &vm](Vector<Value> args) -> Value
             {
