@@ -303,7 +303,7 @@ namespace agumi
             {
                 THROW_MSG("{} is not defined", id.tok.kw)
             }
-            return val.value();
+            return val->get();
         }
         Value ResolveBinaryExpression(StatPtr stat)
         {
