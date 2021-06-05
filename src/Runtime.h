@@ -1,5 +1,6 @@
 #pragma once
 #include "Parser.h"
+
 namespace agumi
 {
     class Context
@@ -13,6 +14,7 @@ namespace agumi
     class Function
     {
     public:
+        Vector<Context> ctx_stack;
         std::shared_ptr<FunctionDeclaration> src;
         bool is_native_func = false;
         std::function<Value(Vector<Value>)> native_fn;
@@ -453,6 +455,50 @@ namespace agumi
         Value ResolveFuncDeclear(StatPtr stat)
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
+            std::map<String, Value> closure;
+            Vector<Context> virtual_ctx_stack;
+            std::function<void(StatPtr)> view = [&](StatPtr s)
+            {
+                switch (s->Type())
+                {
+                case StatementType::functionDeclaration:
+                {
+                    SRC_REF(stat, FunctionDeclaration, s)
+                    for (auto i : stat.body)
+                    {
+                        P("1: {}", int(i->Type()))
+                        view(i);
+                    }
+                    return;
+                }
+                case StatementType::identifier:
+                {
+                    SRC_REF(id, Identifier, s)
+                    std::cout << id.tok.kw << std::endl;
+                    closure[id.tok.UniqId()] = ValueOrUndef(id.tok.kw);
+                    return;
+                }
+                case StatementType::conditionExpression:
+                {
+                    SRC_REF(cond, ConditionExpression, s)
+                    for (auto i : {cond.cond, cond.left, cond.right})
+                    {
+                        view(i);
+                    }
+                    return;
+                }
+                case StatementType::binaryExpression:
+                {
+                    SRC_REF(bin, BinaryExpression, s)
+                    for (auto i : {bin.left, bin.right})
+                    {
+                        view(i);
+                    }
+                    return;
+                }
+                }
+            };
+            view(stat);
             auto func_id = fn_stat.start.UniqId();
             Function fn;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
