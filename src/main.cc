@@ -255,6 +255,10 @@ void TestScriptExec()
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
     ASS(RUN2STR("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]"), "[\"array\",\"string\",\"number\",\"function\"]")
     ASS(RUN2STR("lens(1,2)([0,[0,1,2]])"), "2")
+    VmRunScript(vm, "const instFactory = inst => () => inst");
+    VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
+    ASS(RUN2STR("[] == []"), "false")
+    ASS(RUN2STR("getInst() == getInst()"), "true")
 }
 
 int main(int argc, char **argv)

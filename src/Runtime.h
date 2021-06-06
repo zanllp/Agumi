@@ -3,10 +3,32 @@
 
 namespace agumi
 {
+
+    class Closure
+    {
+    public:
+        Value val;
+        bool initialed = false;
+        int stack_offset;
+        String kw;
+        Closure(){};
+        Closure(int offset, String _kw) : kw(_kw), stack_offset(offset), initialed(false){};
+        ~Closure(){};
+
+        static Closure From(Value v)
+        {
+            Closure c;
+            c.val = v;
+            c.initialed = true;
+            return c;
+        }
+    };
+
     class Context
     {
     public:
         Value var = Object();
+        std::map<String, Closure> *closeure = nullptr;
         Context(){};
         ~Context(){};
     };
@@ -18,6 +40,8 @@ namespace agumi
         std::shared_ptr<FunctionDeclaration> src;
         bool is_native_func = false;
         std::function<Value(Vector<Value>)> native_fn;
+        std::map<String, Closure> closure;
+        bool enable_closure = false;
     };
 
     class LocalClassDefine
@@ -70,17 +94,37 @@ namespace agumi
         {
             return CurrCtx().var;
         }
-        std::optional<std::reference_wrapper<Value>> GetValue(String key)
+        std::optional<std::reference_wrapper<Value>> GetValue(String key, Vector<Context> &ctx_stack_, int &i)
         {
-            for (int i = ctx_stack.size() - 1; i >= 0; i--)
+            for (; i >= 0; i--)
             {
-                auto &ctx = ctx_stack[i];
+                auto &ctx = ctx_stack_[i];
                 if (ctx.var.In(key))
                 {
                     return {ctx.var[key]};
                 }
             }
             return {};
+        }
+        std::optional<std::reference_wrapper<Value>> GetValue(String key)
+        {
+            int i = ctx_stack.size() - 1;
+            return GetValue(key, ctx_stack, i);
+        }
+        std::optional<std::reference_wrapper<Value>> GetValue(Closure c)
+        {
+            if (c.initialed)
+            {
+                return {c.val};
+            }
+            auto stack_idx = ctx_stack.size() - 1 - c.stack_offset;
+            auto &scope = ctx_stack[stack_idx].var;
+
+            if (!scope.In(c.kw))
+            {
+                THROW
+            }
+            return {scope[c.kw]};
         }
         Value &ValueOrUndef(String key)
         {
@@ -210,6 +254,7 @@ namespace agumi
             Context fn_ctx;
             Value v;
             auto &fn = fn_iter->second;
+            fn_ctx.closeure = &fn.closure;
             if (fn.is_native_func)
             {
                 Vector<Value> args;
@@ -300,12 +345,21 @@ namespace agumi
         Value ResolveIdentifier(StatPtr stat)
         {
             SRC_REF(id, Identifier, stat);
-            auto val = GetValue(id.tok.kw);
-            if (!val)
+            auto closure = CurrCtx().closeure;
+            if (closure != nullptr)
+            {
+                auto iter = closure->find(id.tok.UniqId());
+                if (iter != closure->end())
+                {
+                    return GetValue(iter->second)->get();
+                }
+            }
+            auto v = GetValue(id.tok.kw);
+            if (!v)
             {
                 THROW_MSG("{} is not defined", id.tok.kw)
             }
-            return val->get();
+            return v->get();
         }
         Value ResolveBinaryExpression(StatPtr stat)
         {
@@ -455,27 +509,44 @@ namespace agumi
         Value ResolveFuncDeclear(StatPtr stat)
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
-            std::map<String, Value> closure;
+            std::map<String, Closure> closure;
             Vector<Context> virtual_ctx_stack;
-            std::function<void(StatPtr)> view = [&](StatPtr s)
+            std::function<void(StatPtr)> Visitor = [&](StatPtr s)
             {
                 switch (s->Type())
                 {
                 case StatementType::functionDeclaration:
                 {
                     SRC_REF(stat, FunctionDeclaration, s)
+                    Context ctx;
+                    for (auto &i : stat.arguments)
+                    {
+                        ctx.var[i.name.kw] = true;
+                    }
+                    virtual_ctx_stack.push_back(ctx);
                     for (auto i : stat.body)
                     {
-                        P("1: {}", int(i->Type()))
-                        view(i);
+                        Visitor(i);
                     }
+                    virtual_ctx_stack.pop_back();
                     return;
                 }
                 case StatementType::identifier:
                 {
                     SRC_REF(id, Identifier, s)
-                    std::cout << id.tok.kw << std::endl;
-                    closure[id.tok.UniqId()] = ValueOrUndef(id.tok.kw);
+                    auto kw = id.tok.kw;
+                    int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
+                    int idx_mut = virtual_ctx_stack_idx;
+                    auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
+                    auto uniqId = id.tok.UniqId();
+                    if (val)
+                    {
+                        closure[uniqId] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
+                    }
+                    else
+                    {
+                        closure[uniqId] = Closure::From(ValueOrUndef(id.tok.kw));
+                    }
                     return;
                 }
                 case StatementType::conditionExpression:
@@ -483,7 +554,7 @@ namespace agumi
                     SRC_REF(cond, ConditionExpression, s)
                     for (auto i : {cond.cond, cond.left, cond.right})
                     {
-                        view(i);
+                        Visitor(i);
                     }
                     return;
                 }
@@ -492,15 +563,33 @@ namespace agumi
                     SRC_REF(bin, BinaryExpression, s)
                     for (auto i : {bin.left, bin.right})
                     {
-                        view(i);
+                        Visitor(i);
+                    }
+                    return;
+                }
+                case StatementType::variableDeclaration:
+                {
+                    SRC_REF(decl, VariableDeclaration, s)
+                    auto &ctx = virtual_ctx_stack.back();
+                    auto &scope = ctx.var;
+                    for (auto &i : decl.declarations)
+                    {
+                        auto &e = *i;
+                        scope[e.id.tok.kw] = true;
+                        if (e.initialed)
+                        {
+                            Visitor(e.init);
+                        }
                     }
                     return;
                 }
                 }
             };
-            view(stat);
+            Visitor(stat);
             auto func_id = fn_stat.start.UniqId();
             Function fn;
+            fn.enable_closure = true;
+            fn.closure = closure;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
             func_mem[func_id] = fn;
             return Value::CreateFunc(func_id);

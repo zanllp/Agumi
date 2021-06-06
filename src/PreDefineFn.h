@@ -98,6 +98,9 @@ namespace agumi
         vm.class_define[ValueType::string] = string_def;
 
         LocalClassDefine array_def;
+        std::map<KW, std::function<Value(Value &, Value &)>> array_op_def;
+        array_op_def[eqeq_] = BIN_OPERATOR(l.Arr().Ptr() == r.Arr().Ptr());
+        array_def.binary_operator_overload[ValueType::array] = array_op_def;
         array_def.member_func["push"] = [](Value &_this, Vector<Value> args) -> Value
         {
             for (auto &i : args)
