@@ -5,7 +5,7 @@ const fn = (i) => {
 const c = fn(0)
 log(json.stringify(c, 0))
 const createFunc = () => {
-    const arr = [1,2,3,4,5]
+    const arr = [1,2,3,4, fn(1)]
     () => arr
 }
 const fn1 = createFunc()

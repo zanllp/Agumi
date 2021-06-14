@@ -19,7 +19,7 @@ void TestMemMange()
 {
     auto &mem = MemManger::Get();
     mem.gc_root["c"] = Array();
-    mem.gc_root["c"].Arr().Src().resize(10); 
+    mem.gc_root["c"].Arr().Src().resize(10);
     mem.gc_root["c"][1] = 1;
     mem.gc_root["c"][6] = Object({
         {"fuck", "ass"},
@@ -107,7 +107,7 @@ void TestJson()
     ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
     ASS(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i)
-                                                             { return i.ToString(); })
+                                                           { return i.ToString(); })
             .Join(),
         "1,2,3,4,2")
     ASS(JSON_PARSE(" true").Get<bool>(), true)
@@ -237,10 +237,24 @@ void TestString()
     ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
 }
 
-Value VmRunScript(VM &vm, String src)
+Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
 {
-    auto tfv = GeneralTokenizer::Agumi(src);
+    auto tfv = GeneralTokenizer::Agumi(src, file);
+    if (tok_c)
+    {
+        for (auto &&i : tfv)
+        {
+            if (i.IsIdentifier())
+            {
+                P("{} {}", i.ToDebugStr(), i.UniqId());
+            }
+        }
+    }
     auto ast = Compiler().ConstructAST(tfv);
+    if (ast_c)
+    {
+        cout << Json::Stringify(ast.ToJson()) << endl;
+    }
     return vm.Run(ast);
 }
 
@@ -356,7 +370,7 @@ int main(int argc, char **argv)
     {
         VM vm;
         AddPreDefine(vm);
-        VmRunScript(vm, LoadFile(exec.ToString()));
+        VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
         return 1;
     }
 

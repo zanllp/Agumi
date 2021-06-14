@@ -177,7 +177,7 @@ namespace agumi
         mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_,
         more_than_, more_than_equal_, less_than_,
         less_than_equal_, brackets_start_,
-        add_equal_,sub_equal_};
+        add_equal_, sub_equal_};
     // 多字符的运算符
     Vector<KW> multi_char_operator{
         eqeq_,
@@ -215,7 +215,15 @@ namespace agumi
         }
         String UniqId()
         {
-            return file + ":" + String(offset);
+            return file + ":" + String(pos);
+        }
+        String ToPosStr()
+        {
+            if(pos == -1) 
+            {
+                return "global";
+            }
+            return String::Format("{}:{}", file, line + 1);
         }
         String ToDebugStr() const
         {
@@ -427,7 +435,7 @@ namespace agumi
             json,
             agumi
         };
-        GeneralTokenizer(const String &src_, TokenType type_ = json, String file_ = String(++GeneralTokenizer::uniq_id))
+        GeneralTokenizer(const String &src_, TokenType type_ = json, String file_ = GeneralTokenizer::ReplFileName())
         {
             src = src_;
             type = type_;
@@ -439,14 +447,17 @@ namespace agumi
             Dispatch();
             return res;
         }
-        static Vector<Token> Agumi(const String &script)
+        static Vector<Token> Agumi(const String &script, String file = GeneralTokenizer::ReplFileName())
         {
-            return GeneralTokenizer(script, GeneralTokenizer::agumi)
+            return GeneralTokenizer(script, GeneralTokenizer::agumi, file)
                 .Start()
                 .Filter([](Token tok)
-                        {
-                            return tok.kw != " ";
-                        });
+                        { return tok.kw != " "; });
+        }
+
+        static String ReplFileName ()
+        {
+           return String::Format("repl-temp:{}", ++GeneralTokenizer::uniq_id);
         }
 
     private:
