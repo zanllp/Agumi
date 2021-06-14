@@ -626,6 +626,10 @@ namespace agumi
                 {
                     auto [body, end_iter] = Dispatch(iter);
                     iter = end_iter;
+                    if(body->Type() == StatementType::statement)
+                    {
+                        continue;
+                    }
                     stat->body.push_back(body);
                 }
                 return {stat, end_iter + 1};
@@ -736,6 +740,11 @@ namespace agumi
                     return ResolveFunction(iter);
                 }
                 return SeekIfExpr(left_stat, iter);
+            }
+            if (iter->IsLineEndToken())
+            {
+                StatPtr s = std::make_shared<Statement>();
+                return {s, iter + 1};
             }
             THROW_TOKEN(*iter)
         }
@@ -882,6 +891,10 @@ namespace agumi
             auto accept = [&](StatPtrWithEnd res)
             {
                 auto [stat, end] = res;
+                if(stat->Type() == StatementType::statement)
+                {
+                    return;
+                }
                 p.body.push_back(stat);
                 iter = end;
             };

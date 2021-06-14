@@ -85,7 +85,7 @@ namespace agumi
                 ResolveObject(tfv_n, obj);
             }
             else if (f->Is(null_))
-            {
+            {   
                 res = nullptr;
             }
             else if (f->IsStringLiteral() && f->kw[0] == '"')

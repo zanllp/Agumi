@@ -445,8 +445,7 @@ namespace agumi
                 .Start()
                 .Filter([](Token tok)
                         {
-                            auto r = tok.IsLineEndToken() || tok.IsEmpty();
-                            return !r;
+                            return tok.kw != " ";
                         });
         }
 
