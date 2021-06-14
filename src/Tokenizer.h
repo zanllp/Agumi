@@ -688,7 +688,7 @@ namespace agumi
     };
 
     Vector<String> GeneralTokenizer::multi_token_set;
-    const String GeneralTokenizer::operator_set = "+-*/(){}[]=><%";
+    const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%";
     const String GeneralTokenizer::empty_set = " \n\t";
     const String GeneralTokenizer::single_char_set = ";,:.?";
     const String GeneralTokenizer::const_str_set = R"("'`)";

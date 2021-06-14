@@ -9,6 +9,6 @@ const createFunc = () => {
     () => arr
 }
 const fn1 = createFunc()
-log(fn1().get(1))
-log(fn1() == fn1())
-log([] == [])
+assert((fn1().get(1)) == 2)
+assert(fn1() == fn1())
+assert([] != [])

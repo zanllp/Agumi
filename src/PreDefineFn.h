@@ -29,6 +29,14 @@ namespace agumi
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
+        auto assert_bind =  [&](Vector<Value> args) -> Value {
+            if(!args.GetOrDefault(0).ToBool())
+            {
+                THROW_STACK(vm.StackTrace(), "assert error")
+            }
+            return Value::undefined;
+        };
+        vm.DefineGlobalFunc("assert", assert_bind);
         auto eval = [&](Vector<Value> args) -> Value
         {
             auto script = args.GetOrDefault(0).ToString();
@@ -100,6 +108,7 @@ namespace agumi
         LocalClassDefine array_def;
         std::map<KW, std::function<Value(Value &, Value &)>> array_op_def;
         array_op_def[eqeq_] = BIN_OPERATOR(l.Arr().Ptr() == r.Arr().Ptr());
+        array_op_def[not_eq_] = BIN_OPERATOR(l.Arr().Ptr() != r.Arr().Ptr());
         array_def.binary_operator_overload[ValueType::array] = array_op_def;
         array_def.member_func["push"] = [](Value &_this, Vector<Value> args) -> Value
         {

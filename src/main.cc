@@ -273,6 +273,8 @@ void TestScriptExec()
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
+    String file = "test.as";
+    VmRunScript(vm, LoadFile(file), false, false, file);
 }
 
 int main(int argc, char **argv)

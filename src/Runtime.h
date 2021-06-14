@@ -217,7 +217,6 @@ namespace agumi
             return v;
         }
 
-    private:
         String StackTrace()
         {
             String res;
@@ -228,6 +227,7 @@ namespace agumi
             }
             return res;
         }
+    private:
         Value Dispatch(StatPtr stat)
         {
             switch (stat->Type())
