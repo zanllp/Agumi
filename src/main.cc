@@ -319,19 +319,17 @@ int main(int argc, char **argv)
     if (repl)
     {
         VM vm;
-        auto o1 = Object({{"d", "hello world"}});
-        auto o2 = Object({{"hello", o1}});
-        auto o3 = Object({{"o3", o2}});
-        vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 01}});
         AddPreDefine(vm);
         array<char, 1000> buf = {0};
         auto ptr = &buf.at(0);
         cout << color_green_s << "input :" << color_e << "\t";
         while (cin.getline(ptr, 999))
         {
-
+// #define FAST_FAIL
+#ifndef FAST_FAIL
             try
             {
+#endif
                 String src = ptr;
                 auto tfv = GeneralTokenizer::Agumi(src);
                 if (tokenizer)
@@ -354,88 +352,92 @@ int main(int argc, char **argv)
                     auto res = vm.Run(ast);
                     cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
                 }
+#ifdef FAST_FAIL
+                try
+                {
+#endif
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr
+                        << color_red_s << "error :" << color_e << "\t" << e.what() << '\n';
+                }
+
+                buf.fill(0);
+                cout << color_green_s << "input :" << color_e << "\t";
             }
-            catch (const std::exception &e)
+
+            return 1;
+        }
+
+        if (exec.ToBool())
+        {
+            VM vm;
+            AddPreDefine(vm);
+            VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
+            return 1;
+        }
+
+        if (print_conf.NotUndef())
+        {
+            cout << "启动参数 argc:" << argc << "  args:" << arg.Join(" ") << endl;
+            cout << Json::Stringify(conf) << endl;
+        }
+
+        if (request.NotUndef())
+        {
+            auto resp = sion::Fetch(request.ToString());
+            if (resp.ContentType().find("json") != string::npos)
             {
-                std::cerr
-                    << color_red_s << "error :" << color_e << "\t" << e.what() << '\n';
+                auto jsv = JsonNext().JsonParse(resp.Body());
+                cout << Json::Stringify(jsv, indent, escape) << endl;
             }
-
-            buf.fill(0);
-            cout << color_green_s << "input :" << color_e << "\t";
-        }
-
-        return 1;
-    }
-
-    if (exec.ToBool())
-    {
-        VM vm;
-        AddPreDefine(vm);
-        VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
-        return 1;
-    }
-
-    if (print_conf.NotUndef())
-    {
-        cout << "启动参数 argc:" << argc << "  args:" << arg.Join(" ") << endl;
-        cout << Json::Stringify(conf) << endl;
-    }
-
-    if (request.NotUndef())
-    {
-        auto resp = sion::Fetch(request.ToString());
-        if (resp.ContentType().find("json") != string::npos)
-        {
-            auto jsv = JsonNext().JsonParse(resp.Body());
-            cout << Json::Stringify(jsv, indent, escape) << endl;
-        }
-        else
-        {
-            cout << resp.Source() << endl;
-        }
-    }
-    else if (path.NotUndef())
-    {
-        auto src = LoadFile(path.ToString());
-        if (tokenizer)
-        {
-            GeneralTokenizer tokenizer(src);
-            auto tfv = tokenizer.Start();
-            for (auto &&i : tfv)
+            else
             {
-                cout << i.ToDebugStr() << endl;
+                cout << resp.Source() << endl;
             }
         }
-        else
+        else if (path.NotUndef())
         {
-            auto jsv = JSON_PARSE(src);
-            cout << Json::Stringify(jsv, indent, escape) << endl;
+            auto src = LoadFile(path.ToString());
+            if (tokenizer)
+            {
+                GeneralTokenizer tokenizer(src);
+                auto tfv = tokenizer.Start();
+                for (auto &&i : tfv)
+                {
+                    cout << i.ToDebugStr() << endl;
+                }
+            }
+            else
+            {
+                auto jsv = JSON_PARSE(src);
+                cout << Json::Stringify(jsv, indent, escape) << endl;
+            }
         }
-    }
-    else if (test.NotUndef())
-    {
-        string e = R"(
+        else if (test.NotUndef())
+        {
+            string e = R"(
         {
             "hello\"": "world,\"\"\"\"&&&&"
         }
     )";
-        auto v = JsonNext().JsonParse(e);
-        cout << Json::Stringify(v) << endl;
-        cout << Json::Stringify(v, 2, false) << endl;
-        // cout<<sion::Fetch("http://baidu.com").BodyStr<<endl;
-        // TestJsonPrefSimd();
-        TestJsonNextPref();
-        TestString();
-        TestVec();
-        TestToken();
-        TestGcPref();
-        TestMemMange();
-        TestJson();
-        TestScriptExec();
-        // p.Print();
-        // TestAst();
-        std::cout << "TestPassed;All ok" << std::endl;
+            auto v = JsonNext().JsonParse(e);
+            cout << Json::Stringify(v) << endl;
+            cout << Json::Stringify(v, 2, false) << endl;
+            // cout<<sion::Fetch("http://baidu.com").BodyStr<<endl;
+            // TestJsonPrefSimd();
+            TestJsonNextPref();
+            TestString();
+            TestVec();
+            TestToken();
+            TestGcPref();
+            TestMemMange();
+            TestJson();
+            TestScriptExec();
+            // p.Print();
+            // TestAst();
+            std::cout << "TestPassed;All ok" << std::endl;
+        }
+        return 1;
     }
-    return 1;
-}

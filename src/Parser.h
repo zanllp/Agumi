@@ -284,8 +284,9 @@ namespace agumi
     class IndexStatement : public Statement
     {
     public:
-        std::shared_ptr<Identifier> object;
+        std::shared_ptr<Statement> object;
         StatPtr property;
+        bool is_dot = true;
         StatementType Type()
         {
             return StatementType::indexStatement;
@@ -519,14 +520,25 @@ namespace agumi
             return {stat, pos2_end_iter};
         }
 
-        StatPtrWithEnd ResolveIndex(StatPtr pos1_stat, TokenFlowView tfv)
+        // is_dot 索引的两个方式. []
+        StatPtrWithEnd ResolveIndex(StatPtr pos1_stat, TokenFlowView tfv, bool is_dot = true)
         {
             auto iter = tfv.BeginIter();
             iter++;
-            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(iter);
             auto stat = std::make_shared<IndexStatement>();
-            stat->object = std::static_pointer_cast<Identifier>(pos1_stat);
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(iter);
             stat->property = pos2_stat;
+            stat->object = pos1_stat;
+            stat->is_dot = is_dot;
+            if (!is_dot)
+            {
+                pos2_end_iter->Expect(brackets_end_);
+                pos2_end_iter++;
+                if (pos2_end_iter->Is(brackets_start_))
+                {
+                    return ResolveIndex(stat, pos2_end_iter, false);
+                }
+            }
             return {stat, pos2_end_iter};
         }
 
@@ -626,7 +638,7 @@ namespace agumi
                 {
                     auto [body, end_iter] = Dispatch(iter);
                     iter = end_iter;
-                    if(body->Type() == StatementType::statement)
+                    if (body->Type() == StatementType::statement)
                     {
                         continue;
                     }
@@ -833,7 +845,11 @@ namespace agumi
             }
             if (next_iter->Is(dot_))
             {
-                return ResolveIndex(left_stat, next_iter);
+                return ResolveIndex(left_stat, next_iter, true);
+            }
+            if (next_iter->Is(brackets_start_))
+            {
+                return ResolveIndex(left_stat, next_iter, false);
             }
             return {left_stat, next_iter};
         };
@@ -891,7 +907,7 @@ namespace agumi
             auto accept = [&](StatPtrWithEnd res)
             {
                 auto [stat, end] = res;
-                if(stat->Type() == StatementType::statement)
+                if (stat->Type() == StatementType::statement)
                 {
                     return;
                 }

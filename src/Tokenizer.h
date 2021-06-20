@@ -176,7 +176,7 @@ namespace agumi
         question_mask_, add_, sub_, mul_, div_,
         mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_,
         more_than_, more_than_equal_, less_than_,
-        less_than_equal_, brackets_start_,
+        less_than_equal_, 
         add_equal_, sub_equal_};
     // 多字符的运算符
     Vector<KW> multi_char_operator{
@@ -457,12 +457,12 @@ namespace agumi
 
         static String ReplFileName ()
         {
-           return String::Format("repl-temp:{}", ++GeneralTokenizer::uniq_id);
+           return String::Format("repl_{}", ++GeneralTokenizer::uniq_id);
         }
 
     private:
         Token CreateToken(String src)
-        {
+        {  
             return Token(src, ptr, line, offset, file_name);
         }
         String file_name;

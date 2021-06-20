@@ -227,6 +227,7 @@ namespace agumi
             }
             return res;
         }
+
     private:
         Value Dispatch(StatPtr stat)
         {
@@ -414,33 +415,22 @@ namespace agumi
         Value ResolveStringLiteralInit(StatPtr stat)
         {
             SRC_REF(init, StringLiteralInit, stat);
-            // auto& ctx  = CurrCtx();
             return init.tok.toStringContent();
         }
-        Value ResolveObjectIndex(StatPtr stat, Value &par, bool is_literal = false)
+        Value ResolveObjectIndex(StatPtr stat, Value &par, bool is_literal = false, bool is_dot = false)
         {
-            if (stat->Type() == StatementType::identifier) // 索引到最后一个属性
-            {
-                SRC_REF(key, Identifier, stat);
-                if (par.Type() == ValueType::object)
-                {
-                    return par[key.tok.kw];
-                }
-                else
-                {
-                    // todo 类成员set get
-                }
-            }
-            if (stat->Type() == StatementType::indexStatement)
+            auto t = stat->Type();
+            if (t == StatementType::indexStatement)
             {
                 SRC_REF(idx, IndexStatement, stat);
-                if (par == Value::undefined)
+                if (par == Value::undefined) // 首个值初始化
                 {
                     auto obj_p = idx.object;
                     auto obj_is_idx = obj_p->Type() == StatementType::identifier;
                     if (obj_is_idx)
                     {
-                        Value &obj = ValueOrUndef(obj_p->tok.kw);
+                        SRC_REF(id_stat, Identifier, obj_p)
+                        Value &obj = ValueOrUndef(id_stat.tok.kw);
                         return ResolveObjectIndex(idx.property, obj);
                     }
                     else
@@ -450,18 +440,30 @@ namespace agumi
                         return ResolveObjectIndex(idx.property, temp_stack.back(), true); // 持有刚才值的引用，并标明是一个字面量
                     }
                 }
-                else
+                else // 非首个值迭代
                 {
-                    auto key = idx.object->tok.kw;
-                    if (par.Type() == ValueType::object)
+                    if (par.Type() != ValueType::object)
                     {
+                        THROW
+                    }
+                    if (idx.is_dot)
+                    {
+                        SRC_REF(id, Identifier, idx.object)
+                        String key = id.tok.kw;
                         auto &next_par = par[key];
-                        return ResolveObjectIndex(idx.property, next_par);
+                        return ResolveObjectIndex(idx.property, next_par, is_literal, true);
+                    }
+                    else
+                    {
+                        Value key = ResolveExecutable(idx.object);
+                        auto &next_par = key.Type() == ValueType::string ? par[key.ToString()] : par[key.Get<double>()];
+                        return ResolveObjectIndex(idx.property, next_par, is_literal, false);
                     }
                     // todo 类成员set get
+                    THROW
                 }
             }
-            if (stat->Type() == StatementType::functionCall)
+            else if (t == StatementType::functionCall) // 成员函数调用
             {
                 SRC_REF(fn, FunctionCall, stat);
                 SRC_REF(key, Identifier, fn.id);
@@ -477,6 +479,29 @@ namespace agumi
                     temp_stack.pop_back(); // 释放临时的字面量
                 }
                 return v;
+            }
+            else // 最后的索引
+            {
+                if (is_dot) 
+                {
+                    SRC_REF(id, Identifier, stat)
+                    String key = id.tok.kw;
+                    return par[key];
+                }
+                else
+                {
+                    Value key = ResolveExecutable(stat);
+                    auto kt = key.Type();
+                    if (kt == ValueType::string)
+                    {
+                        return par[key.ToString()];
+                    }
+                    if (kt == ValueType::number)
+                    {
+                        return par[key.Get<double>()];
+                    }
+                    THROW_STACK(StackTrace(), "仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
+                }
             }
             THROW
         }

@@ -13,6 +13,10 @@ namespace agumi
 {
     void AddPreDefine(VM &vm)
     {
+        auto o1 = Object({{"d", "hello world"}});
+        auto o2 = Object({{"hello", o1}});
+        auto o3 = Object({{"o3", o2}});
+        vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
         auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
         auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);
