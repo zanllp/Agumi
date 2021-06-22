@@ -221,7 +221,7 @@ namespace agumi
         {
             if(pos == -1) 
             {
-                return "global";
+                return "native func";
             }
             return String::Format("{}:{}", file, line + 1);
         }
@@ -294,9 +294,14 @@ namespace agumi
             return Include({"true", "false"});
         }
 
+        bool IsNull() const 
+        {
+            return kw == "null";
+        }
+
         bool IsLiteral() const
         {
-            return IsStringLiteral() || IsBoolLiteral() || IsNumericLiteral();
+            return IsStringLiteral() || IsBoolLiteral() || IsNumericLiteral() || IsNull();
         }
 
         bool Is(KW kw) const

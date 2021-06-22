@@ -12,6 +12,7 @@ namespace agumi
         variableDeclaration,
         numberLiteralInit,
         stringLiteralInit,
+        nullLiteral,
         boolLiteralInit,
         ifStatment,
         conditionExpression,
@@ -28,6 +29,7 @@ namespace agumi
         {
             return StatementType::statement;
         }
+        Token start;
         virtual bool IsLiteral()
         {
             auto t = Type();
@@ -59,6 +61,7 @@ namespace agumi
             auto r = Object();
             r["type"] = "Identifier";
             r["name"] = tok.ToJson();
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -102,6 +105,7 @@ namespace agumi
             r["initialed"] = initialed;
             r["type"] = type.ToJson();
             r["init"] = init->ToJson();
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -133,6 +137,7 @@ namespace agumi
             res["type"] = "VariableDeclaration";
             res["kind"] = kind.ToJson();
             res["declarations"] = decls;
+            res["start"] = start.ToPosStr();
             return res;
         }
     };
@@ -153,10 +158,11 @@ namespace agumi
             {
                 arr.Src().push_back(i->ToJson());
             }
-            auto res = Object();
-            res["src"] = arr;
-            res["type"] = "arrayInit";
-            return res;
+            auto r = Object();
+            r["src"] = arr;
+            r["type"] = "arrayInit";
+            r["start"] = start.ToPosStr();
+            return r;
         }
     };
 
@@ -183,6 +189,7 @@ namespace agumi
             r["cond"] = cond->ToJson();
             r["left"] = left->ToJson();
             r["right"] = right->ToJson();
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -208,6 +215,7 @@ namespace agumi
             r["op"] = op.ToJson();
             r["left"] = left->ToJson();
             r["right"] = right->ToJson();
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -224,7 +232,6 @@ namespace agumi
     public:
         Vector<FunctionArgument> arguments;
         Vector<StatPtr> body;
-        Token start;
         StatementType Type()
         {
             return StatementType::functionDeclaration;
@@ -253,6 +260,7 @@ namespace agumi
                 body_stat.Src().push_back(i->ToJson());
             }
             r["body"] = body_stat;
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -277,6 +285,7 @@ namespace agumi
             }
             r["id"] = id->ToJson();
             r["args"] = args;
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -297,6 +306,7 @@ namespace agumi
             r["type"] = "IndexStatement";
             r["propetry"] = property->ToJson();
             r["object"] = object->ToJson();
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -304,9 +314,9 @@ namespace agumi
     class NumberLiteralInit : public Statement
     {
     public:
-        Token tok;
-        NumberLiteralInit(Token _tok) : tok(_tok)
+        NumberLiteralInit(Token _tok)
         {
+            this->start = _tok;
         }
         StatementType Type()
         {
@@ -314,17 +324,20 @@ namespace agumi
         }
         Value ToJson()
         {
-            return Object({{"type", "NumberLiteral"},
-                           {"value", tok.ToJson()}});
+            auto r = Object();
+            r["type"] = "NumberLiteral";
+            r["value"] = start.ToJson();
+            r["start"] = start.ToPosStr();
+            return r;
         }
     };
 
     class BoolLiteralInit : public Statement
     {
     public:
-        Token tok;
-        BoolLiteralInit(Token _tok) : tok(_tok)
+        BoolLiteralInit(Token _tok) 
         {
+            this->start = _tok;
         }
         StatementType Type()
         {
@@ -332,17 +345,20 @@ namespace agumi
         }
         Value ToJson()
         {
-            return Object({{"type", "BoolLiteral"},
-                           {"value", tok.ToJson()}});
+            auto r = Object();
+            r["type"] = "BoolLiteral";
+            r["value"] = start.ToJson();
+            r["start"] = start.ToPosStr();
+            return r;
         }
     };
 
     class StringLiteralInit : public Statement
     {
     public:
-        Token tok;
-        StringLiteralInit(Token _tok) : tok(_tok)
+        StringLiteralInit(Token _tok) 
         {
+            this->start = _tok;
         }
         StatementType Type()
         {
@@ -350,8 +366,32 @@ namespace agumi
         }
         Value ToJson()
         {
-            return Object({{"type", "StringLiteral"},
-                           {"value", tok.ToJson()}});
+            auto r = Object();
+            r["type"] = "StringLiteral";
+            r["value"] = start.ToJson();
+            r["start"] = start.ToPosStr();
+            return r;
+        }
+    };
+
+     class NullLiteral : public Statement
+    {
+    public:
+        NullLiteral(Token _tok)
+        {
+            this->start = _tok;
+        }
+        StatementType Type()
+        {
+            return StatementType::nullLiteral;
+        }
+        Value ToJson()
+        {
+            auto r = Object();
+            r["type"] = "NullLiteral";
+            r["value"] = nullptr;
+            r["start"] = start.ToPosStr();
+            return r;
         }
     };
 
@@ -371,6 +411,7 @@ namespace agumi
             r["id"] = id.ToJson();
             r["value"] = value->ToJson();
             r["type"] = "assigmentStatement";
+            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -458,13 +499,17 @@ namespace agumi
             {
                 return std::make_shared<NumberLiteralInit>(tok);
             }
-            else if (tok.IsBoolLiteral())
+            if (tok.IsBoolLiteral())
             {
                 return std::make_shared<BoolLiteralInit>(tok);
             }
-            else if (tok.IsStringLiteral())
+            if (tok.IsStringLiteral())
             {
                 return std::make_shared<StringLiteralInit>(tok);
+            }
+            if (tok.IsNull())
+            {
+                return std::make_shared<NullLiteral>(tok);
             }
             THROW
         }
@@ -483,8 +528,10 @@ namespace agumi
         {
             auto iter = tfv.BeginIter();
             auto var_declear = std::make_shared<VariableDeclaration>(*iter);
+            var_declear->start = *iter;
             auto id_iter = iter + 1;
             auto decl = std::make_shared<VariableDeclarator>(Identifier(*id_iter));
+            decl->start = *id_iter;
             decl->type = *iter;
             var_declear->declarations.push_back(decl);
             auto assigment_or_end_iter = id_iter + 1;
@@ -514,6 +561,7 @@ namespace agumi
             auto iter = tfv.BeginIter();
             auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(iter);
             auto stat = std::make_shared<BinaryExpression>();
+            stat->start = *iter;
             stat->left = pos1_stat;
             stat->right = pos2_stat;
             stat->op = Token('+');
@@ -526,6 +574,7 @@ namespace agumi
             auto iter = tfv.BeginIter();
             iter++;
             auto stat = std::make_shared<IndexStatement>();
+            stat->start = *iter;
             auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(iter);
             stat->property = pos2_stat;
             stat->object = pos1_stat;
@@ -550,6 +599,7 @@ namespace agumi
             if (op_iter->Is(question_mask_)) // x ? y : z 三元
             {
                 auto stat = std::make_shared<ConditionExpression>();
+                stat->start = *iter;
                 stat->cond = pos1_stat;
                 stat->left = pos2_stat;
                 pos2_end_iter->Expect(colon_);
@@ -559,6 +609,7 @@ namespace agumi
             }
             // x(+|-|*|/|++|+=|===。。。)y 二元
             auto stat = std::make_shared<BinaryExpression>();
+            stat->start = *iter;
             stat->left = pos1_stat;
             stat->right = pos2_stat;
             stat->op = *op_iter;
@@ -571,6 +622,7 @@ namespace agumi
                 if (left_priority < priority)
                 {
                     auto stat_adj = std::make_shared<BinaryExpression>();
+                    stat_adj->start = *iter;
                     stat_adj->op = pos2_bin_expr.op;
                     stat_adj->right = pos2_bin_expr.right;
                     stat_adj->left = stat;
@@ -585,6 +637,7 @@ namespace agumi
         {
             auto iter = tfv.BeginIter();
             auto stat = std::make_shared<FunctionDeclaration>();
+            stat->start = *iter;
             stat->start = *iter;
             bool is_omit_parenthesis = iter->IsIdentifier();
             if (is_omit_parenthesis)
@@ -647,6 +700,7 @@ namespace agumi
                 return {stat, end_iter + 1};
             }
             auto [body, end_iter] = ResolveExecutableStatment(iter);
+            body->start = *iter;
             stat->body.push_back(body);
             return {stat, end_iter};
         }
@@ -656,6 +710,7 @@ namespace agumi
         {
             auto iter = tfv.BeginIter(); // (
             auto stat = std::make_shared<FunctionCall>();
+            stat->start = *iter;
             stat->id = func;
             auto end_iter = CalcEndBrackets(iter); // )
             iter++;
@@ -684,7 +739,7 @@ namespace agumi
             iter->Expect(brackets_start_);
             iter++;
             auto arr = std::make_shared<ArrayInit>();
-
+            arr->start = *iter;
             if (iter->Is(brackets_end_))
             {
                 return {arr, iter + 1};
@@ -746,6 +801,7 @@ namespace agumi
             else if (iter->IsIdentifier())
             {
                 auto left_stat = std::make_shared<Identifier>(*iter);
+                left_stat->start = *iter;
                 auto next_end_iter = iter + 1; //id的下一个位置
                 if (next_end_iter->Is(arrow_)) // id后面跟着箭头是个函数
                 {
@@ -867,6 +923,7 @@ namespace agumi
                 auto value_iter = assigment_or_other + 1;
                 auto [stat_ptr, end_iter] = ResolveExecutableStatment(value_iter);
                 auto assigment = std::make_shared<AssigmentStatement>();
+                assigment->start = *iter;
                 assigment->id = *iter;
                 assigment->value = stat_ptr;
                 return {assigment, end_iter};

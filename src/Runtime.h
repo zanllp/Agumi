@@ -30,7 +30,7 @@ namespace agumi
     public:
         Value var = Object();
         std::map<String, Closure> *closeure = nullptr;
-        Token start;
+        Token *start;
         Context(){};
         ~Context(){};
     };
@@ -193,7 +193,6 @@ namespace agumi
             Context fn_ctx;
             Value v;
             auto &fn = fn_iter->second;
-            fn_ctx.start = fn.src->start;
             if (fn.is_native_func)
             {
                 v = fn.native_fn(args);
@@ -223,7 +222,7 @@ namespace agumi
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
                 auto &ctx = ctx_stack[i];
-                res += String::Format("  -- {} \n", ctx.start.ToPosStr());
+                res += String::Format("  -- {} \n", ctx.start->ToPosStr());
             }
             return res;
         }
@@ -231,6 +230,7 @@ namespace agumi
     private:
         Value Dispatch(StatPtr stat)
         {
+            CurrCtx().start = &stat->start;
             switch (stat->Type())
             {
             case StatementType::variableDeclaration:
@@ -247,6 +247,7 @@ namespace agumi
             case StatementType::functionDeclaration:
             case StatementType::indexStatement:
             case StatementType::arrayInit:
+            case StatementType::nullLiteral:
                 return ResolveExecutable(stat);
             }
             THROW_STACK(StackTrace(), "未定义类型:{}", (int)stat->Type())
@@ -280,7 +281,6 @@ namespace agumi
             }
             else
             {
-                fn_ctx.start = fn.src->start;
                 auto &src_args = fn.src->arguments;
                 if (src_args.size() != fn_call.arguments.size())
                 {
@@ -405,17 +405,21 @@ namespace agumi
         Value ResolveBoolLiteralInit(StatPtr stat)
         {
             SRC_REF(init, BoolLiteralInit, stat);
-            return init.tok.kw == "true";
+            return init.start.kw == "true";
+        }
+        Value ResolvNullLiteralInit(StatPtr)
+        {
+            return nullptr;
         }
         Value ResolveNumberLiteralInit(StatPtr stat)
         {
             SRC_REF(init, NumberLiteralInit, stat);
-            return stod(init.tok.kw);
+            return stod(init.start.kw);
         }
         Value ResolveStringLiteralInit(StatPtr stat)
         {
             SRC_REF(init, StringLiteralInit, stat);
-            return init.tok.toStringContent();
+            return init.start.toStringContent();
         }
         Value ResolveObjectIndex(StatPtr stat, Value &par, bool is_literal = false, bool is_dot = false)
         {
@@ -518,7 +522,8 @@ namespace agumi
         }
 
         Value ResolveExecutable(StatPtr stat)
-        {
+        { 
+            CurrCtx().start = &stat->start;
             switch (stat->Type())
             {
             case StatementType::binaryExpression:
@@ -541,6 +546,8 @@ namespace agumi
                 return ResolveObjectIndex(stat, Value::undefined);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
+            case StatementType::nullLiteral:
+                return nullptr;
             }
             THROW_STACK(StackTrace(), "未定义类型:{}", (int)stat->Type())
         }
