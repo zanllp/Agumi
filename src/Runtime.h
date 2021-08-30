@@ -435,13 +435,13 @@ namespace agumi
                     {
                         SRC_REF(id_stat, Identifier, obj_p)
                         Value &obj = ValueOrUndef(id_stat.tok.kw);
-                        return ResolveObjectIndex(idx.property, obj);
+                        return ResolveObjectIndex(idx.property, obj, false, idx.is_dot);
                     }
                     else
                     {
-                        auto v = ResolveExecutable(obj_p);                                // 可能是字面量
-                        temp_stack.push_back(v);                                          //  压入临时栈
-                        return ResolveObjectIndex(idx.property, temp_stack.back(), true); // 持有刚才值的引用，并标明是一个字面量
+                        auto v = ResolveExecutable(obj_p);                                            // 可能是字面量
+                        temp_stack.push_back(v);                                                      //  压入临时栈
+                        return ResolveObjectIndex(idx.property, temp_stack.back(), true, idx.is_dot); // 持有刚才值的引用，并标明是一个字面量
                     }
                 }
                 else // 非首个值迭代
@@ -486,7 +486,7 @@ namespace agumi
             }
             else // 最后的索引
             {
-                if (is_dot) 
+                if (is_dot)
                 {
                     SRC_REF(id, Identifier, stat)
                     String key = id.tok.kw;
@@ -522,7 +522,7 @@ namespace agumi
         }
 
         Value ResolveExecutable(StatPtr stat)
-        { 
+        {
             CurrCtx().start = &stat->start;
             switch (stat->Type())
             {
