@@ -36,7 +36,7 @@ namespace agumi
         auto assert_bind =  [&](Vector<Value> args) -> Value {
             if(!args.GetOrDefault(0).ToBool())
             {
-                THROW_STACK(vm.StackTrace(), "assert error")
+                THROW_MSG("assert error")
             }
             return Value::undefined;
         };

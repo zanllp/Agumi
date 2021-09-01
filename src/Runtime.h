@@ -1,6 +1,5 @@
 #pragma once
 #include "Parser.h"
-#define THROW_STACK(stack_track, msg, ...) THROW_MSG(String::Format("{}\n{}", msg, stack_track), {__VA_ARGS__})
 // msg, {__VA_ARGS__}
 namespace agumi
 {
@@ -141,7 +140,7 @@ namespace agumi
                     return ctx.var[key] = val;
                 }
             }
-            THROW_STACK(StackTrace(), "{} is not defined", key)
+            THROW_MSG("{} is not defined", key)
         }
         Value Run(Program prog)
         {
@@ -188,7 +187,7 @@ namespace agumi
             auto fn_iter = func_mem.find(loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_STACK(StackTrace(), "function {} is not defined", loc.ToString())
+                THROW_MSG("function {} is not defined", loc.ToString())
             }
             Context fn_ctx;
             Value v;
@@ -250,7 +249,7 @@ namespace agumi
             case StatementType::nullLiteral:
                 return ResolveExecutable(stat);
             }
-            THROW_STACK(StackTrace(), "未定义类型:{}", (int)stat->Type())
+            THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
         Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = Value::undefined)
         {
@@ -258,12 +257,12 @@ namespace agumi
             auto fn_loc = fn_loc_optional.Type() == ValueType::function ? fn_loc_optional : ResolveExecutable(fn_call.id);
             if (fn_loc.Type() != ValueType::function)
             {
-                THROW_STACK(StackTrace(), "'{}' is not a function", fn_loc.ToString())
+                THROW_MSG("'{}' is not a function", fn_loc.ToString())
             }
             auto fn_iter = func_mem.find(fn_loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_STACK(StackTrace(), "function {} is not defined", fn_loc)
+                THROW_MSG("function {} is not defined", fn_loc)
             }
             Context fn_ctx;
             Value v;
@@ -284,7 +283,7 @@ namespace agumi
                 auto &src_args = fn.src->arguments;
                 if (src_args.size() != fn_call.arguments.size())
                 {
-                    THROW_STACK(StackTrace(), "传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size())
+                    THROW_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size())
                 }
                 for (size_t i = 0; i < src_args.size(); i++)
                 {
@@ -317,7 +316,7 @@ namespace agumi
             auto class_iter = class_define.find(t);
             if (class_iter == class_define.end())
             {
-                THROW_STACK(StackTrace(), "class {} is not a defined", jstype_emun2str[(int)t])
+                THROW_MSG("class {} is not defined", jstype_emun2str[(int)t])
             }
             return class_iter->second.ExecFunc(key, val, args);
         }
@@ -329,11 +328,11 @@ namespace agumi
                 auto key = i->id.tok.kw;
                 if (CurrScope().In(key))
                 {
-                    THROW_STACK(StackTrace(), "Identifier '{}' has already been declared", key)
+                    THROW_MSG("Identifier '{}' has already been declared", key)
                 }
                 if (i->type.Is(const_) && !i->initialed)
                 {
-                    THROW_STACK(StackTrace(), "Missing initializer in const declaration")
+                    THROW_MSG("Missing initializer in const declaration")
                 }
                 auto val = i->initialed ? ResolveExecutable(i->init) : Value::undefined;
                 return CurrScope()[key] = val;
@@ -371,7 +370,7 @@ namespace agumi
             auto v = GetValue(id.tok.kw);
             if (!v)
             {
-                THROW_STACK(StackTrace(), "{} is not defined", id.tok.kw)
+                THROW_MSG("{} is not defined", id.tok.kw)
             }
             return v->get();
         }
@@ -504,7 +503,7 @@ namespace agumi
                     {
                         return par[key.Get<double>()];
                     }
-                    THROW_STACK(StackTrace(), "仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
+                    THROW_MSG("仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
                 }
             }
             THROW
@@ -549,7 +548,7 @@ namespace agumi
             case StatementType::nullLiteral:
                 return nullptr;
             }
-            THROW_STACK(StackTrace(), "未定义类型:{}", (int)stat->Type())
+            THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
         Value ResolveFuncDeclear(StatPtr stat)
         {

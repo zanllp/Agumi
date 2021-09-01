@@ -15,6 +15,13 @@ const String color_green_s = "\033[32m";
 const String color_blue_s = "\033[34m";
 const String color_e = "\033[0m";
 
+String FormatError(String err, String stack_trace)
+{
+    stringstream str;
+    str << color_red_s << "error :" << color_e << "\t" << err << "\n" << stack_trace << '\n';
+    return str.str();
+}
+
 void TestMemMange()
 {
     auto &mem = MemManger::Get();
@@ -359,8 +366,7 @@ int main(int argc, char **argv)
                 }
                 catch (const std::exception &e)
                 {
-                    std::cerr
-                        << color_red_s << "error :" << color_e << "\t" << e.what() << '\n';
+                    std::cerr << FormatError(e.what(), vm.StackTrace());
                 }
 
                 buf.fill(0);
@@ -373,8 +379,15 @@ int main(int argc, char **argv)
         if (exec.ToBool())
         {
             VM vm;
-            AddPreDefine(vm);
-            VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
+            try
+            {
+                AddPreDefine(vm);
+                VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << FormatError(e.what(), vm.StackTrace());
+            }
             return 1;
         }
 
