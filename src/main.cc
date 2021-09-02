@@ -367,6 +367,7 @@ int main(int argc, char **argv)
                 catch (const std::exception &e)
                 {
                     std::cerr << FormatError(e.what(), vm.StackTrace());
+                    vm.ctx_stack.resize(1); // 抛异常时只保留顶层的变量
                 }
 
                 buf.fill(0);
