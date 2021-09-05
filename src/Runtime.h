@@ -85,6 +85,8 @@ namespace agumi
         }
         Vector<Context> ctx_stack;
         Vector<Value> temp_stack;
+        std::queue<Value> micro_task_queue;
+        std::queue<Value> macro_task_queue;
         std::map<String, Function> func_mem;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
@@ -149,6 +151,7 @@ namespace agumi
             {
                 v = Dispatch(stat);
             }
+            RunQueueTaskUntilEmpty();
             return v;
         }
 
@@ -213,6 +216,36 @@ namespace agumi
                 ctx_stack.pop_back();
             }
             return v;
+        }
+
+        void AddTask2Queue(Value task, bool is_micro)
+        {
+            if (task.Type() != ValueType::function)
+            {
+                THROW_MSG("task 只能为函数,当前为{}", task.TypeString())
+            }
+            if (is_micro)
+            {
+                this->micro_task_queue.push(task);
+            }
+            else
+            {
+                this->macro_task_queue.push(task);
+            }
+        }
+
+        void RunQueueTaskUntilEmpty()
+        {
+            while (micro_task_queue.size() + macro_task_queue.size())
+            {
+                while (micro_task_queue.size())
+                {
+                    FuncCall(micro_task_queue.front());
+                    micro_task_queue.pop();
+                }
+                FuncCall(macro_task_queue.front());
+                macro_task_queue.pop();
+            }
         }
 
         String StackTrace()

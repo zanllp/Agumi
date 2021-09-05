@@ -32,9 +32,20 @@ namespace agumi
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
+        vm.DefineGlobalFunc("runInMicroQueue", [&](Vector<Value> args) -> Value
+                            {
+                                vm.AddTask2Queue(args.GetOrDefault(0), true);
+                                return Value::undefined;
+                            });
+        vm.DefineGlobalFunc("runInMacroQueue", [&](Vector<Value> args) -> Value
+                            {
+                                vm.AddTask2Queue(args.GetOrDefault(0), false);
+                                return Value::undefined;
+                            });
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
-        auto assert_bind =  [&](Vector<Value> args) -> Value {
-            if(!args.GetOrDefault(0).ToBool())
+        auto assert_bind = [&](Vector<Value> args) -> Value
+        {
+            if (!args.GetOrDefault(0).ToBool())
             {
                 THROW_MSG("assert error")
             }
