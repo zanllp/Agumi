@@ -224,14 +224,8 @@ namespace agumi
             {
                 THROW_MSG("task 只能为函数,当前为{}", task.TypeString())
             }
-            if (is_micro)
-            {
-                this->micro_task_queue.push(task);
-            }
-            else
-            {
-                this->macro_task_queue.push(task);
-            }
+            auto &q = is_micro ? micro_task_queue : macro_task_queue;
+            q.push(task);
         }
 
         void RunQueueTaskUntilEmpty()

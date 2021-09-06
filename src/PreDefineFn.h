@@ -24,55 +24,37 @@ namespace agumi
         auto json_module = Object({{"parse", vm.DefineFunc(json_parse)},
                                    {"stringify", vm.DefineFunc(json_stringify)}});
         vm.ctx_stack[0].var["json"] = json_module;
-        auto fetch_bind = [&](Vector<Value> args) -> Value
-        {
+        auto fetch_bind = VM_FN(
             auto resp = sion::Fetch(args[0].ToString());
             auto res = Object();
             res["data"] = resp.Body().c_str();
-            return res;
-        };
+            return res;);
         vm.DefineGlobalFunc("fetch", fetch_bind);
-        vm.DefineGlobalFunc("runInMicroQueue", [&](Vector<Value> args) -> Value
-                            {
-                                vm.AddTask2Queue(args.GetOrDefault(0), true);
-                                return Value::undefined;
-                            });
-        vm.DefineGlobalFunc("runInMacroQueue", [&](Vector<Value> args) -> Value
-                            {
-                                vm.AddTask2Queue(args.GetOrDefault(0), false);
-                                return Value::undefined;
-                            });
+        vm.DefineGlobalFunc("runInMicroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), true); return Value::undefined;));
+        vm.DefineGlobalFunc("runInMacroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), false); return Value::undefined;));
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
-        auto assert_bind = [&](Vector<Value> args) -> Value
-        {
+        auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool())
             {
                 THROW_MSG("assert error")
-            }
-            return Value::undefined;
-        };
+            } return Value::undefined;);
         vm.DefineGlobalFunc("assert", assert_bind);
-        auto eval = [&](Vector<Value> args) -> Value
-        {
+        auto eval = VM_FN(
             auto script = args.GetOrDefault(0).ToString();
             auto enable_curr_vm = args.GetOrDefault(1).ToBool();
             auto tfv = GeneralTokenizer::Agumi(script);
             auto ast = Compiler().ConstructAST(tfv);
-            return enable_curr_vm ? vm.Run(ast) : VM().Run(ast);
-        };
+            return enable_curr_vm ? vm.Run(ast) : VM().Run(ast););
         vm.DefineGlobalFunc("eval", eval);
-        auto log = [&](Vector<Value> args) -> Value
-        {
+        auto log = VM_FN(
             auto out = args.Map<String>([](Value arg)
                                         { return arg.ToString(); })
                            .Join();
             std::cout << out << std::endl;
-            return Value::undefined;
-        };
+            return Value::undefined;);
         vm.DefineGlobalFunc("log", log);
         vm.DefineGlobalFunc("loadFile", VM_FN(return LoadFile(args.GetOrDefault(0).ToString())));
-        auto mem_bind = [&](Vector<Value> args) -> Value
-        {
+        auto mem_bind = VM_FN(
             size_t idx = 0;
             if (args.size())
             {
@@ -81,9 +63,8 @@ namespace agumi
                 {
                     THROW_MSG("内存越界 参数:{} vm ctx_stack size:{}", idx, vm.ctx_stack.size())
                 }
-            }
-            return vm.ctx_stack[idx].var;
-        };
+            } return vm.ctx_stack[idx]
+                .var;);
         vm.DefineGlobalFunc("mem", mem_bind);
         auto lens_bind = [&](Vector<Value> keys) -> Value
         {
