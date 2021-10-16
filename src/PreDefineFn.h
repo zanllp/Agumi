@@ -128,6 +128,16 @@ namespace agumi
 
             return _this[idx];
         };
+        array_def.member_func["select"] = [&](Value &_this, Vector<Value> args) -> Value
+        {
+            Array arr;
+        
+            for (auto& i : _this.Arr().Src())
+            {
+                arr.Src().push_back(vm.FuncCall(args.GetOrDefault(0), i));
+            }
+            return arr;
+        };
         vm.class_define[ValueType::array] = array_def;
 
         LocalClassDefine num_def;
