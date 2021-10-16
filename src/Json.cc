@@ -106,7 +106,7 @@ namespace agumi
             {
                 String v_src = (type == ValueType::undefined) ? "null" : i.second.ToString();
                 auto str = escape ? v_src.Escape() : v_src;
-                auto value_str = i.second.Type() == ValueType::string ? String::Format("\"{}\"", str.Replace('\n', "\\n", -1)) : str;
+                auto value_str = (i.second.Type() == ValueType::string || i.second.Type() == ValueType::function) ? String::Format("\"{}\"", str.Replace('\n', "\\n", -1)) : str;
                 res_vec.push_back(String::Format("\"{}\": {}", key, value_str));
             }
         }
@@ -147,6 +147,7 @@ namespace agumi
         case ValueType::array:
             return Json::StringifyInternalArray(v.ArrC(), json_obj_rec, json_arr_rec, indent, 0, escape);
         case ValueType::string:
+        case ValueType::function:
             return String::Format("\"{}\"", v.ToString());
         default:
             return v.ToString();

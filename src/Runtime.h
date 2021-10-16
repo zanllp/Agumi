@@ -9,6 +9,7 @@ namespace agumi
     public:
         Value val;
         bool initialed = false;
+        // 0是当前，1是前一个
         int stack_offset;
         String kw;
         Closure(){};
@@ -187,6 +188,7 @@ namespace agumi
 
         Value FuncCall(Value loc, Vector<Value> args)
         {
+            P("call func loc:{}", loc.GetC<String>())
             auto fn_iter = func_mem.find(loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
@@ -195,6 +197,7 @@ namespace agumi
             Context fn_ctx;
             Value v;
             auto &fn = fn_iter->second;
+            CurrCtx().closeure = &fn.closure;
             if (fn.is_native_func)
             {
                 v = fn.native_fn(args);
@@ -295,6 +298,7 @@ namespace agumi
             Value v;
             auto &fn = fn_iter->second;
             fn_ctx.closeure = &fn.closure;
+
             if (fn.is_native_func)
             {
                 Vector<Value> args;
@@ -320,6 +324,19 @@ namespace agumi
                     fn_ctx.var[key] = incoming_val;
                 }
                 ctx_stack.push_back(fn_ctx);
+
+                if (fn_ctx.closeure != nullptr)
+                {
+                    P(Json::Stringify(fn_ctx.var))
+                    for (auto &i : *fn_ctx.closeure)
+                    {
+                        if (!i.second.initialed && i.second.stack_offset == 1)
+                        {
+                            P("closeure {} {} {}", i.second.kw, i.second.stack_offset, ValueOrUndef(i.second.kw))
+                            (*fn_ctx.closeure)[i.first] = Closure::From(ValueOrUndef(i.second.kw));
+                        }
+                    }
+                }
                 // 执行函数
                 for (auto &stat : fn.src->body)
                 {
@@ -580,9 +597,10 @@ namespace agumi
         Value ResolveFuncDeclear(StatPtr stat)
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
-            std::map<String, Closure> closure;
+            P("create closeure loc:{}", fn_stat.start.ToPosStr())
+            static std::map<String, std::map<String, Closure>> closure_mem;
             Vector<Context> virtual_ctx_stack;
-            std::function<void(StatPtr)> Visitor = [&](StatPtr s)
+            std::function<void(StatPtr,std::map<String, Closure>&)> Visitor = [&](StatPtr s, std::map<String, Closure>& closure)
             {
                 switch (s->Type())
                 {
@@ -590,6 +608,7 @@ namespace agumi
                 {
                     SRC_REF(stat, FunctionDeclaration, s)
                     Context ctx;
+                    std::map<String, Closure> closure;
                     for (auto &i : stat.arguments)
                     {
                         ctx.var[i.name.kw] = true;
@@ -597,15 +616,26 @@ namespace agumi
                     virtual_ctx_stack.push_back(ctx);
                     for (auto i : stat.body)
                     {
-                        Visitor(i);
+                        Visitor(i, closure);
                     }
                     virtual_ctx_stack.pop_back();
+                    closure_mem[stat.start.UniqId()] = closure;
+                    return;
+                }
+                case StatementType::functionCall:
+                {
+                    SRC_REF(call, FunctionCall, s)
+                    for (auto &i : call.arguments)
+                    {
+                        Visitor(i, closure);
+                    }
                     return;
                 }
                 case StatementType::identifier:
                 {
                     SRC_REF(id, Identifier, s)
                     auto kw = id.tok.kw;
+                    P("key: {}", kw)
                     int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                     int idx_mut = virtual_ctx_stack_idx;
                     auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
@@ -623,18 +653,18 @@ namespace agumi
                 case StatementType::conditionExpression:
                 {
                     SRC_REF(cond, ConditionExpression, s)
-                    for (auto i : {cond.cond, cond.left, cond.right})
+                    for (auto& i : {cond.cond, cond.left, cond.right})
                     {
-                        Visitor(i);
+                        Visitor(i, closure);
                     }
                     return;
                 }
                 case StatementType::binaryExpression:
                 {
                     SRC_REF(bin, BinaryExpression, s)
-                    for (auto i : {bin.left, bin.right})
+                    for (auto& i : {bin.left, bin.right})
                     {
-                        Visitor(i);
+                        Visitor(i, closure);
                     }
                     return;
                 }
@@ -649,19 +679,30 @@ namespace agumi
                         scope[e.id.tok.kw] = true;
                         if (e.initialed)
                         {
-                            Visitor(e.init);
+                            Visitor(e.init, closure);
                         }
                     }
                     return;
                 }
                 }
             };
-            Visitor(stat);
             auto func_id = fn_stat.start.UniqId();
             Function fn;
             fn.enable_closure = true;
-            fn.closure = closure;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
+            auto closure_iter = closure_mem.find(func_id);
+            if (closure_iter != closure_mem.end())
+            {
+                fn.closure = closure_iter->second;
+                P("get closure {}:{}", closure_iter->first, closure_iter->second.size())
+            }
+            else
+            {
+                std::map<String, Closure> closure;
+                Visitor(stat, closure);
+                fn.closure = closure;
+                closure_mem[func_id] = closure;
+            }
             func_mem[func_id] = fn;
             return Value::CreateFunc(func_id);
         }

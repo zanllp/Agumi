@@ -380,15 +380,20 @@ int main(int argc, char **argv)
         if (exec.ToBool())
         {
             VM vm;
+            
+#ifndef FAST_FAIL
             try
+#endif
             {
                 AddPreDefine(vm);
                 VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
             }
+#ifndef FAST_FAIL
             catch (const std::exception &e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
+#endif
             return 1;
         }
 

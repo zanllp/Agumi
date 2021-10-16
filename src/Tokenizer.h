@@ -223,7 +223,7 @@ namespace agumi
             {
                 return "native func";
             }
-            return String::Format("{}:{}", file, line + 1);
+            return String::Format("{}:{}:{}", file, line + 1, offset);
         }
         String ToDebugStr() const
         {
