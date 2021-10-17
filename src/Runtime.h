@@ -13,8 +13,16 @@ namespace agumi
         int stack_offset;
         String kw;
         Closure(){};
-        Closure(int offset, String _kw) : kw(_kw), stack_offset(offset), initialed(false){};
+        Closure(int offset, String _kw, String _relative_context_id)
+        {
+            kw = _kw;
+            stack_offset = offset;
+            initialed = false;
+            relative_context_id = _relative_context_id;
+        };
         ~Closure(){};
+        // 栈偏移时的的目标栈id
+        String relative_context_id;
 
         static Closure From(Value v)
         {
@@ -25,25 +33,26 @@ namespace agumi
         }
     };
 
-    class Context
-    {
-    public:
-        Value var = Object();
-        std::map<String, Closure> *closeure = nullptr;
-        Token *start;
-        Context(){};
-        ~Context(){};
-    };
-
     class Function
     {
     public:
-        Vector<Context> ctx_stack;
         std::shared_ptr<FunctionDeclaration> src;
         bool is_native_func = false;
         std::function<Value(Vector<Value>)> native_fn;
         std::map<String, Closure> closure;
         bool enable_closure = false;
+    };
+
+    class Context
+    {
+    public:
+        Value var = Object();
+        std::map<String, Closure> *closeure = nullptr;
+        Token *start = nullptr;
+        // 是由哪个函数创建的
+        Function *created_by_fn = nullptr;
+        Context(){};
+        ~Context(){};
     };
 
     class LocalClassDefine
@@ -75,6 +84,13 @@ namespace agumi
             }
             return op_def->second(l, r);
         }
+    };
+
+    class ClosureMemory
+    {
+    public:
+        std::map<String, ClosureMemory> children;
+        std::map<String, Closure> map;
     };
 
     class VM
@@ -197,7 +213,8 @@ namespace agumi
             Context fn_ctx;
             Value v;
             auto &fn = fn_iter->second;
-            CurrCtx().closeure = &fn.closure;
+            fn_ctx.created_by_fn = &fn;
+            fn_ctx.closeure = &fn.closure;
             if (fn.is_native_func)
             {
                 v = fn.native_fn(args);
@@ -298,7 +315,7 @@ namespace agumi
             Value v;
             auto &fn = fn_iter->second;
             fn_ctx.closeure = &fn.closure;
-
+            fn_ctx.created_by_fn = &fn;
             if (fn.is_native_func)
             {
                 Vector<Value> args;
@@ -324,19 +341,6 @@ namespace agumi
                     fn_ctx.var[key] = incoming_val;
                 }
                 ctx_stack.push_back(fn_ctx);
-
-                if (fn_ctx.closeure != nullptr)
-                {
-                    P(Json::Stringify(fn_ctx.var))
-                    for (auto &i : *fn_ctx.closeure)
-                    {
-                        if (!i.second.initialed && i.second.stack_offset == 1)
-                        {
-                            P("closeure {} {} {}", i.second.kw, i.second.stack_offset, ValueOrUndef(i.second.kw))
-                            (*fn_ctx.closeure)[i.first] = Closure::From(ValueOrUndef(i.second.kw));
-                        }
-                    }
-                }
                 // 执行函数
                 for (auto &stat : fn.src->body)
                 {
@@ -594,13 +598,14 @@ namespace agumi
             }
             THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
+
         Value ResolveFuncDeclear(StatPtr stat)
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
-            P("create closeure loc:{}", fn_stat.start.ToPosStr())
-            static std::map<String, std::map<String, Closure>> closure_mem;
+            static std::map<String, ClosureMemory> closure_mem;
             Vector<Context> virtual_ctx_stack;
-            std::function<void(StatPtr,std::map<String, Closure>&)> Visitor = [&](StatPtr s, std::map<String, Closure>& closure)
+            String base_ctx_id; // 处理嵌套函数声明时的最外层id
+            std::function<void(StatPtr, ClosureMemory &)> Visitor = [&](StatPtr s, ClosureMemory &closure)
             {
                 switch (s->Type())
                 {
@@ -608,7 +613,7 @@ namespace agumi
                 {
                     SRC_REF(stat, FunctionDeclaration, s)
                     Context ctx;
-                    std::map<String, Closure> closure;
+                    ClosureMemory closure_next;
                     for (auto &i : stat.arguments)
                     {
                         ctx.var[i.name.kw] = true;
@@ -616,10 +621,11 @@ namespace agumi
                     virtual_ctx_stack.push_back(ctx);
                     for (auto i : stat.body)
                     {
-                        Visitor(i, closure);
+                        Visitor(i, closure_next);
                     }
                     virtual_ctx_stack.pop_back();
-                    closure_mem[stat.start.UniqId()] = closure;
+                    closure_mem[stat.start.UniqId()] = closure_next;
+                    closure.children[stat.start.UniqId()] =(closure_next);
                     return;
                 }
                 case StatementType::functionCall:
@@ -635,25 +641,24 @@ namespace agumi
                 {
                     SRC_REF(id, Identifier, s)
                     auto kw = id.tok.kw;
-                    P("key: {}", kw)
                     int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                     int idx_mut = virtual_ctx_stack_idx;
                     auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
                     auto uniqId = id.tok.UniqId();
                     if (val)
                     {
-                        closure[uniqId] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
+                        closure.map[uniqId] = Closure(virtual_ctx_stack_idx - idx_mut, kw, base_ctx_id);
                     }
                     else
                     {
-                        closure[uniqId] = Closure::From(ValueOrUndef(id.tok.kw));
+                        closure.map[uniqId] = Closure::From(ValueOrUndef(id.tok.kw));
                     }
                     return;
                 }
                 case StatementType::conditionExpression:
                 {
                     SRC_REF(cond, ConditionExpression, s)
-                    for (auto& i : {cond.cond, cond.left, cond.right})
+                    for (auto &i : {cond.cond, cond.left, cond.right})
                     {
                         Visitor(i, closure);
                     }
@@ -662,7 +667,7 @@ namespace agumi
                 case StatementType::binaryExpression:
                 {
                     SRC_REF(bin, BinaryExpression, s)
-                    for (auto& i : {bin.left, bin.right})
+                    for (auto &i : {bin.left, bin.right})
                     {
                         Visitor(i, closure);
                     }
@@ -691,16 +696,43 @@ namespace agumi
             fn.enable_closure = true;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
             auto closure_iter = closure_mem.find(func_id);
-            if (closure_iter != closure_mem.end())
+            if (closure_iter != closure_mem.end()) // 嵌套的函数声明才会产生闭包缓存
             {
-                fn.closure = closure_iter->second;
-                P("get closure {}:{}", closure_iter->first, closure_iter->second.size())
+                fn.closure = closure_iter->second.map;
+                int base_idx = -1; // 产生当前闭包的上下文处于当前上下文的哪个位置
+                for (auto &i : fn.closure)
+                {
+                    base_idx = base_idx != -1 ? base_idx : [&]
+                    {
+                        for (size_t idx = 0; idx < ctx_stack.size(); idx++)
+                        {
+                            auto ctx_fn = ctx_stack[idx].created_by_fn;
+                            if (ctx_fn == nullptr)
+                            {
+                                continue;
+                            }
+                            auto ctx_id = ctx_fn->src.get()->start.UniqId();
+                            auto relative_ctx_id = i.second.relative_context_id;
+                            if (ctx_id == relative_ctx_id)
+                            {
+                                return idx;
+                            }
+                        }
+                        THROW_MSG("找不到")
+                    }();
+                    if (!i.second.initialed &&
+                        base_idx + i.second.stack_offset == ctx_stack.size()) //
+                    {
+                        fn.closure[i.first] = Closure::From(ValueOrUndef(i.second.kw));
+                    }
+                }
             }
             else
             {
-                std::map<String, Closure> closure;
+                ClosureMemory closure;
+                base_ctx_id = func_id;
                 Visitor(stat, closure);
-                fn.closure = closure;
+                fn.closure = closure.map;
                 closure_mem[func_id] = closure;
             }
             func_mem[func_id] = fn;
