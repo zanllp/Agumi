@@ -625,7 +625,7 @@ namespace agumi
                     }
                     virtual_ctx_stack.pop_back();
                     closure_mem[stat.start.UniqId()] = closure_next;
-                    closure.children[stat.start.UniqId()] =(closure_next);
+                    closure.children[stat.start.UniqId()] = (closure_next);
                     return;
                 }
                 case StatementType::functionCall:
@@ -698,34 +698,30 @@ namespace agumi
             auto closure_iter = closure_mem.find(func_id);
             if (closure_iter != closure_mem.end()) // 嵌套的函数声明才会产生闭包缓存
             {
-                fn.closure = closure_iter->second.map;
-                int base_idx = -1; // 产生当前闭包的上下文处于当前上下文的哪个位置
-                for (auto &i : fn.closure)
+                std::function<void(agumi::ClosureMemory &, String)> traverse = [&](agumi::ClosureMemory &mem, String id, int offset)
                 {
-                    base_idx = base_idx != -1 ? base_idx : [&]
+                    for (auto &i : mem.map)
                     {
-                        for (size_t idx = 0; idx < ctx_stack.size(); idx++)
+                        if (i.second.initialed)
                         {
-                            auto ctx_fn = ctx_stack[idx].created_by_fn;
-                            if (ctx_fn == nullptr)
-                            {
-                                continue;
-                            }
-                            auto ctx_id = ctx_fn->src.get()->start.UniqId();
-                            auto relative_ctx_id = i.second.relative_context_id;
-                            if (ctx_id == relative_ctx_id)
-                            {
-                                return idx;
-                            }
+                            continue;
                         }
-                        THROW_MSG("找不到")
-                    }();
-                    if (!i.second.initialed &&
-                        base_idx + i.second.stack_offset == ctx_stack.size()) //
-                    {
-                        fn.closure[i.first] = Closure::From(ValueOrUndef(i.second.kw));
+                        auto& scope =  ctx_stack[offset].var.Obj().Src();
+                        auto iter = scope.find(i.second.kw);
+                        if (iter == scope.end())
+                        {
+                            THROW
+                        }
+                        closure_mem[id].map[i.first] = Closure::From(scope[i.second.kw]) 
+                        
                     }
-                }
+                    for (auto &i : mem.children)
+                    {
+                        traverse(i.second, i.first, offset + 1);
+                    }
+                };
+                traverse(closure_iter->second, closure_iter->first, 0);
+                fn.closure = closure_mem[func_id].map;
             }
             else
             {
