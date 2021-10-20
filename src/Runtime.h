@@ -13,16 +13,13 @@ namespace agumi
         int stack_offset;
         String kw;
         Closure(){};
-        Closure(int offset, String _kw, String _relative_context_id)
+        Closure(int offset, String _kw)
         {
             kw = _kw;
             stack_offset = offset;
             initialed = false;
-            relative_context_id = _relative_context_id;
         };
         ~Closure(){};
-        // 栈偏移时的的目标栈id
-        String relative_context_id;
 
         static Closure From(Value v)
         {
@@ -36,6 +33,14 @@ namespace agumi
     class Function
     {
     public:
+        Function()
+        {
+        }
+        Function(String _id)
+        {
+            id = _id;
+        }
+        String id = "unnamed";
         std::shared_ptr<FunctionDeclaration> src;
         bool is_native_func = false;
         std::function<Value(Vector<Value>)> native_fn;
@@ -49,8 +54,6 @@ namespace agumi
         Value var = Object();
         std::map<String, Closure> *closeure = nullptr;
         Token *start = nullptr;
-        // 是由哪个函数创建的
-        Function *created_by_fn = nullptr;
         Context(){};
         ~Context(){};
     };
@@ -178,7 +181,7 @@ namespace agumi
             auto fn_unique_id = String::Format("native global func code:{}", ++id);
             auto fn = Value::CreateFunc(fn_unique_id);
             ctx_stack[0].var[name] = fn;
-            Function fn_src;
+            Function fn_src(fn_unique_id);
             fn_src.is_native_func = true;
             fn_src.native_fn = native_fn;
             func_mem[fn_unique_id] = fn_src;
@@ -189,7 +192,7 @@ namespace agumi
             static int id = 0;
             auto fn_unique_id = String::Format("native func code:{}", ++id);
             auto fn = Value::CreateFunc(fn_unique_id);
-            Function fn_src;
+            Function fn_src(fn_unique_id);
             fn_src.is_native_func = true;
             fn_src.native_fn = native_fn;
             func_mem[fn_unique_id] = fn_src;
@@ -204,7 +207,6 @@ namespace agumi
 
         Value FuncCall(Value loc, Vector<Value> args)
         {
-            P("call func loc:{}", loc.GetC<String>())
             auto fn_iter = func_mem.find(loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
@@ -213,7 +215,6 @@ namespace agumi
             Context fn_ctx;
             Value v;
             auto &fn = fn_iter->second;
-            fn_ctx.created_by_fn = &fn;
             fn_ctx.closeure = &fn.closure;
             if (fn.is_native_func)
             {
@@ -257,8 +258,11 @@ namespace agumi
                     FuncCall(micro_task_queue.front());
                     micro_task_queue.pop();
                 }
-                FuncCall(macro_task_queue.front());
-                macro_task_queue.pop();
+                if (macro_task_queue.size())
+                {
+                    FuncCall(macro_task_queue.front());
+                    macro_task_queue.pop();
+                }
             }
         }
 
@@ -315,7 +319,6 @@ namespace agumi
             Value v;
             auto &fn = fn_iter->second;
             fn_ctx.closeure = &fn.closure;
-            fn_ctx.created_by_fn = &fn;
             if (fn.is_native_func)
             {
                 Vector<Value> args;
@@ -409,7 +412,7 @@ namespace agumi
             auto closure = CurrCtx().closeure;
             if (closure != nullptr)
             {
-                auto iter = closure->find(id.tok.UniqId());
+                auto iter = closure->find(id.tok.kw);
                 if (iter != closure->end())
                 {
                     return GetValue(iter->second)->get();
@@ -603,8 +606,20 @@ namespace agumi
         {
             SRC_REF(fn_stat, FunctionDeclaration, stat);
             static std::map<String, ClosureMemory> closure_mem;
+            auto generate_func_id = [&](String fn_pos_id)
+            {
+                static std::map<String, int> func_assig_id_set;
+                auto iter = func_assig_id_set.find(fn_pos_id);
+                String tpl = "{ offset:{}, pos:{} }";
+                if (iter == func_assig_id_set.end())
+                {
+                    func_assig_id_set[fn_pos_id] = 0;
+                    return String::Format(tpl, 0, fn_pos_id);
+                }
+                return String::Format(tpl, ++func_assig_id_set[fn_pos_id], fn_pos_id);
+            };
+
             Vector<Context> virtual_ctx_stack;
-            String base_ctx_id; // 处理嵌套函数声明时的最外层id
             std::function<void(StatPtr, ClosureMemory &)> Visitor = [&](StatPtr s, ClosureMemory &closure)
             {
                 switch (s->Type())
@@ -625,7 +640,7 @@ namespace agumi
                     }
                     virtual_ctx_stack.pop_back();
                     closure_mem[stat.start.UniqId()] = closure_next;
-                    closure.children[stat.start.UniqId()] = (closure_next);
+                    closure.children[stat.start.UniqId()] = closure_next;
                     return;
                 }
                 case StatementType::functionCall:
@@ -644,14 +659,14 @@ namespace agumi
                     int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                     int idx_mut = virtual_ctx_stack_idx;
                     auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
-                    auto uniqId = id.tok.UniqId();
+                    // auto uniqId = id.tok.UniqId();
                     if (val)
                     {
-                        closure.map[uniqId] = Closure(virtual_ctx_stack_idx - idx_mut, kw, base_ctx_id);
+                        closure.map[kw] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
                     }
                     else
                     {
-                        closure.map[uniqId] = Closure::From(ValueOrUndef(id.tok.kw));
+                        closure.map[kw] = Closure::From(ValueOrUndef(id.tok.kw));
                     }
                     return;
                 }
@@ -691,48 +706,49 @@ namespace agumi
                 }
                 }
             };
-            auto func_id = fn_stat.start.UniqId();
-            Function fn;
+            auto func_pos_id = fn_stat.start.UniqId();
+            Function fn(generate_func_id(func_pos_id));
             fn.enable_closure = true;
             fn.src = std::static_pointer_cast<FunctionDeclaration>(stat);
-            auto closure_iter = closure_mem.find(func_id);
-            if (closure_iter != closure_mem.end()) // 嵌套的函数声明才会产生闭包缓存
+            auto closure_iter = closure_mem.find(func_pos_id);
+            if (closure_iter != closure_mem.end())
             {
-                std::function<void(agumi::ClosureMemory &, String)> traverse = [&](agumi::ClosureMemory &mem, String id, int offset)
+                const int curr_ctx_idx = ctx_stack.size() - 1;
+                std::function<void(std::map<agumi::String, agumi::Closure> &)> traverse = [&](std::map<agumi::String, agumi::Closure> &mem)
                 {
-                    for (auto &i : mem.map)
+                    for (auto &i : mem)
                     {
-                        if (i.second.initialed)
+                        auto &clos = i.second;
+                        if (clos.initialed) // 已经赋值完的不处理
                         {
                             continue;
                         }
-                        auto& scope =  ctx_stack[offset].var.Obj().Src();
-                        auto iter = scope.find(i.second.kw);
-                        if (iter == scope.end())
+                        auto target_ctx_idx = curr_ctx_idx + 1 - clos.stack_offset;
+                        if (target_ctx_idx >= ctx_stack.size()) // 这个变量还没生成暂时不处理，等待下次
                         {
-                            THROW
+                            continue;
                         }
-                        closure_mem[id].map[i.first] = Closure::From(scope[i.second.kw]) 
-                        
-                    }
-                    for (auto &i : mem.children)
-                    {
-                        traverse(i.second, i.first, offset + 1);
+                        auto &scope = ctx_stack[target_ctx_idx].var;
+                        if (!scope.In(clos.kw))
+                        {
+                            THROW_MSG("kw: {} pos:{}", clos.kw)
+                        }
+                        mem[clos.kw] = Closure::From(scope[clos.kw]); // 对于已生成的值转成已初始化的闭包
                     }
                 };
-                traverse(closure_iter->second, closure_iter->first, 0);
-                fn.closure = closure_mem[func_id].map;
+                fn.closure = closure_mem[func_pos_id].map;
+                traverse(fn.closure);
             }
             else
             {
                 ClosureMemory closure;
-                base_ctx_id = func_id;
                 Visitor(stat, closure);
                 fn.closure = closure.map;
-                closure_mem[func_id] = closure;
+                closure_mem[func_pos_id] = closure;
             }
-            func_mem[func_id] = fn;
-            return Value::CreateFunc(func_id);
+
+            func_mem[fn.id] = fn;
+            return Value::CreateFunc(fn.id);
         }
     };
 }

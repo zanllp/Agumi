@@ -32,6 +32,10 @@ namespace agumi
         vm.DefineGlobalFunc("fetch", fetch_bind);
         vm.DefineGlobalFunc("runInMicroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), true); return Value::undefined;));
         vm.DefineGlobalFunc("runInMacroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), false); return Value::undefined;));
+        vm.DefineGlobalFunc("format", VM_FN(
+                                          std::vector<String> rest = args.Slice(1).Map<String>([](Value arg)
+                                                                                               { return arg.ToString(); });
+                                          return String::Format(args.GetOrDefault(0).ToString(), rest)));
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
         auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool())
