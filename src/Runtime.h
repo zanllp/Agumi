@@ -714,9 +714,10 @@ namespace agumi
             if (closure_iter != closure_mem.end())
             {
                 const int curr_ctx_idx = ctx_stack.size() - 1;
-                std::function<void(std::map<agumi::String, agumi::Closure> &)> traverse = [&](std::map<agumi::String, agumi::Closure> &mem)
+                auto closure_curr = closure_mem[func_pos_id];
+                std::function<void(ClosureMemory &)> traverse = [&](ClosureMemory &mem)
                 {
-                    for (auto &i : mem)
+                    for (auto &i : mem.map)
                     {
                         auto &clos = i.second;
                         if (clos.initialed) // 已经赋值完的不处理
@@ -733,11 +734,16 @@ namespace agumi
                         {
                             THROW_MSG("kw: {} pos:{}", clos.kw)
                         }
-                        mem[clos.kw] = Closure::From(scope[clos.kw]); // 对于已生成的值转成已初始化的闭包
+                        closure_curr.map[clos.kw] = Closure::From(scope[clos.kw]); // 对于已生成的值转成已初始化的闭包,
+                        // 嵌套函数内部的闭包全部放到创建时的函数上下文等待，哪个函数创建时再获取
+                    }
+                    for (auto &i : mem.children) // 递归处理嵌套的函数
+                    {
+                        traverse(i.second);
                     }
                 };
-                fn.closure = closure_mem[func_pos_id].map;
-                traverse(fn.closure);
+                traverse(closure_curr);
+                fn.closure = closure_curr.map;
             }
             else
             {
