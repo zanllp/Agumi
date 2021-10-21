@@ -131,6 +131,16 @@ namespace agumi
         }
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
+            auto clos = CurrCtx().closeure;
+            if (clos != nullptr)
+            {
+                auto iter = clos->find(key);
+                if (iter != clos->end())
+                {
+                    ASS_T(iter->second.initialed)
+                    return {iter->second.val};
+                }
+            }
             int i = ctx_stack.size() - 1;
             return GetValue(key, ctx_stack, i);
         }
@@ -650,7 +660,7 @@ namespace agumi
                     {
                         Visitor(i, closure);
                     }
-                    return;
+                    s = call.id;
                 }
                 case StatementType::identifier:
                 {
@@ -659,14 +669,17 @@ namespace agumi
                     int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                     int idx_mut = virtual_ctx_stack_idx;
                     auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
-                    // auto uniqId = id.tok.UniqId();
                     if (val)
                     {
                         closure.map[kw] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
                     }
                     else
                     {
-                        closure.map[kw] = Closure::From(ValueOrUndef(id.tok.kw));
+                        auto val = GetValue(kw);
+                        if (val)
+                        {
+                            closure.map[kw] = Closure::From(val.value());
+                        }
                     }
                     return;
                 }
@@ -715,34 +728,33 @@ namespace agumi
             {
                 const int curr_ctx_idx = ctx_stack.size() - 1;
                 auto closure_curr = closure_mem[func_pos_id];
-                std::function<void(ClosureMemory &)> traverse = [&](ClosureMemory &mem)
+                std::function<void(ClosureMemory &, int)> traverse = [&](ClosureMemory &mem, int deep)
                 {
                     for (auto &i : mem.map)
                     {
                         auto &clos = i.second;
+                        // P("key:{} init:{} offset:{}", i.first, clos.initialed, clos.stack_offset)
                         if (clos.initialed) // 已经赋值完的不处理
                         {
                             continue;
                         }
-                        auto target_ctx_idx = curr_ctx_idx + 1 - clos.stack_offset;
-                        if (target_ctx_idx >= ctx_stack.size()) // 这个变量还没生成暂时不处理，等待下次
+                        if (deep > clos.stack_offset) // 还没生成
                         {
-                            continue;
+                            // P("waiting for current context generate kw:{}", clos.kw)
                         }
-                        auto &scope = ctx_stack[target_ctx_idx].var;
-                        if (!scope.In(clos.kw))
+                        else if (deep <= clos.stack_offset) // 在当前上下文生成，已生成的
                         {
-                            THROW_MSG("kw: {} pos:{}", clos.kw)
+                            // P("has created kw:{} value:{}", clos.kw, ValueOrUndef(clos.kw))
+                            closure_curr.map[clos.kw] = Closure::From(ValueOrUndef(clos.kw)); // 会优先从当前上下文的闭包中取
                         }
-                        closure_curr.map[clos.kw] = Closure::From(scope[clos.kw]); // 对于已生成的值转成已初始化的闭包,
-                        // 嵌套函数内部的闭包全部放到创建时的函数上下文等待，哪个函数创建时再获取
                     }
                     for (auto &i : mem.children) // 递归处理嵌套的函数
                     {
-                        traverse(i.second);
+                        // P("next deep:{}", deep + 1)
+                        traverse(i.second, deep + 1);
                     }
                 };
-                traverse(closure_curr);
+                traverse(closure_curr, 1);
                 fn.closure = closure_curr.map;
             }
             else
