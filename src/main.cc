@@ -18,7 +18,8 @@ const String color_e = "\033[0m";
 String FormatError(String err, String stack_trace)
 {
     stringstream str;
-    str << color_red_s << "error :" << color_e << "\t" << err << "\n" << stack_trace << '\n';
+    str << color_red_s << "error :" << color_e << "\t" << err << "\n"
+        << stack_trace << '\n';
     return str.str();
 }
 
@@ -286,6 +287,9 @@ void TestScriptExec()
 
 int main(int argc, char **argv)
 {
+#ifdef LET_IT_CRASH
+    P("{}let it Crash{}", color_green_s, color_e)
+#endif
     Token::Init();
     auto undefined = Value();
     auto arg = CreateVecFromStartParams(argc, argv);
@@ -332,8 +336,7 @@ int main(int argc, char **argv)
         cout << color_green_s << "input :" << color_e << "\t";
         while (cin.getline(ptr, 999))
         {
-// #define FAST_FAIL
-#ifndef FAST_FAIL
+#ifndef LET_IT_CRASH
             try
             {
 #endif
@@ -359,7 +362,7 @@ int main(int argc, char **argv)
                     auto res = vm.Run(ast);
                     cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
                 }
-#ifdef FAST_FAIL
+#ifdef LET_IT_CRASH
                 try
                 {
 #endif
@@ -380,15 +383,20 @@ int main(int argc, char **argv)
         if (exec.ToBool())
         {
             VM vm;
+
+#ifndef LET_IT_CRASH
             try
+#endif
             {
                 AddPreDefine(vm);
                 VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
             }
+#ifndef LET_IT_CRASH
             catch (const std::exception &e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
+#endif
             return 1;
         }
 

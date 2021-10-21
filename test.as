@@ -1,23 +1,32 @@
+const macro = runInMacroQueue
+const micro = runInMicroQueue
+const f = format
+const create_closure = str => {
+    const vvv = f(1)
+    tt => {
+        ee => f('{} {} {} {}',str ,vvv ,tt, ee)
+    }
+}
+const fn = create_closure('hello')
+log(fn('22')(1))
+log(fn('33')(2))
 
-const fn = (i) => {
-    [1,2,3,4,i, "hello world"]
+const while = (s,e,fn) => {
+    const cb = () => {
+        fn(s)
+        micro(() => while(s+1, e, fn))
+    }
+    (s < e) ? cb() : null
 }
-const c = fn(0)
-log(json.stringify(c, 0))
-const createFunc = () => {
-    const arr = [1,2,3,4, fn(1)]
-    () => arr
-}
-const fn1 = createFunc()
-assert((fn1().get(1)) == 2)
-assert(fn1() == fn1())
-assert([] != [])
-const arr = [1,2,3,4, [1,2,3]]
-assert((arr[0]) == 1)
-assert((arr[2+2][0]) == 1)
-assert((b.dd.o3.hello.d) == 'hello world')
-runInMacroQueue(() => log(3))
-runInMicroQueue(() => {
-    log(1)
-    runInMicroQueue(() => log(2))
+
+while(0, 5, log)
+const call = (fn, arg) => fn(arg)
+
+const call_api = (path, cb) => macro(() => {
+    const url = 'https://api.ioflow.link'+path
+    const data = fetch(url)
+    cb(data)
 })
+
+
+call_api('/message', v => log(v.data))

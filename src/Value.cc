@@ -220,7 +220,7 @@ namespace agumi
         case ValueType::object:
             return "[Object]";
         case ValueType::function:
-            return String::Format("[Function loc:{}]", GetC<String>());
+            return String::Format("[Function id:{}]", GetC<String>());
         }
     }
 
