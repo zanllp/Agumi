@@ -19,7 +19,8 @@ namespace agumi
         binaryExpression,
         assigmentStatement,
         indexStatement,
-        arrayInit
+        arrayInit,
+        objectInit
     };
 
     class Statement
@@ -161,6 +162,30 @@ namespace agumi
             auto r = Object();
             r["src"] = arr;
             r["type"] = "arrayInit";
+            r["start"] = start.ToPosStr();
+            return r;
+        }
+    };
+
+    class ObjectInit : public Statement
+    {
+    public:
+        std::map<String, StatPtr> src;
+        ObjectInit(){};
+        StatementType Type()
+        {
+            return StatementType::objectInit;
+        }
+        Value ToJson()
+        {
+            auto obj = Object();
+            for (auto &i : src)
+            {
+                obj[i.first] = i.second->ToJson();
+            }
+            auto r = Object();
+            r["src"] = obj;
+            r["type"] = "objectInit";
             r["start"] = start.ToPosStr();
             return r;
         }
@@ -335,7 +360,7 @@ namespace agumi
     class BoolLiteralInit : public Statement
     {
     public:
-        BoolLiteralInit(Token _tok) 
+        BoolLiteralInit(Token _tok)
         {
             this->start = _tok;
         }
@@ -356,7 +381,7 @@ namespace agumi
     class StringLiteralInit : public Statement
     {
     public:
-        StringLiteralInit(Token _tok) 
+        StringLiteralInit(Token _tok)
         {
             this->start = _tok;
         }
@@ -374,7 +399,7 @@ namespace agumi
         }
     };
 
-     class NullLiteral : public Statement
+    class NullLiteral : public Statement
     {
     public:
         NullLiteral(Token _tok)
@@ -514,13 +539,12 @@ namespace agumi
             THROW
         }
 
-        TokenIter Skip(TokenIter iter, KW kw = cr_)
+        void Skip(TokenIter &iter, KW kw = cr_)
         {
             while (iter->Is(kw))
             {
                 iter++;
             }
-            return iter;
         }
 
         // 处理声明语句，只支持使用let const进行单个声明
@@ -764,10 +788,61 @@ namespace agumi
             return {arr, iter};
         }
 
+        StatPtrWithEnd ResolveObjectInit(TokenFlowView tfv)
+        {
+            auto iter = tfv.BeginIter();
+            iter->Expect(curly_brackets_start_);
+            iter++;
+            auto obj = std::make_shared<ObjectInit>();
+            obj->start = *iter;
+            if (iter->Is(curly_brackets_end_))
+            {
+                return {obj, iter + 1};
+            }
+            while (true)
+            {
+                Skip(iter);
+                if (!iter->IsIdentifier())
+                {
+                    THROW_TOKEN(*iter)
+                }
+                auto kw = iter->kw;
+                iter++;
+                if (iter->Is(comma_) || iter->Is(curly_brackets_end_))
+                {
+                    auto iter_id = iter - 1;
+                    auto [id_stat, _] = ResolveExecutableStatment(iter_id);
+                    obj->src[kw] = id_stat;
+                }
+                else
+                {
+                    iter->Expect(colon_);
+                    iter++;
+                    auto [stat, end_iter] = ResolveExecutableStatment(iter);
+                    obj->src[kw] = stat;
+                    iter = end_iter;
+                }
+
+                Skip(iter);
+                if (iter->Is(comma_))
+                {
+                    iter++;
+                    continue;
+                }
+                if (iter->Is(curly_brackets_end_))
+                {
+                    iter++;
+                    break;
+                }
+                THROW_TOKEN(*iter)
+            }
+            return {obj, iter};
+        }
+
         /**
-     * 一行，或者括号
-     *@return [句子，末尾迭代器)
-     */
+         * 一行，或者括号
+         *@return [句子，末尾迭代器)
+         */
         StatPtrWithEnd ResolveExecutableStatment(TokenFlowView tfv)
         {
             auto iter = tfv.BeginIter();
@@ -793,6 +868,11 @@ namespace agumi
                 return SeekIfExpr(left_stat, end_iter - 1);
             }
 
+            if (iter->Is(curly_brackets_start_))
+            {
+                return ResolveObjectInit(iter);
+            }
+
             if (iter->IsLiteral())
             {
                 auto left_stat = CreateLiteralNode(*iter);
@@ -802,7 +882,7 @@ namespace agumi
             {
                 auto left_stat = std::make_shared<Identifier>(*iter);
                 left_stat->start = *iter;
-                auto next_end_iter = iter + 1; //id的下一个位置
+                auto next_end_iter = iter + 1; // id的下一个位置
                 if (next_end_iter->Is(arrow_)) // id后面跟着箭头是个函数
                 {
                     return ResolveFunction(iter);
