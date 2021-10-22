@@ -11,6 +11,12 @@ const fn = create_closure('hello')
 log(fn('22')(1))
 log(fn('33')(2))
 
+const create_obj = () => {
+    { hello: 'world' }
+}
+
+log(create_obj().hello)
+ 
 const while = (s,e,fn) => {
     const cb = () => {
         fn(s)
@@ -24,9 +30,9 @@ const call = (fn, arg) => fn(arg)
 
 const call_api = (path, cb) => macro(() => {
     const url = 'https://api.ioflow.link'+path
-    const data = fetch(url)
-    cb(data)
+    const resp = fetch(url)
+    cb({ resp, url })
 })
 
 
-call_api('/message', v => log(v.data))
+call_api('/message', v => log(v.resp.data))

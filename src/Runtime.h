@@ -307,6 +307,7 @@ namespace agumi
             case StatementType::functionDeclaration:
             case StatementType::indexStatement:
             case StatementType::arrayInit:
+            case StatementType::objectInit:
             case StatementType::nullLiteral:
                 return ResolveExecutable(stat);
             }
@@ -581,6 +582,17 @@ namespace agumi
             return arr_src;
         }
 
+        Value ResolveObjectInit(StatPtr stat)
+        {
+            SRC_REF(obj, ObjectInit, stat)
+            Object obj_src;
+            for (auto &i : obj.src)
+            {
+                obj_src[i.first] = ResolveExecutable(i.second);
+            }
+            return obj_src;
+        }
+
         Value ResolveExecutable(StatPtr stat)
         {
             CurrCtx().start = &stat->start;
@@ -606,6 +618,8 @@ namespace agumi
                 return ResolveObjectIndex(stat, Value::undefined);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
+            case StatementType::objectInit:
+                return ResolveObjectInit(stat);
             case StatementType::nullLiteral:
                 return nullptr;
             }
