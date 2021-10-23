@@ -281,7 +281,7 @@ void TestScriptExec()
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file = "test.as";
+    String file = "test/index.as";
     VmRunScript(vm, LoadFile(file), false, false, file);
 }
 
@@ -461,5 +461,5 @@ int main(int argc, char **argv)
             // TestAst();
             std::cout << "TestPassed;All ok" << std::endl;
         }
-        return 1;
+        return 0;
     }

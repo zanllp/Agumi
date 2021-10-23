@@ -316,10 +316,12 @@ namespace agumi
         Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = Value::undefined)
         {
             SRC_REF(fn_call, FunctionCall, stat)
-            auto fn_loc = fn_loc_optional.Type() == ValueType::function ? fn_loc_optional : ResolveExecutable(fn_call.id);
+            auto is_use_optional = fn_loc_optional.Type() == ValueType::function;
+            auto fn_loc = is_use_optional ? fn_loc_optional : ResolveExecutable(fn_call.id);
             if (fn_loc.Type() != ValueType::function)
             {
-                THROW_MSG("'{}' is not a function", fn_loc.ToString())
+                auto msg = String::Format("'{}' is not a function", fn_loc.ToString());
+                THROW_MSG(is_use_optional ? "{}" : "{} key:{}", msg, fn_call.id->start.kw)
             }
             auto fn_iter = func_mem.find(fn_loc.GetC<String>());
             if (fn_iter == func_mem.end())
@@ -369,16 +371,16 @@ namespace agumi
         Value ResolveLocalClassFuncCall(StatPtr stat, ValueType t, String key, Value &val)
         {
             SRC_REF(fn_call, FunctionCall, stat)
+            auto class_iter = class_define.find(t);
+            if (class_iter == class_define.end())
+            {
+                THROW_MSG("class {} is not defined", jstype_emun2str[(int)t])
+            }
             Vector<Value> args;
             for (size_t i = 0; i < fn_call.arguments.size(); i++)
             {
                 auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
                 args.push_back(incoming_val);
-            }
-            auto class_iter = class_define.find(t);
-            if (class_iter == class_define.end())
-            {
-                THROW_MSG("class {} is not defined", jstype_emun2str[(int)t])
             }
             return class_iter->second.ExecFunc(key, val, args);
         }
@@ -646,6 +648,24 @@ namespace agumi
             Vector<Context> virtual_ctx_stack;
             std::function<void(StatPtr, ClosureMemory &)> Visitor = [&](StatPtr s, ClosureMemory &closure)
             {
+                auto save_value_to_closure = [&](String kw)
+                {
+                    int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
+                    int idx_mut = virtual_ctx_stack_idx;
+                    auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
+                    if (val)
+                    {
+                        closure.map[kw] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
+                    }
+                    else
+                    {
+                        auto val = GetValue(kw);
+                        if (val)
+                        {
+                            closure.map[kw] = Closure::From(val.value());
+                        }
+                    }
+                };
                 switch (s->Type())
                 {
                 case StatementType::functionDeclaration:
@@ -680,20 +700,16 @@ namespace agumi
                 {
                     SRC_REF(id, Identifier, s)
                     auto kw = id.tok.kw;
-                    int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
-                    int idx_mut = virtual_ctx_stack_idx;
-                    auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
-                    if (val)
+                    save_value_to_closure(kw);
+                    return;
+                }
+                case StatementType::indexStatement:
+                {
+                    SRC_REF(obj_idx_stat, IndexStatement, s)
+                    if (obj_idx_stat.object->Type() == StatementType::identifier)
                     {
-                        closure.map[kw] = Closure(virtual_ctx_stack_idx - idx_mut, kw);
-                    }
-                    else
-                    {
-                        auto val = GetValue(kw);
-                        if (val)
-                        {
-                            closure.map[kw] = Closure::From(val.value());
-                        }
+                        SRC_REF(obj_stat, Identifier, obj_idx_stat.object)
+                        save_value_to_closure(obj_stat.tok.kw);
                     }
                     return;
                 }
@@ -704,6 +720,16 @@ namespace agumi
                     {
                         Visitor(i, closure);
                     }
+                    return;
+                }
+                case StatementType::objectInit:
+                {
+                    SRC_REF(obj, ObjectInit, s)
+                    for (auto &i : obj.src)
+                    {
+                        Visitor(i.second, closure);
+                    }
+
                     return;
                 }
                 case StatementType::binaryExpression:

@@ -45,6 +45,11 @@ repl时开启输出语法树
 repl时开启输出令牌化
 ### -test
 运行测试
+## 几个测试和例子
+### 闭包
+闭包测试和使用[点这里](./test/closure.as)
+### promise
+使用纯agumi实现的简陋的promise[点这里](./test/promise.as)
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ### 例子：使用运算符重载实现函数式语言pipe的功能
