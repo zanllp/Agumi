@@ -5,17 +5,9 @@ const make_promise_internal = (resolve) => {
     const onreslove_callbacks = []
     resolve(res => onreslove_callbacks.select(fn => fn(res)))
     {
-        then: cb => {
-            let onreslove
-            const promise = make_promise_internal(reslove => {
-                onreslove = reslove
-            })
-            const cbWrap = (v) => {
-                onreslove(cb(v))
-            }
-            onreslove_callbacks.push(cbWrap)
-            promise
-        }
+        then: cb => make_promise_internal(reslove => {
+            onreslove_callbacks.push(cb + reslove)
+        })
     }
 }
 
