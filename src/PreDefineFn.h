@@ -38,17 +38,26 @@ namespace agumi
                                           return String::Format(args.GetOrDefault(0).ToString(), rest)));
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
         auto assert_bind = VM_FN(
-            if (!args.GetOrDefault(0).ToBool())
-            {
+            if (!args.GetOrDefault(0).ToBool()) {
                 THROW_MSG("assert error")
             } return Value::undefined;);
         vm.DefineGlobalFunc("assert", assert_bind);
+        auto parse_agumi_script_bind = VM_FN(
+            auto script = args.GetOrDefault(0).ToString();
+            auto tfv = GeneralTokenizer::Agumi(script);
+            auto ast = Compiler().ConstructAST(tfv);
+            return ast.ToJson(););
+        vm.DefineGlobalFunc("parse_agumi_script", parse_agumi_script_bind);
         auto eval = VM_FN(
             auto script = args.GetOrDefault(0).ToString();
             auto enable_curr_vm = args.GetOrDefault(1).ToBool();
             auto tfv = GeneralTokenizer::Agumi(script);
             auto ast = Compiler().ConstructAST(tfv);
-            return enable_curr_vm ? vm.Run(ast) : VM().Run(ast););
+            if (!enable_curr_vm) {
+                VM vm;
+                AddPreDefine(vm);
+                return vm.Run(ast);
+            } return vm.Run(ast));
         vm.DefineGlobalFunc("eval", eval);
         auto log = VM_FN(
             auto out = args.Map<String>([](Value arg)
@@ -60,8 +69,7 @@ namespace agumi
         vm.DefineGlobalFunc("loadFile", VM_FN(return LoadFile(args.GetOrDefault(0).ToString())));
         auto mem_bind = VM_FN(
             size_t idx = 0;
-            if (args.size())
-            {
+            if (args.size()) {
                 idx = args[0].Get<double>();
                 if (idx > vm.ctx_stack.size())
                 {
@@ -110,6 +118,10 @@ namespace agumi
         array_op_def[eqeq_] = BIN_OPERATOR(l.Arr().Ptr() == r.Arr().Ptr());
         array_op_def[not_eq_] = BIN_OPERATOR(l.Arr().Ptr() != r.Arr().Ptr());
         array_def.binary_operator_overload[ValueType::array] = array_op_def;
+        array_def.member_func["length"] = [](Value &_this, Vector<Value> args) -> Value
+        {
+            return double(_this.ArrC().SrcC().size());
+        };
         array_def.member_func["push"] = [](Value &_this, Vector<Value> args) -> Value
         {
             for (auto &i : args)
@@ -135,10 +147,16 @@ namespace agumi
         array_def.member_func["select"] = [&](Value &_this, Vector<Value> args) -> Value
         {
             Array arr;
-        
-            for (auto& i : _this.Arr().Src())
+            auto v = args.GetOrDefault(0);
+            if (v.Type() != ValueType::function)
             {
-                arr.Src().push_back(vm.FuncCall(args.GetOrDefault(0), i));
+                THROW_MSG("array::select 的收个参数必须为function类型，当前为{}", v.TypeString())
+            }
+
+            for (auto &i : _this.Arr().Src())
+            {
+
+                arr.Src().push_back(vm.FuncCall(v, i));
             }
             return arr;
         };
