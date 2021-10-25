@@ -13,3 +13,11 @@ const test = path + (v => {
 }) + loadFile + eval
 
 ['promise','closure'].select(test)
+
+fetch('https://api.ioflow.link/message', {
+    method: 'post',
+    headers: {
+        tt: 'cccc'
+    },
+    data: ['hello world']
+})

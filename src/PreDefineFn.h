@@ -24,11 +24,48 @@ namespace agumi
         auto json_module = Object({{"parse", vm.DefineFunc(json_parse)},
                                    {"stringify", vm.DefineFunc(json_stringify)}});
         vm.ctx_stack[0].var["json"] = json_module;
-        auto fetch_bind = VM_FN(
-            auto resp = sion::Fetch(args[0].ToString());
+        auto fetch_bind = [&](Vector<Value> args) -> Value
+        {
+            auto url = args.GetOrDefault(0).ToString();
+            auto params_i = args.GetOrDefault(1);
+            auto req = sion::Request()
+                            .SetUrl(url)
+                            .SetHttpMethod(sion::Method::Get);
+            if (params_i.NotUndef())
+            {
+                if (params_i.Type() != ValueType::object)
+                {
+                    THROW_MSG("params必须为object类型，当前为{}", params_i.TypeString())
+                }
+                auto method_i = params_i["method"];
+                auto headers_i = params_i["headers"];
+                auto data_i = params_i["data"];
+                if (method_i.NotUndef())
+                {
+                    req.SetHttpMethod(method_i.ToString().ToUpperCase());
+                }
+                if (data_i.NotUndef())
+                {
+                    req.SetBody(json_stringify({data_i}).ToString());
+                }
+                if (headers_i.NotUndef())
+                {
+                    if (headers_i.Type() != ValueType::object)
+                    {
+                        THROW_MSG("headers必须为object类型，当前为{}", headers_i.TypeString())
+                    }
+                    for (auto &i : headers_i.ObjC().SrcC())
+                    {
+                        req.SetHeader(i.first, i.second.ToString());
+                    }
+                }
+            }
+
+            auto resp = req.Send();
             auto res = Object();
             res["data"] = resp.Body().c_str();
-            return res;);
+            return res;
+        };
         vm.DefineGlobalFunc("fetch", fetch_bind);
         vm.DefineGlobalFunc("runInMicroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), true); return Value::undefined;));
         vm.DefineGlobalFunc("runInMacroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), false); return Value::undefined;));
@@ -150,7 +187,7 @@ namespace agumi
             auto v = args.GetOrDefault(0);
             if (v.Type() != ValueType::function)
             {
-                THROW_MSG("array::select 的收个参数必须为function类型，当前为{}", v.TypeString())
+                THROW_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
             }
 
             for (auto &i : _this.Arr().Src())
