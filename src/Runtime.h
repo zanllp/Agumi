@@ -662,7 +662,7 @@ namespace agumi
                         auto val = GetValue(kw);
                         if (val)
                         {
-                            closure.map[kw] = Closure::From(val.value());
+                            closure.map[kw] = Closure::From(val->get());
                         }
                     }
                 };
