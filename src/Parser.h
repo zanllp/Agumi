@@ -802,11 +802,11 @@ namespace agumi
             while (true)
             {
                 Skip(iter);
-                if (!iter->IsIdentifier())
+                if (!iter->IsIdentifier() && !iter->IsStringLiteral())
                 {
                     THROW_TOKEN(*iter)
                 }
-                auto kw = iter->kw;
+                auto kw = iter->IsIdentifier() ? iter->kw : iter->toStringContent(true);
                 iter++;
                 if (iter->Is(comma_) || iter->Is(curly_brackets_end_))
                 {
