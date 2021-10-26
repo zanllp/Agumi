@@ -14,10 +14,15 @@ const test = path + (v => {
 
 ['promise','closure'].select(test)
 
-fetch('https://api.ioflow.link/message', {
+const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
     method: 'post',
     headers: {
-        tt: 'cccc'
+        'Content-Type': 'application/json'
     },
-    data: ['hello world']
+    data: []
 })
+const keys = v => {
+    const arr = object_entries(v)
+    arr.select(v => v.v)
+}
+log(s(resp), s(keys(resp)))

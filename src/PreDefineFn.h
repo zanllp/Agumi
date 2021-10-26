@@ -29,8 +29,8 @@ namespace agumi
             auto url = args.GetOrDefault(0).ToString();
             auto params_i = args.GetOrDefault(1);
             auto req = sion::Request()
-                            .SetUrl(url)
-                            .SetHttpMethod(sion::Method::Get);
+                           .SetUrl(url)
+                           .SetHttpMethod(sion::Method::Get);
             if (params_i.NotUndef())
             {
                 if (params_i.Type() != ValueType::object)
@@ -46,7 +46,7 @@ namespace agumi
                 }
                 if (data_i.NotUndef())
                 {
-                    req.SetBody(json_stringify({data_i}).ToString());
+                    req.SetBody(json_stringify({data_i, 0}).ToString());
                 }
                 if (headers_i.NotUndef())
                 {
@@ -63,7 +63,17 @@ namespace agumi
 
             auto resp = req.Send();
             auto res = Object();
-            res["data"] = resp.Body().c_str();
+            res["data"] = resp.Body();
+            // res["source"] = resp.Source();
+            res["code"] = resp.Code();
+            res["headers"] = Array();
+            for (auto &i : resp.HeaderSrc().data)
+            {
+                auto obj = Object();
+                obj[i.first] = i.second;
+                res["headers"].Arr().Src().push_back(obj);
+            }
+
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
@@ -235,5 +245,16 @@ namespace agumi
         };
         fn_def.binary_operator_overload[ValueType::function] = fn_op_def;
         vm.class_define[ValueType::function] = fn_def;
+
+        vm.DefineGlobalFunc("object_entries", [](Vector<Value> args) -> Value
+                            {
+            Array arr;
+            for (auto& i : args.GetOrDefault(0).ObjC().SrcC()) {
+                auto obj = Object();
+                obj["k"] = i.first;
+                obj["v"] = i.second;
+                 arr.Src().push_back(obj);
+            }
+            return arr; });
     }
 }

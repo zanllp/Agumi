@@ -346,6 +346,11 @@ namespace sion
             return content_type_;
         }
 
+        const String &Code()
+        {
+            return code_;
+        }
+
         const String &Body()
         {
             return body_str_;
@@ -356,6 +361,7 @@ namespace sion
             return body_char_vec_;
         }
         String HeaderValue(String k) { return response_header_.GetLastValue(k); };
+        const Header &HeaderSrc() { return response_header_; };
 
         // 解析服务器发送过来的响应
         // pre_parse 预解析，如果为true且使用char保存而且不是chunked编码那么只解析头部
