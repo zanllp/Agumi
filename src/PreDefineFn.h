@@ -70,7 +70,8 @@ namespace agumi
             for (auto &i : resp.HeaderSrc().data)
             {
                 auto obj = Object();
-                obj[i.first] = i.second;
+                obj["k"] = i.first;
+                obj["v"] = i.second;
                 res["headers"].Arr().Src().push_back(obj);
             }
 
