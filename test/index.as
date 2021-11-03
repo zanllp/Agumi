@@ -3,14 +3,14 @@ const micro = runInMicroQueue
 const f = format
 const path = name => 'test/' + name + '.as'
 const s = json.stringify
-const file = loadFile(path('promise'))
+const file = fs.read(path('promise'))
 
 // log(s(parse_agumi_script(file), 4))
 
 const test = path + (v => {
     log(f('-- start test file:{}', v))
     v
-}) + loadFile + eval
+}) + (fs.read) + eval
 
 ['promise','closure'].select(test)
 
