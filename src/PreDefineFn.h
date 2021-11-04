@@ -223,6 +223,24 @@ namespace agumi
             }
             return arr;
         };
+        array_def.member_func["where"] = [&](Value &_this, Vector<Value> args) -> Value
+        {
+            Array arr;
+            auto v = args.GetOrDefault(0);
+            if (v.Type() != ValueType::function)
+            {
+                THROW_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
+            }
+
+            for (auto &i : _this.Arr().Src())
+            {
+                if (vm.FuncCall(v, i).ToBool())
+                {
+                    arr.Src().push_back(i);
+                }
+            }
+            return arr;
+        };
         vm.class_define[ValueType::array] = array_def;
 
         LocalClassDefine num_def;

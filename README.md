@@ -50,6 +50,8 @@ repl时开启输出令牌化
 闭包测试和使用[点这里](./test/closure.as)
 ### promise
 使用纯agumi实现的简陋的promise[点这里](./test/promise.as)
+### 键值存储
+[点这里](./test/kv.as)
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ### 例子：使用运算符重载实现函数式语言pipe的功能
