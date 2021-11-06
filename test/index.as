@@ -4,6 +4,9 @@ const f = format
 const path = name => 'test/' + name + '.as'
 const s = json.stringify
 const file = fs.read(path('promise'))
+const include = name => eval(fs.read(path(name)),true)
+include('stdafx')
+log(mem().s)
 
 // log(s(parse_agumi_script(file), 4))
 

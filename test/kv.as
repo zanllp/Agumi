@@ -1,13 +1,9 @@
-const f = format
-const s = json.stringify
-const f_log = f + log
-const full_log = s + log
+
+
+
 const const_file_name  = 'test/_kv_{}.json'
 const all_keys = '__all__keys__'
 const all_keys_file = f(const_file_name, all_keys)
-const and_op = (a, b) => a ? b : a
-const to_bool = a => a ? true: false
-
 
 const storage = {
     exist: key => {
