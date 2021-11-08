@@ -107,6 +107,7 @@ namespace agumi
         Vector<Value> temp_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
+        Vector<String> included_files;
         std::map<String, Function> func_mem;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()

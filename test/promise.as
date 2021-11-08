@@ -1,6 +1,5 @@
-const macro = runInMacroQueue
-const micro = runInMicroQueue
-const f = format
+include('test/stdafx.as')
+
 const make_promise_internal = (resolve) => {
     const onreslove_callbacks = []
     resolve(res => onreslove_callbacks.select(fn => fn(res)))
@@ -12,7 +11,7 @@ const make_promise_internal = (resolve) => {
 }
 
 const make_promise = cb => make_promise_internal(resolve => micro(() => cb(resolve)))
-
+/*
 const call_api_promise = (path) => {
     make_promise(resolve => {
         const url = 'https://api.ioflow.link'+path
@@ -24,4 +23,4 @@ const call_api_promise = (path) => {
 const p = call_api_promise('/message').then(v => v.resp.data)
 p.then(_ => log('twice callback'))
 p.then(v => log(v, 23333))
-
+*/
