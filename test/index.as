@@ -1,31 +1,20 @@
-const macro = runInMacroQueue
-const micro = runInMicroQueue
-const f = format
-const path = name => 'test/' + name + '.as'
-const s = json.stringify
-const file = fs.read(path('promise'))
-const include = name => eval(fs.read(path(name)),true)
-include('stdafx')
-log(mem().s)
+include('test/stdafx.as')
+include('test/kv.as')
+include('test/promise.as')
 
-// log(s(parse_agumi_script(file), 4))
-
-const test = path + (v => {
-    log(f('-- start test file:{}', v))
-    v
-}) + (fs.read) + eval
-
-['promise','closure'].select(test)
-
-const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
-    method: 'post',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    data: []
-})
-const keys = v => {
-    const arr = object_entries(v)
-    arr.select(v => v.v)
+const socket_push = (data) => {
+    make_promise(resolve => {
+        const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
+            data,
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        resolve(resp)
+    })
 }
-log(s(resp), s(keys(resp)))
+
+const resp = socket_push([])
+resp.then(data => {
+    storage.set_item('resp', data)
+    log(s(storage.get_item('resp')))
+})

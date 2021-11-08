@@ -1,23 +1,23 @@
+include('test/stdafx.as')
 
-
-
-const const_file_name  = 'test/_kv_{}.json'
+const base_dir = 'test'
+const base_file_tpl  = base_dir + '/_kv_{}.json'
 const all_keys = '__all__keys__'
-const all_keys_file = f(const_file_name, all_keys)
+const all_keys_file = f(base_file_tpl, all_keys)
 
 const storage = {
     exist: key => {
-        const l = fs.exist(f(const_file_name, key))
+        const l = fs.exist(f(base_file_tpl, key))
         const r = storage.get_item(key)
         to_bool(and_op(l, r))
     },
     set_item: (key, value) => {
-        const file_name = f(const_file_name, key)
+        const file_name = f(base_file_tpl, key)
         (storage.exist(key))? null : (storage._mark(key))
         fs.write(file_name, s(value, 0))
     },
     get_item: key => {
-        const file_name = f(const_file_name, key)
+        const file_name = f(base_file_tpl, key)
         const str = fs.read(file_name)
         const r = json.parse(str)
         (typeof(r) === 'undefined') ? null : r
@@ -42,16 +42,11 @@ const storage = {
         fs.write(all_keys_file, s([]))
     }
 }
-const ass = (a, b) => {
-    const throw_err =() => {
-        f_log(`assert error: a: {} b: {}`,a,b)
-        assert(false)
-    }
-    (s(a) == s(b)) ? null  : throw_err()
-}
+const ass = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
 
 
 const test = () => {
+    storage.clear()
     storage.set_item('1111', 23333)
     ass(storage.get_item('1111'), 23333)
     storage.remove_item('1111')

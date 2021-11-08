@@ -103,7 +103,8 @@ namespace agumi
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
         auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool()) {
-                THROW_MSG("assert error")
+                String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
+                THROW_MSG(msg)
             } return Value::undefined;);
         vm.DefineGlobalFunc("assert", assert_bind);
         auto parse_agumi_script_bind = VM_FN(
@@ -136,6 +137,23 @@ namespace agumi
             
             return r ; };
         vm.DefineGlobalFunc("eval", eval);
+        vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value {
+            auto file_name = args.GetOrDefault(0).ToString();
+            if (vm.included_files.Includes(file_name))
+            {
+                return Value::undefined;
+            }
+            if (!fs_exist({file_name}).ToBool())
+            {
+                THROW_MSG("the file '{}' is not found", file_name)
+            }
+            
+            auto file = LoadFile(file_name);
+            vm.included_files.push_back(file_name);
+            auto tfv = GeneralTokenizer::Agumi(file, file_name);
+            auto ast = Compiler().ConstructAST(tfv);
+            return vm.Run(ast);
+        });
         auto log = VM_FN(
             auto out = args.Map<String>([](Value arg)
                                         { return arg.ToString(); })
