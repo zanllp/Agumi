@@ -111,7 +111,7 @@ void TestJsonNextPref(int count = 1000)
 void TestJson()
 {
     auto &mem = MemManger::Get();
-    ASS(mem.gc_root["__23333"].ToString(), "undefined") // get一个未定义的值
+    ASS(mem.gc_root["__23333"].ToString(), "null")
     ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
     ASS(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i)
@@ -163,7 +163,7 @@ void TestJson()
     ASS(parse_obj["c"]["ec"]["f\""].ToString(), "c[cc{c&%$")
     ASS_T(parse_obj["eeee"].Get<bool>())
     ASS_2UL(parse_obj["shit"].Type(), ValueType::null)
-    ASS_2UL(parse_obj["emmm"].Type(), ValueType::undefined)
+    ASS_2UL(parse_obj["emmm"].Type(), ValueType::null)
     ASS_T(mem.gc_root.DeepCompare(mem.gc_root))
     // 测试json序列化再解析有没有变化，因为字典序会变所以不能直接比字符串，因为会有环形引用所不能用gc根
     auto str = Json::Stringify(mem.gc_root);
@@ -281,7 +281,7 @@ void TestScriptExec()
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file = "test/index.as";
+    String file = "script/index.spec.as";
     VmRunScript(vm, LoadFile(file), false, false, file);
 }
 
@@ -291,7 +291,6 @@ int main(int argc, char **argv)
     P("{}let it Crash{}", color_green_s, color_e)
 #endif
     Token::Init();
-    auto undefined = Value();
     auto arg = CreateVecFromStartParams(argc, argv);
     if (argc < 2)
     {
@@ -384,19 +383,19 @@ int main(int argc, char **argv)
         {
             VM vm;
 
-#ifndef LET_IT_CRASH
+//#ifndef LET_IT_CRASH
             try
-#endif
+//#endif
             {
                 AddPreDefine(vm);
                 VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
             }
-#ifndef LET_IT_CRASH
+//#ifndef LET_IT_CRASH
             catch (const std::exception &e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
-#endif
+//#endif
             return 1;
         }
 

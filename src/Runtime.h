@@ -161,7 +161,7 @@ namespace agumi
         }
         Value &ValueOrUndef(String key)
         {
-            return GetValue(key).value_or(Value::undefined);
+            return GetValue(key).value_or(Value::null);
         }
         Value SetValue(String key, Value val)
         {
@@ -314,7 +314,7 @@ namespace agumi
             }
             THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
-        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = Value::undefined)
+        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr)
         {
             SRC_REF(fn_call, FunctionCall, stat)
             auto is_use_optional = fn_loc_optional.Type() == ValueType::function;
@@ -399,7 +399,7 @@ namespace agumi
                 {
                     THROW_MSG("Missing initializer in const declaration")
                 }
-                auto val = i->initialed ? ResolveExecutable(i->init) : Value::undefined;
+                auto val = i->initialed ? ResolveExecutable(i->init) : nullptr;
                 return CurrScope()[key] = val;
             }
         }
@@ -491,7 +491,7 @@ namespace agumi
             if (t == StatementType::indexStatement)
             {
                 SRC_REF(idx, IndexStatement, stat);
-                if (par == Value::undefined) // 首个值初始化
+                if (par.Type() == ValueType::null) // 首个值初始化
                 {
                     auto obj_p = idx.object;
                     auto obj_is_idx = obj_p->Type() == StatementType::identifier;
@@ -541,6 +541,11 @@ namespace agumi
                 {
                     return ResolveFuncCall(stat, par[key_str]);
                 }
+                if (t == ValueType::null)
+                {
+                    THROW_MSG("NullPointerException")
+                }
+                
                 auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
                 if (is_literal)
                 {
@@ -618,7 +623,7 @@ namespace agumi
             case StatementType::functionCall:
                 return ResolveFuncCall(stat);
             case StatementType::indexStatement:
-                return ResolveObjectIndex(stat, Value::undefined);
+                return ResolveObjectIndex(stat, Value::null);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
             case StatementType::objectInit:

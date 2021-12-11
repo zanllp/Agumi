@@ -1,6 +1,6 @@
-include('test/stdafx.as')
-include('test/kv.as')
-include('test/promise.as')
+include('script/stdafx.as')
+include('script/kv.as')
+include('script/promise.as')
 
 const socket_push = (data) => {
     make_promise(resolve => {

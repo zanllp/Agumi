@@ -24,7 +24,6 @@ namespace agumi
     {
         string,
         number,
-        undefined,
         null,
         boolean,
         object,
@@ -36,7 +35,6 @@ namespace agumi
     static std::vector<std::string> jstype_emun2str{
         "string",
         "number",
-        "undefined",
         "null",
         "boolean",
         "object",
