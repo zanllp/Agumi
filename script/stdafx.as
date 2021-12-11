@@ -7,3 +7,4 @@ const to_bool = a => a ? true: false
 const macro = runInMacroQueue
 const micro = runInMicroQueue
 const throw = (msg) => assert(false, msg)
+const ass = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))

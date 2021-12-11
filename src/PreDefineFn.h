@@ -94,8 +94,8 @@ namespace agumi
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
-        vm.DefineGlobalFunc("runInMicroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), true); return Value::undefined;));
-        vm.DefineGlobalFunc("runInMacroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), false); return Value::undefined;));
+        vm.DefineGlobalFunc("runInMicroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), true); return nullptr;));
+        vm.DefineGlobalFunc("runInMacroQueue", VM_FN(vm.AddTask2Queue(args.GetOrDefault(0), false); return nullptr;));
         vm.DefineGlobalFunc("format", VM_FN(
                                           std::vector<String> rest = args.Slice(1).Map<String>([](Value arg)
                                                                                                { return arg.ToString(); });
@@ -105,7 +105,7 @@ namespace agumi
             if (!args.GetOrDefault(0).ToBool()) {
                 String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
                 THROW_MSG(msg)
-            } return Value::undefined;);
+            } return nullptr;);
         vm.DefineGlobalFunc("assert", assert_bind);
         auto parse_agumi_script_bind = VM_FN(
             auto script = args.GetOrDefault(0).ToString();
@@ -141,7 +141,7 @@ namespace agumi
             auto file_name = args.GetOrDefault(0).ToString();
             if (vm.included_files.Includes(file_name))
             {
-                return Value::undefined;
+                return nullptr;
             }
             if (!fs_exist({file_name}).ToBool())
             {
@@ -159,7 +159,7 @@ namespace agumi
                                         { return arg.ToString(); })
                            .Join();
             std::cout << out << std::endl;
-            return Value::undefined;);
+            return nullptr;);
         vm.DefineGlobalFunc("log", log);
         auto mem_bind = VM_FN(
             size_t idx = 0;

@@ -1,6 +1,5 @@
-const macro = runInMacroQueue
-const micro = runInMicroQueue
-const f = format
+include('script/stdafx.as')
+
 const create_closure = str => {
     const vvv = f(1)
     tt => {

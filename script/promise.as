@@ -1,4 +1,4 @@
-include('test/stdafx.as')
+include('script/stdafx.as')
 
 const make_promise_internal = (resolve) => {
     const onreslove_callbacks = []

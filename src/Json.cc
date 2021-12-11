@@ -49,7 +49,7 @@ namespace agumi
             }
             else
             {
-                auto v_src = type == ValueType::undefined ? "null" : i.ToString();
+                auto v_src = i.ToString();
                 auto str = escape ? v_src.Escape() : v_src;
                 auto value_str = i.Type() == ValueType::string ? String::Format("\"{}\"", str) : str;
                 res_vec.push_back(value_str);
@@ -104,7 +104,7 @@ namespace agumi
             }
             else
             {
-                String v_src = (type == ValueType::undefined) ? "null" : i.second.ToString();
+                String v_src = i.second.ToString();
                 auto str = escape ? v_src.Escape() : v_src;
                 auto value_str = (i.second.Type() == ValueType::string || i.second.Type() == ValueType::function) ? String::Format("\"{}\"", str.Replace('\n', "\\n", -1)) : str;
                 res_vec.push_back(String::Format("\"{}\": {}", key, value_str));

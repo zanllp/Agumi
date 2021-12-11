@@ -62,10 +62,10 @@ namespace agumi
             return val;
         }
 
-        static Value undefined;
+        static Value null;
 
     private:
-        ValueType type = ValueType::undefined;
+        ValueType type = ValueType::null;
         void *data_ptr = nullptr;
 
         constexpr void CheckType(const std::type_info &t) const
@@ -84,9 +84,6 @@ namespace agumi
                 break;
             case ValueType::null:
                 Assest(typeid(nullptr).hash_code(), t.hash_code(), "类型不对");
-                break;
-            case ValueType::undefined:
-                THROW_MSG("get了一个未定义的Value实例");
                 break;
             case ValueType::array:
             case ValueType::object:

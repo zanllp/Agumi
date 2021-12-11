@@ -26,7 +26,6 @@ namespace agumi
                 delete (Array *)data_ptr;
                 break;
             case ValueType::null:
-            case ValueType::undefined:
                 break;
             }
         }
@@ -55,7 +54,6 @@ namespace agumi
         case ValueType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
         case ValueType::null:
-        case ValueType::undefined:
         default:
             break;
         }
@@ -129,7 +127,6 @@ namespace agumi
         case ValueType::array:
             data_ptr = new Array(*(Array *)(v.data_ptr));
         case ValueType::null:
-        case ValueType::undefined:
         default:
             break;
         }
@@ -198,7 +195,7 @@ namespace agumi
     }
     bool Value::NotUndef()
     {
-        return type != ValueType::undefined;
+        return type != ValueType::null;
     }
 
     String Value::ToString() const
@@ -213,8 +210,6 @@ namespace agumi
             return GetC<String>();
         case ValueType::null:
             return "null";
-        case ValueType::undefined:
-            return "undefined";
         case ValueType::array:
             return "[Array]";
         case ValueType::object:
@@ -235,7 +230,6 @@ namespace agumi
         case ValueType::string:
             return GetC<String>().size() != 0;
         case ValueType::null:
-        case ValueType::undefined:
             return false;
         case ValueType::array:
         case ValueType::function:
@@ -306,5 +300,5 @@ namespace agumi
     {
         return DeepCompare(rhs);
     }
-    Value Value::undefined = Value();
+    Value Value::null = Value();
 }

@@ -1,6 +1,6 @@
-include('test/stdafx.as')
+include('script/stdafx.as')
 
-const base_dir = 'test'
+const base_dir = 'script'
 const base_file_tpl  = base_dir + '/_kv_{}.json'
 const all_keys = '__all__keys__'
 const all_keys_file = f(base_file_tpl, all_keys)
@@ -20,10 +20,10 @@ const storage = {
         const file_name = f(base_file_tpl, key)
         const str = fs.read(file_name)
         const r = json.parse(str)
-        (typeof(r) === 'undefined') ? null : r
+        (typeof(r) === 'null') ? null : r
     },
     remove_item: key => {
-        storage.set_item(key, null)
+        fs.write(f(base_file_tpl, key), '')
         fs.write(all_keys_file, s(storage.get_keys()))
     },
     _mark: (key) => {
@@ -42,24 +42,4 @@ const storage = {
         fs.write(all_keys_file, s([]))
     }
 }
-const ass = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
 
-
-const test = () => {
-    storage.clear()
-    storage.set_item('1111', 23333)
-    ass(storage.get_item('1111'), 23333)
-    storage.remove_item('1111')
-    ass(storage.get_item('1111'), null)
-    storage.set_item('hello', mem())
-    storage.set_item('hello1', mem())
-    storage.set_item('hello2', mem())
-    let keys = storage.get_keys()
-    ass(keys.length(), 3)
-    storage.clear()
-    keys = storage.get_keys()
-    ass(keys.length(), 0)
-    ass(storage.exist('hello'), false)
-    ass(storage.get_item('hello'),null)
-}
-test()
