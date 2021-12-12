@@ -383,19 +383,19 @@ int main(int argc, char **argv)
         {
             VM vm;
 
-//#ifndef LET_IT_CRASH
+#ifndef LET_IT_CRASH
             try
-//#endif
+#endif
             {
                 AddPreDefine(vm);
                 VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
             }
-//#ifndef LET_IT_CRASH
+#ifndef LET_IT_CRASH
             catch (const std::exception &e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
-//#endif
+#endif
             return 1;
         }
 

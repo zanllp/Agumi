@@ -87,7 +87,7 @@ namespace agumi
                 break;
             case ValueType::array:
             case ValueType::object:
-                THROW_MSG("不应该使用get来获取jsObject/Array");
+                THROW_MSG("不应该使用get来获取Object/Array");
                 break;
             }
         }
