@@ -103,6 +103,7 @@ namespace agumi
         {
             ctx_stack.resize(1);
         }
+        String base_dir = '.';
         Vector<Context> ctx_stack;
         Vector<Value> temp_stack;
         std::queue<Value> micro_task_queue;

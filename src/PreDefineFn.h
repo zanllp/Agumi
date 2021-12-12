@@ -19,12 +19,12 @@ namespace agumi
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
         auto fs_exist = [&](Vector<Value> args) -> Value
         {
-            std::fstream file(args.GetOrDefault(0).ToString(), std::ios_base::in);
+            std::fstream file(PathCalc(vm.base_dir, args.GetOrDefault(0).ToString()), std::ios_base::in);
             return file.good();
         };
         auto fs_write = [&](Vector<Value> args) -> Value
         {
-            auto path = args.GetOrDefault(0).ToString();
+            auto path = PathCalc(vm.base_dir, args.GetOrDefault(0).ToString());
             auto src = args.GetOrDefault(1).ToString();
             std::fstream file(path, std::ios_base::out);
             file << src;
@@ -32,7 +32,7 @@ namespace agumi
         };
         vm.ctx_stack[0].var["fs"] = Object({{"exist", vm.DefineFunc(fs_exist)},
                                             {"write", vm.DefineFunc(fs_write)},
-                                            {"read", vm.DefineFunc(VM_FN(return LoadFile(args.GetOrDefault(0).ToString())))}});
+                                            {"read", vm.DefineFunc(VM_FN(return LoadFile(PathCalc(vm.base_dir, args.GetOrDefault(0).ToString()))))}});
         auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
         auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);

@@ -6,6 +6,8 @@
 #include "sion.h"
 #include "Runtime.h"
 #include "PreDefineFn.h"
+#include <cstdlib>
+#include <filesystem>
 
 using namespace std;
 using namespace agumi;
@@ -266,9 +268,10 @@ Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, St
     return vm.Run(ast);
 }
 
-void TestScriptExec()
+void TestScriptExec(String base_dir)
 {
     VM vm;
+    vm.base_dir = base_dir;
     AddPreDefine(vm);
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
@@ -281,20 +284,42 @@ void TestScriptExec()
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file = "script/index.spec.as";
-    VmRunScript(vm, LoadFile(file), false, false, file);
+    String file_name = PathCalc(base_dir, "script/index.spec.as");
+    String file = LoadFile(file_name);
+    ASS_T(file.size()> 0)
+    VmRunScript(vm, file, false, false, file);
+}
+
+void TestPath()
+{
+    ASS(PathCalc("/home", "dd"), "/home/dd");
+    ASS(PathCalc("/home", "/dd"), "/dd");
+    ASS(PathCalc("/home/e", "../../../"), "/");
+    ASS(PathCalc("/home/cc", ".."), "/home");
+    ASS(PathCalc("/home/cc", "dd", ".."), "/home/cc");
+    ASS(PathCalc("/home/cc", "dd", "../"), "/home/cc");
+    ASS(PathCalc("/home/cc", "dd/ff", "../cd"), "/home/cc/dd/cd");
+    ASS(PathCalc("/home/cc"), "/home/cc");
 }
 
 int main(int argc, char **argv)
 {
+
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif
     Token::Init();
     auto arg = CreateVecFromStartParams(argc, argv);
+    auto base_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
+    auto test_relative_path = getenv("BASE_DIR_RELATIVE_PATH");
+    if (test_relative_path != nullptr)
+    {
+        base_dir = PathCalc(base_dir, test_relative_path);
+    }
+    P("working dir:{}", base_dir)
     if (argc < 2)
     {
-        std::cout << "see https://github.com/zanllp/agumi for more help information" << std::endl;
+        P("see https://github.com/zanllp/agumi for more help information");
         return 1;
     }
     Value conf = Object({{"hello", "world"}});
@@ -446,8 +471,6 @@ int main(int argc, char **argv)
             auto v = JsonNext().JsonParse(e);
             cout << Json::Stringify(v) << endl;
             cout << Json::Stringify(v, 2, false) << endl;
-            // cout<<sion::Fetch("http://baidu.com").BodyStr<<endl;
-            // TestJsonPrefSimd();
             TestJsonNextPref();
             TestString();
             TestVec();
@@ -455,9 +478,8 @@ int main(int argc, char **argv)
             TestGcPref();
             TestMemMange();
             TestJson();
-            TestScriptExec();
-            // p.Print();
-            // TestAst();
+            TestPath();
+            TestScriptExec(base_dir);
             std::cout << "TestPassed;All ok" << std::endl;
         }
         return 0;
