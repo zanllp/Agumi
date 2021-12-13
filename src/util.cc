@@ -88,4 +88,47 @@ namespace agumi
         }
         return res;
     }
+
+    String PathCalc(Vector<String> paths, String separate)
+    {
+        if (paths.size() != 0 && !paths[0].StartWith(separate))
+        {
+            THROW_MSG("pathcalc 第一个路径必须是绝对路径 当前：{}", paths[0])
+        }
+        Vector<String> res;
+        for (size_t i = 0; i < paths.size(); i++)
+        {
+            auto path = paths[i];
+            auto frags = path.Split(separate);
+            if (path.StartWith(separate))
+            {
+                res.clear();
+                for (size_t i = 0; i < frags.size(); i++)
+                {
+                    res.push_back(i == 0 ? ("/" + frags[i]) : frags[i]);
+                }
+                continue;
+            }
+            for (size_t i = 0; i < frags.size(); i++)
+            {
+                auto frag = frags[i];
+                if (frag == ".")
+                {
+                    continue;
+                }
+                else if (frag == "..")
+                {
+                    if (res.size())
+                    {
+                        res.pop_back();
+                    }
+                }
+                else
+                {
+                    res.push_back(frag);
+                }
+            }
+        }
+        return res.size() ? res.Join(separate) : separate;
+    }
 }

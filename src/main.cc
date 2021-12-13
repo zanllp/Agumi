@@ -6,6 +6,8 @@
 #include "sion.h"
 #include "Runtime.h"
 #include "PreDefineFn.h"
+#include <cstdlib>
+#include <filesystem>
 
 using namespace std;
 using namespace agumi;
@@ -247,7 +249,7 @@ void TestString()
 
 Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
 {
-    auto tfv = GeneralTokenizer::Agumi(src, file);
+    auto tfv = GeneralTokenizer::Agumi(src, PathCalc(vm.working_dir, file));
     if (tok_c)
     {
         for (auto &&i : tfv)
@@ -266,9 +268,10 @@ Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, St
     return vm.Run(ast);
 }
 
-void TestScriptExec()
+void TestScriptExec(String working_dir)
 {
     VM vm;
+    vm.working_dir = working_dir;
     AddPreDefine(vm);
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
@@ -281,20 +284,44 @@ void TestScriptExec()
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file = "script/index.spec.as";
-    VmRunScript(vm, LoadFile(file), false, false, file);
+    String file_name = PathCalc(working_dir, "script/index.spec.as");
+    P(file_name)
+    String file = LoadFile(file_name);
+    ASS_T(file.size() > 0)
+    VmRunScript(vm, file, false, false, file_name);
+}
+
+void TestPath()
+{
+    ASS(PathCalc("/home", "dd"), "/home/dd");
+    ASS(PathCalc("/home", "/dd"), "/dd");
+    ASS(PathCalc("/home/e", "../../../"), "/");
+    ASS(PathCalc("/home/cc", ".."), "/home");
+    ASS(PathCalc("/home/cc", "dd", ".."), "/home/cc");
+    ASS(PathCalc("/home/cc", "dd", "../"), "/home/cc");
+    ASS(PathCalc("/home/cc", "dd/ff", "../cd"), "/home/cc/dd/cd");
+    ASS(PathCalc("/home/cc"), "/home/cc");
 }
 
 int main(int argc, char **argv)
 {
+
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif
     Token::Init();
     auto arg = CreateVecFromStartParams(argc, argv);
+    auto working_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
+    auto test_relative_path = getenv("WORKING_DIR_RELATIVE_PATH");
+    if (test_relative_path != nullptr)
+    {
+        P("test_relative_path:{}", test_relative_path)
+        working_dir = PathCalc(working_dir, test_relative_path);
+    }
+    P("working dir:{}", working_dir)
     if (argc < 2)
     {
-        std::cout << "see https://github.com/zanllp/agumi for more help information" << std::endl;
+        P("see https://github.com/zanllp/agumi for more help information");
         return 1;
     }
     Value conf = Object({{"hello", "world"}});
@@ -329,6 +356,7 @@ int main(int argc, char **argv)
     if (repl)
     {
         VM vm;
+        vm.working_dir = working_dir;
         AddPreDefine(vm);
         array<char, 1000> buf = {0};
         auto ptr = &buf.at(0);
@@ -382,20 +410,21 @@ int main(int argc, char **argv)
         if (exec.ToBool())
         {
             VM vm;
+            vm.working_dir = working_dir;
 
-//#ifndef LET_IT_CRASH
+#ifndef LET_IT_CRASH
             try
-//#endif
+#endif
             {
                 AddPreDefine(vm);
                 VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
             }
-//#ifndef LET_IT_CRASH
+#ifndef LET_IT_CRASH
             catch (const std::exception &e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
-//#endif
+#endif
             return 1;
         }
 
@@ -446,8 +475,6 @@ int main(int argc, char **argv)
             auto v = JsonNext().JsonParse(e);
             cout << Json::Stringify(v) << endl;
             cout << Json::Stringify(v, 2, false) << endl;
-            // cout<<sion::Fetch("http://baidu.com").BodyStr<<endl;
-            // TestJsonPrefSimd();
             TestJsonNextPref();
             TestString();
             TestVec();
@@ -455,9 +482,8 @@ int main(int argc, char **argv)
             TestGcPref();
             TestMemMange();
             TestJson();
-            TestScriptExec();
-            // p.Print();
-            // TestAst();
+            TestPath();
+            TestScriptExec(working_dir);
             std::cout << "TestPassed;All ok" << std::endl;
         }
         return 0;

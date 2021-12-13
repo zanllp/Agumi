@@ -1,7 +1,7 @@
-include('script/stdafx.as')
+include('./stdafx.as')
 
-const base_dir = 'script'
-const base_file_tpl  = base_dir + '/_kv_{}.json'
+const base_dir = path_calc(env().working_dir, 'script')
+const base_file_tpl  = path_calc(base_dir, '_kv_{}.json')
 const all_keys = '__all__keys__'
 const all_keys_file = f(base_file_tpl, all_keys)
 

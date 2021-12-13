@@ -17,14 +17,20 @@ namespace agumi
         auto o2 = Object({{"hello", o1}});
         auto o3 = Object({{"o3", o2}});
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
+        vm.DefineGlobalFunc("env", VM_FN(return Object({ {"working_dir", vm.working_dir} })));
+        auto fs_exist_vm = [&](String file_name) -> bool
+        {
+            std::fstream file(file_name, std::ios_base::in);
+            return file.good();
+        };
         auto fs_exist = [&](Vector<Value> args) -> Value
         {
-            std::fstream file(args.GetOrDefault(0).ToString(), std::ios_base::in);
+            std::fstream file(PathCalc(vm.working_dir, args.GetOrDefault(0).ToString()), std::ios_base::in);
             return file.good();
         };
         auto fs_write = [&](Vector<Value> args) -> Value
         {
-            auto path = args.GetOrDefault(0).ToString();
+            auto path = PathCalc(vm.working_dir, args.GetOrDefault(0).ToString());
             auto src = args.GetOrDefault(1).ToString();
             std::fstream file(path, std::ios_base::out);
             file << src;
@@ -32,7 +38,7 @@ namespace agumi
         };
         vm.ctx_stack[0].var["fs"] = Object({{"exist", vm.DefineFunc(fs_exist)},
                                             {"write", vm.DefineFunc(fs_write)},
-                                            {"read", vm.DefineFunc(VM_FN(return LoadFile(args.GetOrDefault(0).ToString())))}});
+                                            {"read", vm.DefineFunc(VM_FN(return LoadFile(PathCalc(vm.working_dir, args.GetOrDefault(0).ToString()))))}});
         auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
         auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);
@@ -80,7 +86,6 @@ namespace agumi
             auto resp = req.Send();
             auto res = Object();
             res["data"] = resp.Body();
-            // res["source"] = resp.Source();
             res["code"] = resp.Code();
             res["headers"] = Array();
             for (auto &i : resp.HeaderSrc().data)
@@ -101,6 +106,7 @@ namespace agumi
                                                                                                { return arg.ToString(); });
                                           return String::Format(args.GetOrDefault(0).ToString(), rest)));
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
+        vm.DefineGlobalFunc("path_calc", VM_FN(return PathCalc(args.Map<String>([](Value arg){ return arg.ToString();}))));
         auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool()) {
                 String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
@@ -138,19 +144,20 @@ namespace agumi
             return r ; };
         vm.DefineGlobalFunc("eval", eval);
         vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value {
-            auto file_name = args.GetOrDefault(0).ToString();
-            if (vm.included_files.Includes(file_name))
+            auto path = args.GetOrDefault(0).ToString();
+            auto absolute_path = PathCalc(vm.CurrCtx().start->file, "..", path);
+            if (vm.included_files.Includes(absolute_path))
             {
                 return nullptr;
             }
-            if (!fs_exist({file_name}).ToBool())
+            if (!fs_exist_vm(absolute_path))
             {
-                THROW_MSG("the file '{}' is not found", file_name)
+                THROW_MSG("the file '{}' is not found", absolute_path)
             }
             
-            auto file = LoadFile(file_name);
-            vm.included_files.push_back(file_name);
-            auto tfv = GeneralTokenizer::Agumi(file, file_name);
+            auto file = LoadFile(absolute_path);
+            vm.included_files.push_back(absolute_path);
+            auto tfv = GeneralTokenizer::Agumi(file, absolute_path);
             auto ast = Compiler().ConstructAST(tfv);
             return vm.Run(ast);
         });

@@ -32,15 +32,15 @@ namespace agumi
 
     String LoadFile(String path);
     /**
- * 视图
- * T必须继承ViewEnd,并插入一个末尾的
- * @example 
- * Token end_tok;
- * end_tok.SetViewEnd();
- * token_flow.push_back(end_tok);
- * TokenFlowView tfv(token_flow.cbegin(), token_flow.cend());
- * 
- */
+     * 视图
+     * T必须继承ViewEnd,并插入一个末尾的
+     * @example
+     * Token end_tok;
+     * end_tok.SetViewEnd();
+     * token_flow.push_back(end_tok);
+     * TokenFlowView tfv(token_flow.cbegin(), token_flow.cend());
+     *
+     */
     template <class T>
     struct View
     {
@@ -89,4 +89,13 @@ namespace agumi
     private:
         bool _is_view_end = false;
     };
+
+    String PathCalc(Vector<String> paths, String separate = '/');
+
+    template <typename... Ts>
+    String PathCalc(Ts... args)
+    {
+        return PathCalc({args...});
+    }
+
 }
