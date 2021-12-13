@@ -249,7 +249,7 @@ void TestString()
 
 Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
 {
-    auto tfv = GeneralTokenizer::Agumi(src, file);
+    auto tfv = GeneralTokenizer::Agumi(src, PathCalc(vm.working_dir, file));
     if (tok_c)
     {
         for (auto &&i : tfv)
@@ -287,7 +287,7 @@ void TestScriptExec(String working_dir)
     String file_name = PathCalc(working_dir, "script/index.spec.as");
     P(file_name)
     String file = LoadFile(file_name);
-    ASS_T(file.size()> 0)
+    ASS_T(file.size() > 0)
     VmRunScript(vm, file, false, false, file_name);
 }
 
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
     Token::Init();
     auto arg = CreateVecFromStartParams(argc, argv);
     auto working_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
-    auto test_relative_path = getenv("working_dir_RELATIVE_PATH");
+    auto test_relative_path = getenv("WORKING_DIR_RELATIVE_PATH");
     if (test_relative_path != nullptr)
     {
         P("test_relative_path:{}", test_relative_path)
@@ -410,6 +410,7 @@ int main(int argc, char **argv)
         if (exec.ToBool())
         {
             VM vm;
+            vm.working_dir = working_dir;
 
 #ifndef LET_IT_CRASH
             try

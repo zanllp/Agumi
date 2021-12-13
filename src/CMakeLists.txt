@@ -26,6 +26,6 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 enable_testing()
 add_test (test_run agumi -test)
-set_tests_properties(test_run PROPERTIES ENVIRONMENT "BASE_DIR_RELATIVE_PATH=..")
+set_tests_properties(test_run PROPERTIES ENVIRONMENT "WORKING_DIR_RELATIVE_PATH=..")
 set_tests_properties (test_run
   PROPERTIES PASS_REGULAR_EXPRESSION "TestPassed;All ok")
