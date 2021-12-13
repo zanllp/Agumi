@@ -1,4 +1,4 @@
-include('script/stdafx.as')
+include('./stdafx.as')
 
 const create_closure = str => {
     const vvv = f(1)
@@ -28,7 +28,7 @@ while(0, 5, log)
 const call = (fn, arg) => fn(arg)
 
 const call_api = (path, cb) => macro(() => {
-    const url = 'https://api.ioflow.link'+path
+    const url = 'http://api.ioflow.link'+path
     const resp = fetch(url)
     cb({ resp, url })
 })

@@ -8,3 +8,4 @@ const macro = runInMacroQueue
 const micro = runInMicroQueue
 const throw = (msg) => assert(false, msg)
 const ass = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
+const ass_t = (a) => ass(a, true)

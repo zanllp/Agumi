@@ -1,5 +1,5 @@
-include('script/stdafx.as')
-include('script/kv.as')
+include('./stdafx.as')
+include('./kv.as')
 
 storage.clear()
 storage.set_item('1111', 23333)

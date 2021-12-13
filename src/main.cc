@@ -268,10 +268,10 @@ Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, St
     return vm.Run(ast);
 }
 
-void TestScriptExec(String base_dir)
+void TestScriptExec(String working_dir)
 {
     VM vm;
-    vm.base_dir = base_dir;
+    vm.working_dir = working_dir;
     AddPreDefine(vm);
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
@@ -284,10 +284,11 @@ void TestScriptExec(String base_dir)
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file_name = PathCalc(base_dir, "script/index.spec.as");
+    String file_name = PathCalc(working_dir, "script/index.spec.as");
+    P(file_name)
     String file = LoadFile(file_name);
     ASS_T(file.size()> 0)
-    VmRunScript(vm, file, false, false, file);
+    VmRunScript(vm, file, false, false, file_name);
 }
 
 void TestPath()
@@ -310,13 +311,14 @@ int main(int argc, char **argv)
 #endif
     Token::Init();
     auto arg = CreateVecFromStartParams(argc, argv);
-    auto base_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
-    auto test_relative_path = getenv("BASE_DIR_RELATIVE_PATH");
+    auto working_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
+    auto test_relative_path = getenv("working_dir_RELATIVE_PATH");
     if (test_relative_path != nullptr)
     {
-        base_dir = PathCalc(base_dir, test_relative_path);
+        P("test_relative_path:{}", test_relative_path)
+        working_dir = PathCalc(working_dir, test_relative_path);
     }
-    P("working dir:{}", base_dir)
+    P("working dir:{}", working_dir)
     if (argc < 2)
     {
         P("see https://github.com/zanllp/agumi for more help information");
@@ -354,6 +356,7 @@ int main(int argc, char **argv)
     if (repl)
     {
         VM vm;
+        vm.working_dir = working_dir;
         AddPreDefine(vm);
         array<char, 1000> buf = {0};
         auto ptr = &buf.at(0);
@@ -479,7 +482,7 @@ int main(int argc, char **argv)
             TestMemMange();
             TestJson();
             TestPath();
-            TestScriptExec(base_dir);
+            TestScriptExec(working_dir);
             std::cout << "TestPassed;All ok" << std::endl;
         }
         return 0;

@@ -103,7 +103,7 @@ namespace agumi
         {
             ctx_stack.resize(1);
         }
-        String base_dir = '.';
+        String working_dir = '.';
         Vector<Context> ctx_stack;
         Vector<Value> temp_stack;
         std::queue<Value> micro_task_queue;
@@ -544,7 +544,7 @@ namespace agumi
                 }
                 if (t == ValueType::null)
                 {
-                    THROW_MSG("NullPointerException")
+                    THROW_MSG("NullPointerException propetry:{}", key_str)
                 }
                 
                 auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);

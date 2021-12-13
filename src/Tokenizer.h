@@ -202,15 +202,17 @@ namespace agumi
         int pos = -1;
         int line = -1;
         int offset = -1;
-        Token(String _kw = "", int _pos = -1, int _line = -1, int _offset = -1, String _file = "") : kw(_kw), pos(_pos), line(_line), offset(_offset), file(_file) {}
+        Token(String _kw = "", int _pos = -1, int _line = -1, int _offset = -1, String _file = "") : kw(_kw), pos(_pos), line(_line), offset(_offset), file(_file) {
+            
+        }
         Value ToJson() const
         {
-            return kw;
             auto m = Object();
             m["src"] = kw;
             m["offset"] = offset;
             m["line"] = line;
             m["pos"] = pos;
+            m["file"] = file;
             return m;
         }
         String UniqId()
@@ -454,6 +456,7 @@ namespace agumi
         }
         static Vector<Token> Agumi(const String &script, String file = GeneralTokenizer::ReplFileName())
         {
+
             return GeneralTokenizer(script, GeneralTokenizer::agumi, file)
                 .Start()
                 .Filter([](Token tok)
