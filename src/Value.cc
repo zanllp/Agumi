@@ -142,7 +142,7 @@ namespace agumi
     String Value::TypeString() const
     {
         auto t = Type();
-        return jstype_emun2str[static_cast<int>(t)];
+        return type_emun2str[static_cast<int>(t)];
     }
 
     Object &Value::Obj()

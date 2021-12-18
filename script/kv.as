@@ -4,7 +4,7 @@ const base_dir = path_calc(env().working_dir, 'script')
 const base_file_tpl  = path_calc(base_dir, '_kv_{}.json')
 const all_keys = '__all__keys__'
 const all_keys_file = f(base_file_tpl, all_keys)
-
+log(base_dir)
 const storage = {
     exist: key => {
         const l = fs.exist(f(base_file_tpl, key))

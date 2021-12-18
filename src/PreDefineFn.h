@@ -17,7 +17,21 @@ namespace agumi
         auto o2 = Object({{"hello", o1}});
         auto o3 = Object({{"o3", o2}});
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
-        vm.DefineGlobalFunc("env", VM_FN(return Object({ {"working_dir", vm.working_dir} })));
+        vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir}})));
+        vm.DefineGlobalFunc("defineMemberFunction", [&](Vector<Value> args) -> Value
+                            {
+            auto type = typestr_2enum[args.GetOrDefault(0).ToString()];
+            auto name = args.GetOrDefault(1).ToString();
+            auto func = args.GetOrDefault(2);
+            auto iter = vm.class_define.find(type);
+            ASS_T(iter != vm.class_define.end())
+            iter->second.member_func[name] =  [=, &vm](Value &_this, Vector<Value> args) -> Value
+        {
+            args.insert(args.begin(), _this);
+            return vm.FuncCall(func,args);
+        };
+            return true; });
+
         auto fs_exist_vm = [&](String file_name) -> bool
         {
             std::fstream file(file_name, std::ios_base::in);
@@ -40,6 +54,9 @@ namespace agumi
                                             {"write", vm.DefineFunc(fs_write)},
                                             {"read", vm.DefineFunc(VM_FN(return LoadFile(PathCalc(vm.working_dir, args.GetOrDefault(0).ToString()))))}});
         auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
+        vm.DefineGlobalFunc("print_call_stack", VM_FN(
+                                                    std::cout << vm.StackTrace() << std::endl;
+                                                    return nullptr;));
         auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);
             return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4););
@@ -95,7 +112,7 @@ namespace agumi
                 obj["v"] = i.second;
                 res["headers"].Arr().Src().push_back(obj);
             }
-
+            // auto res = vm.FuncCall(vm.ValueOrUndef("make_promise"), vm.DefineFunc(resolve));
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
@@ -106,7 +123,8 @@ namespace agumi
                                                                                                { return arg.ToString(); });
                                           return String::Format(args.GetOrDefault(0).ToString(), rest)));
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
-        vm.DefineGlobalFunc("path_calc", VM_FN(return PathCalc(args.Map<String>([](Value arg){ return arg.ToString();}))));
+        vm.DefineGlobalFunc("path_calc", VM_FN(return PathCalc(args.Map<String>([](Value arg)
+                                                                                { return arg.ToString(); }))));
         auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool()) {
                 String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
@@ -143,7 +161,8 @@ namespace agumi
             
             return r ; };
         vm.DefineGlobalFunc("eval", eval);
-        vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value {
+        vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value
+                            {
             auto path = args.GetOrDefault(0).ToString();
             auto absolute_path = PathCalc(vm.CurrCtx().start->file, "..", path);
             if (vm.included_files.Includes(absolute_path))
@@ -159,8 +178,7 @@ namespace agumi
             vm.included_files.push_back(absolute_path);
             auto tfv = GeneralTokenizer::Agumi(file, absolute_path);
             auto ast = Compiler().ConstructAST(tfv);
-            return vm.Run(ast);
-        });
+            return vm.Run(ast); });
         auto log = VM_FN(
             auto out = args.Map<String>([](Value arg)
                                         { return arg.ToString(); })
@@ -231,20 +249,6 @@ namespace agumi
             }
             return _this;
         };
-        array_def.member_func["get"] = [](Value &_this, Vector<Value> args) -> Value
-        {
-            if (args.size() < 1)
-            {
-                THROW
-            }
-            int idx = args[0].GetC<double>();
-            if (idx >= _this.ArrC().SrcC().size())
-            {
-                THROW
-            }
-
-            return _this[idx];
-        };
         array_def.member_func["select"] = [&](Value &_this, Vector<Value> args) -> Value
         {
             Array arr;
@@ -253,12 +257,12 @@ namespace agumi
             {
                 THROW_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
             }
-
-            for (auto &i : _this.Arr().Src())
+            auto& src =  _this.Arr().Src();
+            for (size_t i = 0; i < src.size(); i++)
             {
-
-                arr.Src().push_back(vm.FuncCall(v, i));
+                arr.Src().push_back(vm.FuncCall(v, { src[i],double(i)}));
             }
+            
             return arr;
         };
         array_def.member_func["where"] = [&](Value &_this, Vector<Value> args) -> Value
