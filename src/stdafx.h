@@ -14,6 +14,7 @@
 #include <cmath>
 #include <array>
 #include <queue>
+#include <thread>
 #include <optional>
 #include "String.h"
 #include "Vector.h"
@@ -32,7 +33,7 @@ namespace agumi
         //  bigint,
         // symbol
     };
-    static std::vector<std::string> jstype_emun2str{
+    static std::vector<std::string> type_emun2str{
         "string",
         "number",
         "null",
@@ -40,10 +41,21 @@ namespace agumi
         "object",
         "array",
         "function"};
+
+    static std::map<std::string, ValueType> typestr_2enum {
+        {"string", ValueType::string}, 
+        {"number", ValueType::number}, 
+        {"null", ValueType::null},
+        { "boolean", ValueType::boolean },
+        {"object", ValueType::object},
+        {"array", ValueType::array},
+        {"function", ValueType::function}
+    };
     class Value;
     using ObjectMap = std::map<String, Value>;
     using ArrayVec = Vector<Value>;
 
 #define THROW_MSG(msg, ...) throw std::logic_error(String::Format("{} \n\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), __FILE__, __LINE__));
 #define P(msg, ...) std::cout<<String::Format("\033[32m{}:{}\033[0m ",  __FILE__, __LINE__)<<String::Format(msg, {__VA_ARGS__})<<std::endl;
+
 }

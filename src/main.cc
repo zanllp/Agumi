@@ -305,7 +305,6 @@ void TestPath()
 
 int main(int argc, char **argv)
 {
-
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif
@@ -353,6 +352,11 @@ int main(int argc, char **argv)
     auto token = conf["token"];
     auto repl = conf["repl"].ToBool();
     auto exec = conf["exec"];
+    if (exec.Type() == ValueType::boolean)
+    {
+        exec = "index.as";
+    }
+    
     if (repl)
     {
         VM vm;

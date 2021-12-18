@@ -77,7 +77,7 @@ namespace agumi
             auto type_def = binary_operator_overload.find(t);
             if (type_def == binary_operator_overload.end())
             {
-                String t_str = jstype_emun2str[static_cast<int>(t)];
+                String t_str = type_emun2str[static_cast<int>(t)];
                 THROW_MSG("{} is not defined", t_str)
             }
             auto op_def = type_def->second.find(op);
@@ -284,7 +284,7 @@ namespace agumi
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
                 auto &ctx = ctx_stack[i];
-                res += String::Format("  -- {} \n", ctx.start->ToPosStr());
+                res += String::Format("  at {} -- {} \n", i , ctx.start->ToPosStr());
             }
             return res;
         }
@@ -376,7 +376,7 @@ namespace agumi
             auto class_iter = class_define.find(t);
             if (class_iter == class_define.end())
             {
-                THROW_MSG("class {} is not defined", jstype_emun2str[(int)t])
+                THROW_MSG("class {} is not defined", type_emun2str[(int)t])
             }
             Vector<Value> args;
             for (size_t i = 0; i < fn_call.arguments.size(); i++)
