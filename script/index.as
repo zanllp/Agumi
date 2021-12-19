@@ -18,18 +18,22 @@ resp.then(data => {
     log(s(storage.get_item('resp')))
 })
 
-defineMemberFunction('array','range', (this, start, count) => {
+const dd = () => {
+    defineMemberFunction('array','range', (this, start, count) => {
     let res = []
     this.select((v,i) => {
         if_exec(and_op(i>=start, i < (start + count)), () => {
             res.push(v)
+            log('push',v, s(res))
         })
     })
+    log('return res', s(res))
     res
 })
 defineMemberFunction('array','join', (this, spec) => {
     let res = f(this[0])
     const arr = this.range(1,(this.length()) - 1)
+    full_log(arr)
     arr.select((v,i) => {
         res = res + f(spec) + f(v)
     })
@@ -42,6 +46,9 @@ defineMemberFunction('array','find_index', (this, target) => {
     }))
     res
 })
+}
+dd()
 const arr = [1,2,3,4]
+full_log(arr.range(0, 100))
 log(arr.join(','))
 log(arr.find_index(3))
