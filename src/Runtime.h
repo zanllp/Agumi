@@ -711,6 +711,16 @@ namespace agumi
                         SRC_REF(obj_stat, Identifier, obj_idx_stat.object)
                         save_value_to_closure(obj_stat.tok.kw);
                     }
+                    IndexStatement* obj = &obj_idx_stat;
+                    while (obj->property->Type() == StatementType::indexStatement)
+                    {
+                       obj = static_cast<IndexStatement*>(obj->property.get());
+                    }
+                    if (obj->property->Type() == StatementType::functionCall)
+                    {
+                        Visitor(obj->property, closure);
+                    }
+
                     return;
                 }
                 case StatementType::conditionExpression:
