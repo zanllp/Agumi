@@ -43,5 +43,7 @@ defineMemberFunction('array','find_index', (this, target) => {
     res
 })
 const arr = [1,2,3,4]
-log(arr.join(','))
+full_log(arr.range(1, 2))
+full_log(arr.range(0, 3))
+log(arr.join(','), arr.join('_'))
 log(arr.find_index(3))

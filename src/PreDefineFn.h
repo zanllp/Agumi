@@ -5,6 +5,7 @@
 #include "Json.h"
 #include "Object.h"
 #include "sion.h"
+
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define BIN_OPERATOR(body) [](Value &l, Value &r) { return body; };
 #define VM_FN(body) [&](Vector<Value> args) -> Value { body; }
@@ -257,12 +258,12 @@ namespace agumi
             {
                 THROW_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
             }
-            auto& src =  _this.Arr().Src();
+            auto &src = _this.Arr().Src();
             for (size_t i = 0; i < src.size(); i++)
             {
-                arr.Src().push_back(vm.FuncCall(v, { src[i],double(i)}));
+                arr.Src().push_back(vm.FuncCall(v, {src[i], double(i)}));
             }
-            
+
             return arr;
         };
         array_def.member_func["where"] = [&](Value &_this, Vector<Value> args) -> Value
@@ -329,7 +330,7 @@ namespace agumi
                 auto obj = Object();
                 obj["k"] = i.first;
                 obj["v"] = i.second;
-                 arr.Src().push_back(obj);
+                arr.Src().push_back(obj);
             }
             return arr; });
     }

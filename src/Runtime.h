@@ -189,14 +189,7 @@ namespace agumi
 
         void DefineGlobalFunc(String name, const std::function<Value(Vector<Value>)> &native_fn)
         {
-            static int id = 0;
-            auto fn_unique_id = String::Format("native global func code:{}", ++id);
-            auto fn = Value::CreateFunc(fn_unique_id);
-            ctx_stack[0].var[name] = fn;
-            Function fn_src(fn_unique_id);
-            fn_src.is_native_func = true;
-            fn_src.native_fn = native_fn;
-            func_mem[fn_unique_id] = fn_src;
+            ctx_stack[0].var[name] = DefineFunc(native_fn);
         }
 
         Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn)
@@ -284,7 +277,7 @@ namespace agumi
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
                 auto &ctx = ctx_stack[i];
-                res += String::Format("  at {} -- {} \n", i , ctx.start->ToPosStr());
+                res += String::Format("  at {} -- {} \n", i, ctx.start->ToPosStr());
             }
             return res;
         }
@@ -546,7 +539,7 @@ namespace agumi
                 {
                     THROW_MSG("NullPointerException propetry:{}", key_str)
                 }
-                
+
                 auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
                 if (is_literal)
                 {
@@ -669,9 +662,7 @@ namespace agumi
                         auto val = GetValue(kw);
                         if (val)
                         {
-                            closure.map[kw] = Closure::From(val->get(
-                                
-                            ));
+                            closure.map[kw] = Closure::From(val->get());
                         }
                     }
                 };
@@ -720,6 +711,16 @@ namespace agumi
                         SRC_REF(obj_stat, Identifier, obj_idx_stat.object)
                         save_value_to_closure(obj_stat.tok.kw);
                     }
+                    IndexStatement* obj = &obj_idx_stat;
+                    while (obj->property->Type() == StatementType::indexStatement)
+                    {
+                       obj = static_cast<IndexStatement*>(obj->property.get());
+                    }
+                    if (obj->property->Type() == StatementType::functionCall)
+                    {
+                        Visitor(obj->property, closure);
+                    }
+
                     return;
                 }
                 case StatementType::conditionExpression:
