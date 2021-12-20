@@ -47,3 +47,20 @@ full_log(arr.range(1, 2))
 full_log(arr.range(0, 3))
 log(arr.join(','), arr.join('_'))
 log(arr.find_index(3))
+
+defineMemberFunction('object','entires', (this) => object_entries(this))
+defineMemberFunction('object','values', (this) => {
+    const entires = this.entires()
+    entires.select(v => v.v)
+})
+defineMemberFunction('object','keys',  (this) => {
+    const entires = this.entires()
+    entires.select(item => item.k)
+})
+defineMemberFunction('object', 'has', (this,key) => {
+    const keys = this.keys()
+    (keys.find_index(key)) != -1
+})
+const aaa = mem()
+log(s(aaa.keys()))
+log(aaa.has('typeof'))

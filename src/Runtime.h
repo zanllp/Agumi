@@ -103,6 +103,7 @@ namespace agumi
         {
             ctx_stack.resize(1);
         }
+
         String working_dir = '.';
         Vector<Context> ctx_stack;
         Vector<Value> temp_stack;
@@ -137,7 +138,7 @@ namespace agumi
             if (clos != nullptr)
             {
                 auto iter = clos->find(key);
-                if (iter != clos->end())
+                if (iter != clos->end() && iter->second.stack_offset != 0)
                 {
                     ASS_T(iter->second.initialed)
                     return {iter->second.val};
@@ -531,7 +532,7 @@ namespace agumi
                 SRC_REF(key, Identifier, fn.id);
                 auto t = par.Type();
                 auto key_str = key.tok.kw;
-                if (t == ValueType::object)
+                if (t == ValueType::object && par.In(key_str))
                 {
                     return ResolveFuncCall(stat, par[key_str]);
                 }
@@ -711,10 +712,10 @@ namespace agumi
                         SRC_REF(obj_stat, Identifier, obj_idx_stat.object)
                         save_value_to_closure(obj_stat.tok.kw);
                     }
-                    IndexStatement* obj = &obj_idx_stat;
+                    IndexStatement *obj = &obj_idx_stat;
                     while (obj->property->Type() == StatementType::indexStatement)
                     {
-                       obj = static_cast<IndexStatement*>(obj->property.get());
+                        obj = static_cast<IndexStatement *>(obj->property.get());
                     }
                     if (obj->property->Type() == StatementType::functionCall)
                     {
