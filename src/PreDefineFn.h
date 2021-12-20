@@ -333,5 +333,6 @@ namespace agumi
                 arr.Src().push_back(obj);
             }
             return arr; });
+        vm.class_define[ValueType::object] = LocalClassDefine();
     }
 }
