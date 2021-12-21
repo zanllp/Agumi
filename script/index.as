@@ -1,6 +1,7 @@
 include('./stdafx.as')
 include('./kv.as')
 include('./promise.as')
+include('./index.spec.as')
 const socket_push = (data) => {
     make_promise(resolve => {
         const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
@@ -18,7 +19,7 @@ resp.then(data => {
     log(s(storage.get_item('resp')))
 })
 
-defineMemberFunction('array','range', (this, start, count) => {
+define_member_function('array','range', (this, start, count) => {
     let res = []
     this.select((v,i) => {
         if_exec(and_op(i>=start, i < (start + count)), () => {
@@ -27,7 +28,7 @@ defineMemberFunction('array','range', (this, start, count) => {
     })
     res
 })
-defineMemberFunction('array','join', (this, spec) => {
+define_member_function('array','join', (this, spec) => {
     let res = f(this[0])
     const arr = this.range(1,(this.length()) - 1)
     arr.select((v,i) => {
@@ -35,7 +36,7 @@ defineMemberFunction('array','join', (this, spec) => {
     })
     res
 })
-defineMemberFunction('array','find_index', (this, target) => {
+define_member_function('array','find_index', (this, target) => {
     let res = -1
     this.select((v,i) => if_exec(v == target , () => {
         res=i
@@ -48,19 +49,35 @@ full_log(arr.range(0, 3))
 log(arr.join(','), arr.join('_'))
 log(arr.find_index(3))
 
-defineMemberFunction('object','entires', (this) => object_entries(this))
-defineMemberFunction('object','values', (this) => {
+define_member_function('object','entires', (this) => object_entries(this))
+define_member_function('object','values', (this) => {
     const entires = this.entires()
     entires.select(v => v.v)
 })
-defineMemberFunction('object','keys',  (this) => {
+define_member_function('object','keys',  (this) => {
     const entires = this.entires()
     entires.select(item => item.k)
 })
-defineMemberFunction('object', 'has', (this,key) => {
+define_member_function('object', 'has', (this,key) => {
     const keys = this.keys()
     (keys.find_index(key)) != -1
 })
-const aaa = mem()
+const aaa = mem().b
+full_log(aaa)
 log(s(aaa.keys()))
 log(aaa.has('typeof'))
+
+const debug = make_ability('Debug')
+
+define_member_function(debug, {
+    print: (this) => log(s(this)),
+    equal: (this, o) =>  {
+        s(this) == s(o)
+    }
+})
+
+const foo = { hello: 'ciallo' }
+use_ability(foo, debug)
+
+foo.print()
+log(foo.equal({}))

@@ -19,18 +19,91 @@ namespace agumi
         auto o3 = Object({{"o3", o2}});
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
         vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir}})));
-        vm.DefineGlobalFunc("defineMemberFunction", [&](Vector<Value> args) -> Value
+        vm.DefineGlobalFunc("make_ability", [&](Vector<Value> args) -> Value
                             {
-            auto type = typestr_2enum[args.GetOrDefault(0).ToString()];
-            auto name = args.GetOrDefault(1).ToString();
+            auto name = args.GetOrDefault(0);
+            auto curr_key = vm.ability_define.size();
+            vm.ability_define.push_back(Object());
+            return Object({ {"key", double(curr_key)}, { "name",name.NotUndef() ? name: "anonymous"  } }); });
+        vm.DefineGlobalFunc("use_ability", [&](Vector<Value> args) -> Value
+                            {
+            auto v = args.GetOrDefault(0);
+            if (v.Type() != ValueType::object)
+            {
+                THROW_MSG("use_ability only allows using in object")
+            }
+            auto abi = args.GetOrDefault(1);
+            if (abi["key"].Get<double>() > vm.ability_define.size())
+            {
+                THROW_MSG("it is an invalid ability")
+            }
+            if (!v.Obj()[vm.ability_key].NotUndef())
+            {
+                v.Obj()[vm.ability_key] = Array();
+            }
+            
+            v.Obj()[vm.ability_key].Arr().Src().push_back(abi);
+            return v; });
+        vm.DefineGlobalFunc("define_member_function", [&](Vector<Value> args) -> Value
+                            {
+            auto target = args.GetOrDefault(0);
+            auto arg2 = args.GetOrDefault(1);
             auto func = args.GetOrDefault(2);
-            auto iter = vm.class_define.find(type);
-            ASS_T(iter != vm.class_define.end())
-            iter->second.member_func[name] =  [=, &vm](Value &_this, Vector<Value> args) -> Value
-        {
-            args.insert(args.begin(), _this);
-            return vm.FuncCall(func,args);
-        };
+            if (arg2.Type() == ValueType::object)
+            {
+                auto define_obj = arg2;
+               if (target.Type() == ValueType::string)
+                {
+                    auto type = typestr_2enum[target.ToString()];
+                    auto iter = vm.class_define.find(type);
+                    ASS_T(iter != vm.class_define.end())
+                    for (auto &&i : define_obj.ObjC().SrcC())
+                    {
+                        auto name = i.first;
+                        auto func = i.second;
+                        iter->second.member_func[name] =  [=, &vm](Value &_this, Vector<Value> args) -> Value
+                        {
+                            args.insert(args.begin(), _this);
+                            return vm.FuncCall(func,args);
+                        };
+                    }
+                    
+                } else {
+                    auto idx = target["key"].GetC<double>();
+                    if (idx > vm.ability_define.size())
+                    {
+                        THROW_MSG("it is an invalid ability")
+                    }
+                    auto abi = vm.ability_define[idx]; for (auto &&i : define_obj.ObjC().SrcC())
+                    for (auto &&i : define_obj.ObjC().SrcC())
+                    {
+                        auto name = i.first;
+                        auto func = i.second;
+                        abi[name] = func;
+                    }
+                } 
+            } else {
+                auto name = arg2.ToString();    
+                if (target.Type() == ValueType::string)
+                {
+                    auto type = typestr_2enum[target.ToString()];
+                    auto iter = vm.class_define.find(type);
+                    ASS_T(iter != vm.class_define.end())
+                    iter->second.member_func[name] =  [=, &vm](Value &_this, Vector<Value> args) -> Value
+                    {
+                        args.insert(args.begin(), _this);
+                        return vm.FuncCall(func,args);
+                    };
+                } else {
+                    auto idx = target["key"].GetC<double>();
+                    if (idx > vm.ability_define.size())
+                    {
+                        THROW_MSG("it is an invalid ability")
+                    }
+                    auto abi = vm.ability_define[idx];
+                    abi[name] = func;
+                }
+            }        
             return true; });
 
         auto fs_exist_vm = [&](String file_name) -> bool
