@@ -543,7 +543,11 @@ namespace agumi
                 SRC_REF(key, Identifier, fn.id);
                 auto t = par.Type();
                 auto key_str = key.tok.kw;
-                if (t == ValueType::object )
+                if (t == ValueType::null)
+                {
+                    THROW_MSG("NullPointerException property:{}", key_str)
+                }
+                if (t == ValueType::object)
                 {
                     if (par.In(key_str))
                     {
@@ -562,11 +566,6 @@ namespace agumi
                         }   
                     }
                 }
-                if (t == ValueType::null)
-                {
-                    THROW_MSG("NullPointerException propetry:{}", key_str)
-                }
-
                 auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
                 if (is_literal)
                 {
