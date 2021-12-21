@@ -111,6 +111,8 @@ namespace agumi
         std::queue<Value> macro_task_queue;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
+        Vector<Value> ability_define;
+        const String ability_key =  "#ability";
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
@@ -309,7 +311,7 @@ namespace agumi
             }
             THROW_MSG("未定义类型:{}", (int)stat->Type())
         }
-        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr)
+        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr,  Vector<Value> extra_args = {})
         {
             SRC_REF(fn_call, FunctionCall, stat)
             auto is_use_optional = fn_loc_optional.Type() == ValueType::function;
@@ -341,15 +343,24 @@ namespace agumi
             else
             {
                 auto &src_args = fn.src->arguments;
-                if (src_args.size() != fn_call.arguments.size())
+                auto extra_args_size = extra_args.size();
+                if (src_args.size() != fn_call.arguments.size() + extra_args_size)
                 {
-                    THROW_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size())
+                    THROW_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size() + extra_args_size)
                 }
-                for (size_t i = 0; i < src_args.size(); i++)
+                size_t i =0;
+                for (; i < extra_args_size; i++)
                 {
                     auto arg = src_args[i];
                     auto key = arg.name.kw;
-                    auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
+                    fn_ctx.var[key] = extra_args[i];
+                }
+                
+                for (; i < fn_call.arguments.size() + extra_args_size; i++)
+                {
+                    auto arg = src_args[i];
+                    auto key = arg.name.kw;
+                    auto incoming_val = ResolveExecutable(fn_call.arguments[i - extra_args_size]);
                     fn_ctx.var[key] = incoming_val;
                 }
                 ctx_stack.push_back(fn_ctx);
@@ -532,9 +543,24 @@ namespace agumi
                 SRC_REF(key, Identifier, fn.id);
                 auto t = par.Type();
                 auto key_str = key.tok.kw;
-                if (t == ValueType::object && par.In(key_str))
+                if (t == ValueType::object )
                 {
-                    return ResolveFuncCall(stat, par[key_str]);
+                    if (par.In(key_str))
+                    {
+                        return ResolveFuncCall(stat, par[key_str]);
+                    }
+                    if (par.In(ability_key))
+                    {
+                        for (auto &&i : par[ability_key].Arr().Src())
+                        {
+                            auto idx = i["key"].Get<double>();
+                            auto abi = ability_define[idx];
+                            if (abi.In(key_str))
+                            {
+                                return ResolveFuncCall(stat, abi[key_str], { par });
+                            }   
+                        }   
+                    }
                 }
                 if (t == ValueType::null)
                 {
