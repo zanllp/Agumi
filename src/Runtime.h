@@ -112,6 +112,7 @@ namespace agumi
         Vector<String> included_files;
         std::map<String, Function> func_mem;
         Vector<Value> ability_define;
+        Value process_arg;
         const String ability_key =  "#ability";
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()

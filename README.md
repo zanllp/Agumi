@@ -39,19 +39,15 @@ fib(10)
 ![image](https://user-images.githubusercontent.com/25872019/119235882-2b744d80-bb67-11eb-9b2a-57444f2dc294.png)
 ### -repl
 进入repl
-### -ast
-repl时开启输出语法树
-### -tokenizer
-repl时开启输出令牌化
 ### -test
 运行测试
 ## 几个测试和例子
 ### 闭包
-闭包测试和使用[点这里](./test/closure.as)
+闭包测试和使用[点这里](./script/closure.as)
 ### promise
-使用纯agumi实现的简陋的promise[点这里](./test/promise.as)
+使用纯agumi实现的简陋的promise[点这里](./script/promise.as)
 ### 键值存储
-[点这里](./test/kv.as)
+[点这里](./script/kv.as)
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ### 例子：使用运算符重载实现函数式语言pipe的功能

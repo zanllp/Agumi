@@ -18,7 +18,7 @@ namespace agumi
         auto o2 = Object({{"hello", o1}});
         auto o3 = Object({{"o3", o2}});
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
-        vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir}})));
+        vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir}, {"process_arg", vm.process_arg}})));
         vm.DefineGlobalFunc("make_ability", [&](Vector<Value> args) -> Value
                             {
             auto name = args.GetOrDefault(0);
@@ -207,10 +207,19 @@ namespace agumi
         vm.DefineGlobalFunc("assert", assert_bind);
         auto parse_agumi_script_bind = VM_FN(
             auto script = args.GetOrDefault(0).ToString();
-            auto tfv = GeneralTokenizer::Agumi(script);
+            auto tfv = GeneralTokenizer::Agumi(script, args.GetOrDefault(1).ToString());
             auto ast = Compiler().ConstructAST(tfv);
             return ast.ToJson(););
         vm.DefineGlobalFunc("parse_agumi_script", parse_agumi_script_bind);
+        auto generate_agumi_script_token_bind = VM_FN(
+            auto script = args.GetOrDefault(0).ToString();
+            auto tfv = GeneralTokenizer::Agumi(script, args.GetOrDefault(1).ToString());
+            Array arr;
+            for (auto &&i : tfv) {
+                arr.Src().push_back(i.ToJson());
+            }
+            return arr;);
+        vm.DefineGlobalFunc("generate_agumi_script_token", generate_agumi_script_token_bind);
         auto eval = [&](Vector<Value> args) -> Value
         {
             auto script = args.GetOrDefault(0).ToString();
@@ -238,7 +247,10 @@ namespace agumi
         vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value
                             {
             auto path = args.GetOrDefault(0).ToString();
-            auto absolute_path = PathCalc(vm.CurrCtx().start->file, "..", path);
+            auto use_working_dir_as_relative_path = args.GetOrDefault(1).ToBool();
+            auto absolute_path = use_working_dir_as_relative_path 
+                ? PathCalc(vm.working_dir, path)
+                : PathCalc(vm.CurrCtx().start->file, "..", path);
             if (vm.included_files.Includes(absolute_path))
             {
                 return nullptr;

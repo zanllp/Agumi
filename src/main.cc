@@ -6,7 +6,6 @@
 #include "sion.h"
 #include "Runtime.h"
 #include "PreDefineFn.h"
-#include <cstdlib>
 #include <filesystem>
 
 using namespace std;
@@ -323,7 +322,7 @@ int main(int argc, char **argv)
         P("see https://github.com/zanllp/agumi for more help information");
         return 1;
     }
-    Value conf = Object({{"hello", "world"}});
+    Value conf = Object();
     for (auto i : arg)
     {
         if (i.StartWith('-'))
@@ -339,27 +338,18 @@ int main(int argc, char **argv)
             }
         }
     }
-    auto escape = conf["escape"].ToBool();
-    auto indent = conf.In("indent") ? stoi(conf["indent"].ToString()) : 4;
-    auto path = conf["path"];
-    auto request = conf["request"];
-    auto tokenizer = conf["tokenizer"].ToBool();
-    auto test = conf["test"];
-    auto print_conf = conf["print-conf"];
-    auto ast_c = conf["ast"].ToBool();
-    auto mem = conf["mem"];
-    auto run = conf["run"];
-    auto token = conf["token"];
-    auto repl = conf["repl"].ToBool();
-    auto exec = conf["exec"];
+    auto test = conf.In("test");
+    auto repl = conf.In("repl");
+    auto exec = conf.In("exec") ? conf["exec"] : nullptr;
     if (exec.Type() == ValueType::boolean)
     {
         exec = "index.as";
     }
-    
+
     if (repl)
     {
         VM vm;
+        vm.process_arg = conf;
         vm.working_dir = working_dir;
         AddPreDefine(vm);
         array<char, 1000> buf = {0};
@@ -373,26 +363,10 @@ int main(int argc, char **argv)
 #endif
                 String src = ptr;
                 auto tfv = GeneralTokenizer::Agumi(src);
-                if (tokenizer)
-                {
-                    for (auto &&i : tfv)
-                    {
-                        cout << i.ToDebugStr() << endl;
-                    }
-                }
 
                 auto ast = Compiler().ConstructAST(tfv);
-                if (ast_c)
-                {
-
-                    cout << Json::Stringify(ast.ToJson()) << endl;
-                }
-                // else
-                {
-
-                    auto res = vm.Run(ast);
-                    cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
-                }
+                auto res = vm.Run(ast);
+                cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
 #ifdef LET_IT_CRASH
                 try
                 {
@@ -415,13 +389,13 @@ int main(int argc, char **argv)
         {
             VM vm;
             vm.working_dir = working_dir;
-
+            vm.process_arg = conf;
 #ifndef LET_IT_CRASH
             try
 #endif
             {
                 AddPreDefine(vm);
-                VmRunScript(vm, LoadFile(exec.ToString()), ast_c, tokenizer, exec.ToString());
+                VmRunScript(vm, LoadFile(exec.ToString()), false, false, exec.ToString());
             }
 #ifndef LET_IT_CRASH
             catch (const std::exception &e)
@@ -431,45 +405,7 @@ int main(int argc, char **argv)
 #endif
             return 1;
         }
-
-        if (print_conf.NotUndef())
-        {
-            cout << "启动参数 argc:" << argc << "  args:" << arg.Join(" ") << endl;
-            cout << Json::Stringify(conf) << endl;
-        }
-
-        if (request.NotUndef())
-        {
-            auto resp = sion::Fetch(request.ToString());
-            if (resp.ContentType().find("json") != string::npos)
-            {
-                auto jsv = JsonNext().JsonParse(resp.Body());
-                cout << Json::Stringify(jsv, indent, escape) << endl;
-            }
-            else
-            {
-                cout << resp.Source() << endl;
-            }
-        }
-        else if (path.NotUndef())
-        {
-            auto src = LoadFile(path.ToString());
-            if (tokenizer)
-            {
-                GeneralTokenizer tokenizer(src);
-                auto tfv = tokenizer.Start();
-                for (auto &&i : tfv)
-                {
-                    cout << i.ToDebugStr() << endl;
-                }
-            }
-            else
-            {
-                auto jsv = JSON_PARSE(src);
-                cout << Json::Stringify(jsv, indent, escape) << endl;
-            }
-        }
-        else if (test.NotUndef())
+        if (test)
         {
             string e = R"(
         {

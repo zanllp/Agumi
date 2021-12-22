@@ -539,12 +539,15 @@ namespace agumi
             THROW
         }
 
-        void Skip(TokenIter &iter, KW kw = cr_)
+        int Skip(TokenIter &iter, KW kw = cr_)
         {
+            int i = 0;
             while (iter->Is(kw))
             {
                 iter++;
+                i++;
             }
+            return i;
         }
 
         // 处理声明语句，只支持使用let const进行单个声明
@@ -808,9 +811,10 @@ namespace agumi
                 }
                 auto kw = iter->IsIdentifier() ? iter->kw : iter->toStringContent(true);
                 iter++;
+                auto forward_offset = Skip(iter);
                 if (iter->Is(comma_) || iter->Is(curly_brackets_end_))
                 {
-                    auto iter_id = iter - 1;
+                    auto iter_id = iter - 1 - forward_offset;
                     auto [id_stat, _] = ResolveExecutableStatment(iter_id);
                     obj->src[kw] = id_stat;
                 }
