@@ -1,0 +1,3610 @@
+[
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:1:18",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 0,
+                    "offset": 17,
+                    "pos": 21,
+                    "pos_str": "/home/agumi/script/index.as:1:18",
+                    "src": "'./stdafx.as'"
+                }
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 0,
+                "offset": 0,
+                "pos": 0,
+                "pos_str": "/home/agumi/script/index.as:1:1",
+                "src": "include"
+            },
+            "start": "/home/agumi/script/index.as:1:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:1:7",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:2:14",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 1,
+                    "offset": 13,
+                    "pos": 40,
+                    "pos_str": "/home/agumi/script/index.as:2:14",
+                    "src": "'./kv.as'"
+                }
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 1,
+                "offset": 0,
+                "pos": 23,
+                "pos_str": "/home/agumi/script/index.as:2:1",
+                "src": "include"
+            },
+            "start": "/home/agumi/script/index.as:2:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:2:7",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:3:19",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 2,
+                    "offset": 18,
+                    "pos": 64,
+                    "pos_str": "/home/agumi/script/index.as:3:19",
+                    "src": "'./promise.as'"
+                }
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 2,
+                "offset": 0,
+                "pos": 42,
+                "pos_str": "/home/agumi/script/index.as:3:1",
+                "src": "include"
+            },
+            "start": "/home/agumi/script/index.as:3:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:3:7",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:4:22",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 3,
+                    "offset": 21,
+                    "pos": 91,
+                    "pos_str": "/home/agumi/script/index.as:4:22",
+                    "src": "'./index.spec.as'"
+                }
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 3,
+                "offset": 0,
+                "pos": 66,
+                "pos_str": "/home/agumi/script/index.as:4:1",
+                "src": "include"
+            },
+            "start": "/home/agumi/script/index.as:4:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:4:7",
+        "type": "FunctionCall"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 4,
+                        "offset": 5,
+                        "pos": 99,
+                        "pos_str": "/home/agumi/script/index.as:5:6",
+                        "src": "socket_push"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "arguments": [
+                        {
+                            "initialed": false,
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 4,
+                                "offset": 17,
+                                "pos": 114,
+                                "pos_str": "/home/agumi/script/index.as:5:18",
+                                "src": "data"
+                            }
+                        }
+                    ],
+                    "body": [
+                        {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 5,
+                                                "offset": 15,
+                                                "pos": 142,
+                                                "pos_str": "/home/agumi/script/index.as:6:16",
+                                                "src": "resolve"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "declarations": [
+                                                {
+                                                    "id": {
+                                                        "name": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 6,
+                                                            "offset": 13,
+                                                            "pos": 169,
+                                                            "pos_str": "/home/agumi/script/index.as:7:14",
+                                                            "src": "resp"
+                                                        },
+                                                        "start": "native func",
+                                                        "type": "Identifier"
+                                                    },
+                                                    "init": {
+                                                        "args": [
+                                                            {
+                                                                "start": "/home/agumi/script/index.as:7:86",
+                                                                "type": "StringLiteral",
+                                                                "value": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 6,
+                                                                    "offset": 85,
+                                                                    "pos": 247,
+                                                                    "pos_str": "/home/agumi/script/index.as:7:86",
+                                                                    "src": "'https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT'"
+                                                                }
+                                                            },
+                                                            {
+                                                                "src": {
+                                                                    "data": {
+                                                                        "name": {
+                                                                            "file": "/home/agumi/script/index.as",
+                                                                            "line": 7,
+                                                                            "offset": 12,
+                                                                            "pos": 263,
+                                                                            "pos_str": "/home/agumi/script/index.as:8:13",
+                                                                            "src": "data"
+                                                                        },
+                                                                        "start": "/home/agumi/script/index.as:8:13",
+                                                                        "type": "Identifier"
+                                                                    },
+                                                                    "headers": {
+                                                                        "src": {
+                                                                            "Content-Type": {
+                                                                                "start": "/home/agumi/script/index.as:10:52",
+                                                                                "type": "StringLiteral",
+                                                                                "value": {
+                                                                                    "file": "/home/agumi/script/index.as",
+                                                                                    "line": 9,
+                                                                                    "offset": 51,
+                                                                                    "pos": 354,
+                                                                                    "pos_str": "/home/agumi/script/index.as:10:52",
+                                                                                    "src": "'application/json'"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "start": "/home/agumi/script/index.as:10:34",
+                                                                        "type": "objectInit"
+                                                                    },
+                                                                    "method": {
+                                                                        "start": "/home/agumi/script/index.as:9:24",
+                                                                        "type": "StringLiteral",
+                                                                        "value": {
+                                                                            "file": "/home/agumi/script/index.as",
+                                                                            "line": 8,
+                                                                            "offset": 23,
+                                                                            "pos": 295,
+                                                                            "pos_str": "/home/agumi/script/index.as:9:24",
+                                                                            "src": "'post'"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:7:88",
+                                                                "type": "objectInit"
+                                                            }
+                                                        ],
+                                                        "id": {
+                                                            "name": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 6,
+                                                                "offset": 18,
+                                                                "pos": 176,
+                                                                "pos_str": "/home/agumi/script/index.as:7:19",
+                                                                "src": "fetch"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:7:19",
+                                                            "type": "Identifier"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:7:23",
+                                                        "type": "FunctionCall"
+                                                    },
+                                                    "initialed": true,
+                                                    "start": "/home/agumi/script/index.as:7:14",
+                                                    "type": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 6,
+                                                        "offset": 8,
+                                                        "pos": 163,
+                                                        "pos_str": "/home/agumi/script/index.as:7:9",
+                                                        "src": "const"
+                                                    }
+                                                }
+                                            ],
+                                            "kind": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 6,
+                                                "offset": 8,
+                                                "pos": 163,
+                                                "pos_str": "/home/agumi/script/index.as:7:9",
+                                                "src": "const"
+                                            },
+                                            "start": "/home/agumi/script/index.as:7:9",
+                                            "type": "VariableDeclaration"
+                                        },
+                                        {
+                                            "args": [
+                                                {
+                                                    "name": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 11,
+                                                        "offset": 14,
+                                                        "pos": 384,
+                                                        "pos_str": "/home/agumi/script/index.as:12:15",
+                                                        "src": "resp"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:12:15",
+                                                    "type": "Identifier"
+                                                }
+                                            ],
+                                            "id": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 11,
+                                                    "offset": 8,
+                                                    "pos": 376,
+                                                    "pos_str": "/home/agumi/script/index.as:12:9",
+                                                    "src": "resolve"
+                                                },
+                                                "start": "/home/agumi/script/index.as:12:9",
+                                                "type": "Identifier"
+                                            },
+                                            "start": "/home/agumi/script/index.as:12:15",
+                                            "type": "FunctionCall"
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:6:16",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 5,
+                                    "offset": 4,
+                                    "pos": 129,
+                                    "pos_str": "/home/agumi/script/index.as:6:5",
+                                    "src": "make_promise"
+                                },
+                                "start": "/home/agumi/script/index.as:6:5",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:6:16",
+                            "type": "FunctionCall"
+                        }
+                    ],
+                    "start": "/home/agumi/script/index.as:5:18",
+                    "type": "FunctionDeclaration"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:5:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 4,
+                    "offset": 0,
+                    "pos": 93,
+                    "pos_str": "/home/agumi/script/index.as:5:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 4,
+            "offset": 0,
+            "pos": 93,
+            "pos_str": "/home/agumi/script/index.as:5:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:5:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 15,
+                        "offset": 5,
+                        "pos": 406,
+                        "pos_str": "/home/agumi/script/index.as:16:6",
+                        "src": "resp"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "args": [
+                        {
+                            "src": [],
+                            "start": "/home/agumi/script/index.as:16:21",
+                            "type": "arrayInit"
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 15,
+                            "offset": 10,
+                            "pos": 413,
+                            "pos_str": "/home/agumi/script/index.as:16:11",
+                            "src": "socket_push"
+                        },
+                        "start": "/home/agumi/script/index.as:16:11",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:16:21",
+                    "type": "FunctionCall"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:16:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 15,
+                    "offset": 0,
+                    "pos": 400,
+                    "pos_str": "/home/agumi/script/index.as:16:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 15,
+            "offset": 0,
+            "pos": 400,
+            "pos_str": "/home/agumi/script/index.as:16:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:16:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "object": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 16,
+                "offset": 0,
+                "pos": 429,
+                "pos_str": "/home/agumi/script/index.as:17:1",
+                "src": "resp"
+            },
+            "start": "/home/agumi/script/index.as:17:1",
+            "type": "Identifier"
+        },
+        "propetry": {
+            "args": [
+                {
+                    "arguments": [
+                        {
+                            "initialed": false,
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 16,
+                                "offset": 7,
+                                "pos": 439,
+                                "pos_str": "/home/agumi/script/index.as:17:8",
+                                "src": "data"
+                            }
+                        }
+                    ],
+                    "body": [
+                        {
+                            "object": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 17,
+                                    "offset": 4,
+                                    "pos": 453,
+                                    "pos_str": "/home/agumi/script/index.as:18:5",
+                                    "src": "storage"
+                                },
+                                "start": "/home/agumi/script/index.as:18:5",
+                                "type": "Identifier"
+                            },
+                            "propetry": {
+                                "args": [
+                                    {
+                                        "start": "/home/agumi/script/index.as:18:23",
+                                        "type": "StringLiteral",
+                                        "value": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 17,
+                                            "offset": 22,
+                                            "pos": 476,
+                                            "pos_str": "/home/agumi/script/index.as:18:23",
+                                            "src": "'resp'"
+                                        }
+                                    },
+                                    {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 17,
+                                            "offset": 24,
+                                            "pos": 478,
+                                            "pos_str": "/home/agumi/script/index.as:18:25",
+                                            "src": "data"
+                                        },
+                                        "start": "/home/agumi/script/index.as:18:25",
+                                        "type": "Identifier"
+                                    }
+                                ],
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 17,
+                                        "offset": 11,
+                                        "pos": 461,
+                                        "pos_str": "/home/agumi/script/index.as:18:12",
+                                        "src": "set_item"
+                                    },
+                                    "start": "/home/agumi/script/index.as:18:12",
+                                    "type": "Identifier"
+                                },
+                                "start": "/home/agumi/script/index.as:18:19",
+                                "type": "FunctionCall"
+                            },
+                            "start": "/home/agumi/script/index.as:18:12",
+                            "type": "IndexStatement"
+                        },
+                        {
+                            "args": [
+                                {
+                                    "args": [
+                                        {
+                                            "object": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 18,
+                                                    "offset": 6,
+                                                    "pos": 494,
+                                                    "pos_str": "/home/agumi/script/index.as:19:7",
+                                                    "src": "storage"
+                                                },
+                                                "start": "/home/agumi/script/index.as:19:7",
+                                                "type": "Identifier"
+                                            },
+                                            "propetry": {
+                                                "args": [
+                                                    {
+                                                        "start": "/home/agumi/script/index.as:19:25",
+                                                        "type": "StringLiteral",
+                                                        "value": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 18,
+                                                            "offset": 24,
+                                                            "pos": 517,
+                                                            "pos_str": "/home/agumi/script/index.as:19:25",
+                                                            "src": "'resp'"
+                                                        }
+                                                    }
+                                                ],
+                                                "id": {
+                                                    "name": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 18,
+                                                        "offset": 13,
+                                                        "pos": 502,
+                                                        "pos_str": "/home/agumi/script/index.as:19:14",
+                                                        "src": "get_item"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:19:14",
+                                                    "type": "Identifier"
+                                                },
+                                                "start": "/home/agumi/script/index.as:19:21",
+                                                "type": "FunctionCall"
+                                            },
+                                            "start": "/home/agumi/script/index.as:19:14",
+                                            "type": "IndexStatement"
+                                        }
+                                    ],
+                                    "id": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 18,
+                                            "offset": 6,
+                                            "pos": 492,
+                                            "pos_str": "/home/agumi/script/index.as:19:7",
+                                            "src": "s"
+                                        },
+                                        "start": "/home/agumi/script/index.as:19:7",
+                                        "type": "Identifier"
+                                    },
+                                    "start": "/home/agumi/script/index.as:19:7",
+                                    "type": "FunctionCall"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 18,
+                                    "offset": 4,
+                                    "pos": 488,
+                                    "pos_str": "/home/agumi/script/index.as:19:5",
+                                    "src": "log"
+                                },
+                                "start": "/home/agumi/script/index.as:19:5",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:19:7",
+                            "type": "FunctionCall"
+                        }
+                    ],
+                    "start": "/home/agumi/script/index.as:17:8",
+                    "type": "FunctionDeclaration"
+                }
+            ],
+            "id": {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 16,
+                    "offset": 4,
+                    "pos": 434,
+                    "pos_str": "/home/agumi/script/index.as:17:5",
+                    "src": "then"
+                },
+                "start": "/home/agumi/script/index.as:17:5",
+                "type": "Identifier"
+            },
+            "start": "/home/agumi/script/index.as:17:8",
+            "type": "FunctionCall"
+        },
+        "start": "/home/agumi/script/index.as:17:5",
+        "type": "IndexStatement"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:22:27",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 21,
+                    "offset": 26,
+                    "pos": 555,
+                    "pos_str": "/home/agumi/script/index.as:22:27",
+                    "src": "'array'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:22:33",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 21,
+                    "offset": 32,
+                    "pos": 563,
+                    "pos_str": "/home/agumi/script/index.as:22:33",
+                    "src": "'range'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 21,
+                            "offset": 34,
+                            "pos": 566,
+                            "pos_str": "/home/agumi/script/index.as:22:35",
+                            "src": "this"
+                        }
+                    },
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 21,
+                            "offset": 39,
+                            "pos": 572,
+                            "pos_str": "/home/agumi/script/index.as:22:40",
+                            "src": "start"
+                        }
+                    },
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 21,
+                            "offset": 45,
+                            "pos": 579,
+                            "pos_str": "/home/agumi/script/index.as:22:46",
+                            "src": "count"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 22,
+                                        "offset": 7,
+                                        "pos": 599,
+                                        "pos_str": "/home/agumi/script/index.as:23:8",
+                                        "src": "res"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "src": [],
+                                    "start": "/home/agumi/script/index.as:23:12",
+                                    "type": "arrayInit"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:23:8",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 22,
+                                    "offset": 4,
+                                    "pos": 595,
+                                    "pos_str": "/home/agumi/script/index.as:23:5",
+                                    "src": "let"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 22,
+                            "offset": 4,
+                            "pos": 595,
+                            "pos_str": "/home/agumi/script/index.as:23:5",
+                            "src": "let"
+                        },
+                        "start": "/home/agumi/script/index.as:23:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 23,
+                                "offset": 4,
+                                "pos": 612,
+                                "pos_str": "/home/agumi/script/index.as:24:5",
+                                "src": "this"
+                            },
+                            "start": "/home/agumi/script/index.as:24:5",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 23,
+                                                "offset": 13,
+                                                "pos": 625,
+                                                "pos_str": "/home/agumi/script/index.as:24:14",
+                                                "src": "v"
+                                            }
+                                        },
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 23,
+                                                "offset": 14,
+                                                "pos": 627,
+                                                "pos_str": "/home/agumi/script/index.as:24:15",
+                                                "src": "i"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "args": [
+                                                {
+                                                    "args": [
+                                                        {
+                                                            "left": {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 24,
+                                                                    "offset": 19,
+                                                                    "pos": 658,
+                                                                    "pos_str": "/home/agumi/script/index.as:25:20",
+                                                                    "src": "i"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:25:20",
+                                                                "type": "Identifier"
+                                                            },
+                                                            "op": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 24,
+                                                                "offset": 19,
+                                                                "pos": 659,
+                                                                "pos_str": "/home/agumi/script/index.as:25:20",
+                                                                "src": ">="
+                                                            },
+                                                            "right": {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 24,
+                                                                    "offset": 20,
+                                                                    "pos": 661,
+                                                                    "pos_str": "/home/agumi/script/index.as:25:21",
+                                                                    "src": "start"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:25:21",
+                                                                "type": "Identifier"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:25:20",
+                                                            "type": "BinaryExpression"
+                                                        },
+                                                        {
+                                                            "left": {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 24,
+                                                                    "offset": 26,
+                                                                    "pos": 668,
+                                                                    "pos_str": "/home/agumi/script/index.as:25:27",
+                                                                    "src": "i"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:25:27",
+                                                                "type": "Identifier"
+                                                            },
+                                                            "op": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 24,
+                                                                "offset": 27,
+                                                                "pos": 670,
+                                                                "pos_str": "/home/agumi/script/index.as:25:28",
+                                                                "src": "<"
+                                                            },
+                                                            "right": {
+                                                                "left": {
+                                                                    "name": {
+                                                                        "file": "/home/agumi/script/index.as",
+                                                                        "line": 24,
+                                                                        "offset": 28,
+                                                                        "pos": 673,
+                                                                        "pos_str": "/home/agumi/script/index.as:25:29",
+                                                                        "src": "start"
+                                                                    },
+                                                                    "start": "/home/agumi/script/index.as:25:29",
+                                                                    "type": "Identifier"
+                                                                },
+                                                                "op": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 24,
+                                                                    "offset": 33,
+                                                                    "pos": 679,
+                                                                    "pos_str": "/home/agumi/script/index.as:25:34",
+                                                                    "src": "+"
+                                                                },
+                                                                "right": {
+                                                                    "name": {
+                                                                        "file": "/home/agumi/script/index.as",
+                                                                        "line": 24,
+                                                                        "offset": 34,
+                                                                        "pos": 681,
+                                                                        "pos_str": "/home/agumi/script/index.as:25:35",
+                                                                        "src": "count"
+                                                                    },
+                                                                    "start": "/home/agumi/script/index.as:25:35",
+                                                                    "type": "Identifier"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:25:34",
+                                                                "type": "BinaryExpression"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:25:28",
+                                                            "type": "BinaryExpression"
+                                                        }
+                                                    ],
+                                                    "id": {
+                                                        "name": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 24,
+                                                            "offset": 14,
+                                                            "pos": 651,
+                                                            "pos_str": "/home/agumi/script/index.as:25:15",
+                                                            "src": "and_op"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:25:15",
+                                                        "type": "Identifier"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:25:20",
+                                                    "type": "FunctionCall"
+                                                },
+                                                {
+                                                    "arguments": [],
+                                                    "body": [
+                                                        {
+                                                            "object": {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 25,
+                                                                    "offset": 12,
+                                                                    "pos": 710,
+                                                                    "pos_str": "/home/agumi/script/index.as:26:13",
+                                                                    "src": "res"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:26:13",
+                                                                "type": "Identifier"
+                                                            },
+                                                            "propetry": {
+                                                                "args": [
+                                                                    {
+                                                                        "name": {
+                                                                            "file": "/home/agumi/script/index.as",
+                                                                            "line": 25,
+                                                                            "offset": 18,
+                                                                            "pos": 719,
+                                                                            "pos_str": "/home/agumi/script/index.as:26:19",
+                                                                            "src": "v"
+                                                                        },
+                                                                        "start": "/home/agumi/script/index.as:26:19",
+                                                                        "type": "Identifier"
+                                                                    }
+                                                                ],
+                                                                "id": {
+                                                                    "name": {
+                                                                        "file": "/home/agumi/script/index.as",
+                                                                        "line": 25,
+                                                                        "offset": 15,
+                                                                        "pos": 714,
+                                                                        "pos_str": "/home/agumi/script/index.as:26:16",
+                                                                        "src": "push"
+                                                                    },
+                                                                    "start": "/home/agumi/script/index.as:26:16",
+                                                                    "type": "Identifier"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:26:19",
+                                                                "type": "FunctionCall"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:26:16",
+                                                            "type": "IndexStatement"
+                                                        }
+                                                    ],
+                                                    "start": "/home/agumi/script/index.as:25:41",
+                                                    "type": "FunctionDeclaration"
+                                                }
+                                            ],
+                                            "id": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 24,
+                                                    "offset": 8,
+                                                    "pos": 643,
+                                                    "pos_str": "/home/agumi/script/index.as:25:9",
+                                                    "src": "if_exec"
+                                                },
+                                                "start": "/home/agumi/script/index.as:25:9",
+                                                "type": "Identifier"
+                                            },
+                                            "start": "/home/agumi/script/index.as:25:15",
+                                            "type": "FunctionCall"
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:24:14",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 23,
+                                    "offset": 8,
+                                    "pos": 617,
+                                    "pos_str": "/home/agumi/script/index.as:24:9",
+                                    "src": "select"
+                                },
+                                "start": "/home/agumi/script/index.as:24:9",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:24:14",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:24:9",
+                        "type": "IndexStatement"
+                    },
+                    {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 28,
+                            "offset": 4,
+                            "pos": 744,
+                            "pos_str": "/home/agumi/script/index.as:29:5",
+                            "src": "res"
+                        },
+                        "start": "/home/agumi/script/index.as:29:5",
+                        "type": "Identifier"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:22:35",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 21,
+                "offset": 0,
+                "pos": 525,
+                "pos_str": "/home/agumi/script/index.as:22:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:22:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:22:22",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:31:27",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 30,
+                    "offset": 26,
+                    "pos": 781,
+                    "pos_str": "/home/agumi/script/index.as:31:27",
+                    "src": "'array'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:31:32",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 30,
+                    "offset": 31,
+                    "pos": 788,
+                    "pos_str": "/home/agumi/script/index.as:31:32",
+                    "src": "'join'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 30,
+                            "offset": 33,
+                            "pos": 791,
+                            "pos_str": "/home/agumi/script/index.as:31:34",
+                            "src": "this"
+                        }
+                    },
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 30,
+                            "offset": 38,
+                            "pos": 797,
+                            "pos_str": "/home/agumi/script/index.as:31:39",
+                            "src": "spec"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 31,
+                                        "offset": 7,
+                                        "pos": 816,
+                                        "pos_str": "/home/agumi/script/index.as:32:8",
+                                        "src": "res"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "args": [
+                                        {
+                                            "object": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 31,
+                                                    "offset": 11,
+                                                    "pos": 824,
+                                                    "pos_str": "/home/agumi/script/index.as:32:12",
+                                                    "src": "this"
+                                                },
+                                                "start": "/home/agumi/script/index.as:32:12",
+                                                "type": "Identifier"
+                                            },
+                                            "propetry": {
+                                                "start": "/home/agumi/script/index.as:32:15",
+                                                "type": "NumberLiteral",
+                                                "value": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 31,
+                                                    "offset": 14,
+                                                    "pos": 829,
+                                                    "pos_str": "/home/agumi/script/index.as:32:15",
+                                                    "src": "0"
+                                                }
+                                            },
+                                            "start": "/home/agumi/script/index.as:32:15",
+                                            "type": "IndexStatement"
+                                        }
+                                    ],
+                                    "id": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 31,
+                                            "offset": 11,
+                                            "pos": 822,
+                                            "pos_str": "/home/agumi/script/index.as:32:12",
+                                            "src": "f"
+                                        },
+                                        "start": "/home/agumi/script/index.as:32:12",
+                                        "type": "Identifier"
+                                    },
+                                    "start": "/home/agumi/script/index.as:32:12",
+                                    "type": "FunctionCall"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:32:8",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 31,
+                                    "offset": 4,
+                                    "pos": 812,
+                                    "pos_str": "/home/agumi/script/index.as:32:5",
+                                    "src": "let"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 31,
+                            "offset": 4,
+                            "pos": 812,
+                            "pos_str": "/home/agumi/script/index.as:32:5",
+                            "src": "let"
+                        },
+                        "start": "/home/agumi/script/index.as:32:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 32,
+                                        "offset": 9,
+                                        "pos": 843,
+                                        "pos_str": "/home/agumi/script/index.as:33:10",
+                                        "src": "arr"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "object": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 32,
+                                            "offset": 13,
+                                            "pos": 849,
+                                            "pos_str": "/home/agumi/script/index.as:33:14",
+                                            "src": "this"
+                                        },
+                                        "start": "/home/agumi/script/index.as:33:14",
+                                        "type": "Identifier"
+                                    },
+                                    "propetry": {
+                                        "args": [
+                                            {
+                                                "start": "/home/agumi/script/index.as:33:22",
+                                                "type": "NumberLiteral",
+                                                "value": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 32,
+                                                    "offset": 21,
+                                                    "pos": 860,
+                                                    "pos_str": "/home/agumi/script/index.as:33:22",
+                                                    "src": "1"
+                                                }
+                                            },
+                                            {
+                                                "left": {
+                                                    "object": {
+                                                        "name": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 32,
+                                                            "offset": 22,
+                                                            "pos": 863,
+                                                            "pos_str": "/home/agumi/script/index.as:33:23",
+                                                            "src": "this"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:33:23",
+                                                        "type": "Identifier"
+                                                    },
+                                                    "propetry": {
+                                                        "args": [],
+                                                        "id": {
+                                                            "name": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 32,
+                                                                "offset": 26,
+                                                                "pos": 868,
+                                                                "pos_str": "/home/agumi/script/index.as:33:27",
+                                                                "src": "length"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:33:27",
+                                                            "type": "Identifier"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:33:32",
+                                                        "type": "FunctionCall"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:33:27",
+                                                    "type": "IndexStatement"
+                                                },
+                                                "op": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 32,
+                                                    "offset": 32,
+                                                    "pos": 878,
+                                                    "pos_str": "/home/agumi/script/index.as:33:33",
+                                                    "src": "-"
+                                                },
+                                                "right": {
+                                                    "start": "/home/agumi/script/index.as:33:34",
+                                                    "type": "NumberLiteral",
+                                                    "value": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 32,
+                                                        "offset": 33,
+                                                        "pos": 880,
+                                                        "pos_str": "/home/agumi/script/index.as:33:34",
+                                                        "src": "1"
+                                                    }
+                                                },
+                                                "start": "/home/agumi/script/index.as:33:33",
+                                                "type": "BinaryExpression"
+                                            }
+                                        ],
+                                        "id": {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 32,
+                                                "offset": 17,
+                                                "pos": 854,
+                                                "pos_str": "/home/agumi/script/index.as:33:18",
+                                                "src": "range"
+                                            },
+                                            "start": "/home/agumi/script/index.as:33:18",
+                                            "type": "Identifier"
+                                        },
+                                        "start": "/home/agumi/script/index.as:33:22",
+                                        "type": "FunctionCall"
+                                    },
+                                    "start": "/home/agumi/script/index.as:33:18",
+                                    "type": "IndexStatement"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:33:10",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 32,
+                                    "offset": 4,
+                                    "pos": 837,
+                                    "pos_str": "/home/agumi/script/index.as:33:5",
+                                    "src": "const"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 32,
+                            "offset": 4,
+                            "pos": 837,
+                            "pos_str": "/home/agumi/script/index.as:33:5",
+                            "src": "const"
+                        },
+                        "start": "/home/agumi/script/index.as:33:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 33,
+                                "offset": 4,
+                                "pos": 887,
+                                "pos_str": "/home/agumi/script/index.as:34:5",
+                                "src": "arr"
+                            },
+                            "start": "/home/agumi/script/index.as:34:5",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 33,
+                                                "offset": 12,
+                                                "pos": 899,
+                                                "pos_str": "/home/agumi/script/index.as:34:13",
+                                                "src": "v"
+                                            }
+                                        },
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 33,
+                                                "offset": 13,
+                                                "pos": 901,
+                                                "pos_str": "/home/agumi/script/index.as:34:14",
+                                                "src": "i"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "id": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 34,
+                                                "offset": 8,
+                                                "pos": 917,
+                                                "pos_str": "/home/agumi/script/index.as:35:9",
+                                                "src": "res"
+                                            },
+                                            "start": "/home/agumi/script/index.as:35:9",
+                                            "type": "assigmentStatement",
+                                            "value": {
+                                                "left": {
+                                                    "name": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 34,
+                                                        "offset": 12,
+                                                        "pos": 923,
+                                                        "pos_str": "/home/agumi/script/index.as:35:13",
+                                                        "src": "res"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:35:13",
+                                                    "type": "Identifier"
+                                                },
+                                                "op": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 34,
+                                                    "offset": 15,
+                                                    "pos": 927,
+                                                    "pos_str": "/home/agumi/script/index.as:35:16",
+                                                    "src": "+"
+                                                },
+                                                "right": {
+                                                    "left": {
+                                                        "args": [
+                                                            {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 34,
+                                                                    "offset": 16,
+                                                                    "pos": 931,
+                                                                    "pos_str": "/home/agumi/script/index.as:35:17",
+                                                                    "src": "spec"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:35:17",
+                                                                "type": "Identifier"
+                                                            }
+                                                        ],
+                                                        "id": {
+                                                            "name": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 34,
+                                                                "offset": 16,
+                                                                "pos": 929,
+                                                                "pos_str": "/home/agumi/script/index.as:35:17",
+                                                                "src": "f"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:35:17",
+                                                            "type": "Identifier"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:35:17",
+                                                        "type": "FunctionCall"
+                                                    },
+                                                    "op": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 34,
+                                                        "offset": 20,
+                                                        "pos": 937,
+                                                        "pos_str": "/home/agumi/script/index.as:35:21",
+                                                        "src": "+"
+                                                    },
+                                                    "right": {
+                                                        "args": [
+                                                            {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 34,
+                                                                    "offset": 21,
+                                                                    "pos": 941,
+                                                                    "pos_str": "/home/agumi/script/index.as:35:22",
+                                                                    "src": "v"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:35:22",
+                                                                "type": "Identifier"
+                                                            }
+                                                        ],
+                                                        "id": {
+                                                            "name": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 34,
+                                                                "offset": 21,
+                                                                "pos": 939,
+                                                                "pos_str": "/home/agumi/script/index.as:35:22",
+                                                                "src": "f"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:35:22",
+                                                            "type": "Identifier"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:35:22",
+                                                        "type": "FunctionCall"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:35:21",
+                                                    "type": "BinaryExpression"
+                                                },
+                                                "start": "/home/agumi/script/index.as:35:16",
+                                                "type": "BinaryExpression"
+                                            }
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:34:13",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 33,
+                                    "offset": 7,
+                                    "pos": 891,
+                                    "pos_str": "/home/agumi/script/index.as:34:8",
+                                    "src": "select"
+                                },
+                                "start": "/home/agumi/script/index.as:34:8",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:34:13",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:34:8",
+                        "type": "IndexStatement"
+                    },
+                    {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 36,
+                            "offset": 4,
+                            "pos": 955,
+                            "pos_str": "/home/agumi/script/index.as:37:5",
+                            "src": "res"
+                        },
+                        "start": "/home/agumi/script/index.as:37:5",
+                        "type": "Identifier"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:31:34",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 30,
+                "offset": 0,
+                "pos": 751,
+                "pos_str": "/home/agumi/script/index.as:31:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:31:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:31:22",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:39:27",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 38,
+                    "offset": 26,
+                    "pos": 992,
+                    "pos_str": "/home/agumi/script/index.as:39:27",
+                    "src": "'array'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:39:38",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 38,
+                    "offset": 37,
+                    "pos": 1005,
+                    "pos_str": "/home/agumi/script/index.as:39:38",
+                    "src": "'find_index'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 38,
+                            "offset": 39,
+                            "pos": 1008,
+                            "pos_str": "/home/agumi/script/index.as:39:40",
+                            "src": "this"
+                        }
+                    },
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 38,
+                            "offset": 44,
+                            "pos": 1014,
+                            "pos_str": "/home/agumi/script/index.as:39:45",
+                            "src": "target"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 39,
+                                        "offset": 7,
+                                        "pos": 1035,
+                                        "pos_str": "/home/agumi/script/index.as:40:8",
+                                        "src": "res"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "start": "/home/agumi/script/index.as:40:12",
+                                    "type": "NumberLiteral",
+                                    "value": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 39,
+                                        "offset": 11,
+                                        "pos": 1041,
+                                        "pos_str": "/home/agumi/script/index.as:40:12",
+                                        "src": "-1"
+                                    }
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:40:8",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 39,
+                                    "offset": 4,
+                                    "pos": 1031,
+                                    "pos_str": "/home/agumi/script/index.as:40:5",
+                                    "src": "let"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 39,
+                            "offset": 4,
+                            "pos": 1031,
+                            "pos_str": "/home/agumi/script/index.as:40:5",
+                            "src": "let"
+                        },
+                        "start": "/home/agumi/script/index.as:40:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 40,
+                                "offset": 4,
+                                "pos": 1048,
+                                "pos_str": "/home/agumi/script/index.as:41:5",
+                                "src": "this"
+                            },
+                            "start": "/home/agumi/script/index.as:41:5",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 40,
+                                                "offset": 13,
+                                                "pos": 1061,
+                                                "pos_str": "/home/agumi/script/index.as:41:14",
+                                                "src": "v"
+                                            }
+                                        },
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 40,
+                                                "offset": 14,
+                                                "pos": 1063,
+                                                "pos_str": "/home/agumi/script/index.as:41:15",
+                                                "src": "i"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "args": [
+                                                {
+                                                    "left": {
+                                                        "name": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 40,
+                                                            "offset": 23,
+                                                            "pos": 1077,
+                                                            "pos_str": "/home/agumi/script/index.as:41:24",
+                                                            "src": "v"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:41:24",
+                                                        "type": "Identifier"
+                                                    },
+                                                    "op": {
+                                                        "file": "/home/agumi/script/index.as",
+                                                        "line": 40,
+                                                        "offset": 24,
+                                                        "pos": 1079,
+                                                        "pos_str": "/home/agumi/script/index.as:41:25",
+                                                        "src": "=="
+                                                    },
+                                                    "right": {
+                                                        "name": {
+                                                            "file": "/home/agumi/script/index.as",
+                                                            "line": 40,
+                                                            "offset": 26,
+                                                            "pos": 1082,
+                                                            "pos_str": "/home/agumi/script/index.as:41:27",
+                                                            "src": "target"
+                                                        },
+                                                        "start": "/home/agumi/script/index.as:41:27",
+                                                        "type": "Identifier"
+                                                    },
+                                                    "start": "/home/agumi/script/index.as:41:25",
+                                                    "type": "BinaryExpression"
+                                                },
+                                                {
+                                                    "arguments": [],
+                                                    "body": [
+                                                        {
+                                                            "id": {
+                                                                "file": "/home/agumi/script/index.as",
+                                                                "line": 41,
+                                                                "offset": 8,
+                                                                "pos": 1107,
+                                                                "pos_str": "/home/agumi/script/index.as:42:9",
+                                                                "src": "res"
+                                                            },
+                                                            "start": "/home/agumi/script/index.as:42:9",
+                                                            "type": "assigmentStatement",
+                                                            "value": {
+                                                                "name": {
+                                                                    "file": "/home/agumi/script/index.as",
+                                                                    "line": 41,
+                                                                    "offset": 10,
+                                                                    "pos": 1111,
+                                                                    "pos_str": "/home/agumi/script/index.as:42:11",
+                                                                    "src": "i"
+                                                                },
+                                                                "start": "/home/agumi/script/index.as:42:11",
+                                                                "type": "Identifier"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "start": "/home/agumi/script/index.as:41:35",
+                                                    "type": "FunctionDeclaration"
+                                                }
+                                            ],
+                                            "id": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 40,
+                                                    "offset": 17,
+                                                    "pos": 1069,
+                                                    "pos_str": "/home/agumi/script/index.as:41:18",
+                                                    "src": "if_exec"
+                                                },
+                                                "start": "/home/agumi/script/index.as:41:18",
+                                                "type": "Identifier"
+                                            },
+                                            "start": "/home/agumi/script/index.as:41:18",
+                                            "type": "FunctionCall"
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:41:14",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 40,
+                                    "offset": 8,
+                                    "pos": 1053,
+                                    "pos_str": "/home/agumi/script/index.as:41:9",
+                                    "src": "select"
+                                },
+                                "start": "/home/agumi/script/index.as:41:9",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:41:14",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:41:9",
+                        "type": "IndexStatement"
+                    },
+                    {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 43,
+                            "offset": 4,
+                            "pos": 1125,
+                            "pos_str": "/home/agumi/script/index.as:44:5",
+                            "src": "res"
+                        },
+                        "start": "/home/agumi/script/index.as:44:5",
+                        "type": "Identifier"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:39:40",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 38,
+                "offset": 0,
+                "pos": 962,
+                "pos_str": "/home/agumi/script/index.as:39:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:39:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:39:22",
+        "type": "FunctionCall"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 45,
+                        "offset": 5,
+                        "pos": 1138,
+                        "pos_str": "/home/agumi/script/index.as:46:6",
+                        "src": "arr"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "src": [
+                        {
+                            "start": "/home/agumi/script/index.as:46:10",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 45,
+                                "offset": 9,
+                                "pos": 1145,
+                                "pos_str": "/home/agumi/script/index.as:46:10",
+                                "src": "1"
+                            }
+                        },
+                        {
+                            "start": "/home/agumi/script/index.as:46:11",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 45,
+                                "offset": 10,
+                                "pos": 1147,
+                                "pos_str": "/home/agumi/script/index.as:46:11",
+                                "src": "2"
+                            }
+                        },
+                        {
+                            "start": "/home/agumi/script/index.as:46:12",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 45,
+                                "offset": 11,
+                                "pos": 1149,
+                                "pos_str": "/home/agumi/script/index.as:46:12",
+                                "src": "3"
+                            }
+                        },
+                        {
+                            "start": "/home/agumi/script/index.as:46:13",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 45,
+                                "offset": 12,
+                                "pos": 1151,
+                                "pos_str": "/home/agumi/script/index.as:46:13",
+                                "src": "4"
+                            }
+                        }
+                    ],
+                    "start": "/home/agumi/script/index.as:46:10",
+                    "type": "arrayInit"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:46:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 45,
+                    "offset": 0,
+                    "pos": 1132,
+                    "pos_str": "/home/agumi/script/index.as:46:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 45,
+            "offset": 0,
+            "pos": 1132,
+            "pos_str": "/home/agumi/script/index.as:46:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:46:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 46,
+                        "offset": 7,
+                        "pos": 1163,
+                        "pos_str": "/home/agumi/script/index.as:47:8",
+                        "src": "arr"
+                    },
+                    "start": "/home/agumi/script/index.as:47:8",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:47:15",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 46,
+                                "offset": 14,
+                                "pos": 1173,
+                                "pos_str": "/home/agumi/script/index.as:47:15",
+                                "src": "1"
+                            }
+                        },
+                        {
+                            "start": "/home/agumi/script/index.as:47:17",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 46,
+                                "offset": 16,
+                                "pos": 1176,
+                                "pos_str": "/home/agumi/script/index.as:47:17",
+                                "src": "2"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 46,
+                            "offset": 10,
+                            "pos": 1167,
+                            "pos_str": "/home/agumi/script/index.as:47:11",
+                            "src": "range"
+                        },
+                        "start": "/home/agumi/script/index.as:47:11",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:47:15",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:47:11",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 46,
+                "offset": 0,
+                "pos": 1154,
+                "pos_str": "/home/agumi/script/index.as:47:1",
+                "src": "full_log"
+            },
+            "start": "/home/agumi/script/index.as:47:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:47:8",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 47,
+                        "offset": 7,
+                        "pos": 1189,
+                        "pos_str": "/home/agumi/script/index.as:48:8",
+                        "src": "arr"
+                    },
+                    "start": "/home/agumi/script/index.as:48:8",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:48:15",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 47,
+                                "offset": 14,
+                                "pos": 1199,
+                                "pos_str": "/home/agumi/script/index.as:48:15",
+                                "src": "0"
+                            }
+                        },
+                        {
+                            "start": "/home/agumi/script/index.as:48:17",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 47,
+                                "offset": 16,
+                                "pos": 1202,
+                                "pos_str": "/home/agumi/script/index.as:48:17",
+                                "src": "3"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 47,
+                            "offset": 10,
+                            "pos": 1193,
+                            "pos_str": "/home/agumi/script/index.as:48:11",
+                            "src": "range"
+                        },
+                        "start": "/home/agumi/script/index.as:48:11",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:48:15",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:48:11",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 47,
+                "offset": 0,
+                "pos": 1180,
+                "pos_str": "/home/agumi/script/index.as:48:1",
+                "src": "full_log"
+            },
+            "start": "/home/agumi/script/index.as:48:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:48:8",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 48,
+                        "offset": 2,
+                        "pos": 1210,
+                        "pos_str": "/home/agumi/script/index.as:49:3",
+                        "src": "arr"
+                    },
+                    "start": "/home/agumi/script/index.as:49:3",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:49:10",
+                            "type": "StringLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 48,
+                                "offset": 9,
+                                "pos": 1222,
+                                "pos_str": "/home/agumi/script/index.as:49:10",
+                                "src": "','"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 48,
+                            "offset": 5,
+                            "pos": 1214,
+                            "pos_str": "/home/agumi/script/index.as:49:6",
+                            "src": "join"
+                        },
+                        "start": "/home/agumi/script/index.as:49:6",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:49:9",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:49:6",
+                "type": "IndexStatement"
+            },
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 48,
+                        "offset": 11,
+                        "pos": 1225,
+                        "pos_str": "/home/agumi/script/index.as:49:12",
+                        "src": "arr"
+                    },
+                    "start": "/home/agumi/script/index.as:49:12",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:49:19",
+                            "type": "StringLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 48,
+                                "offset": 18,
+                                "pos": 1237,
+                                "pos_str": "/home/agumi/script/index.as:49:19",
+                                "src": "'_'"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 48,
+                            "offset": 14,
+                            "pos": 1229,
+                            "pos_str": "/home/agumi/script/index.as:49:15",
+                            "src": "join"
+                        },
+                        "start": "/home/agumi/script/index.as:49:15",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:49:18",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:49:15",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 48,
+                "offset": 0,
+                "pos": 1206,
+                "pos_str": "/home/agumi/script/index.as:49:1",
+                "src": "log"
+            },
+            "start": "/home/agumi/script/index.as:49:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:49:3",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 49,
+                        "offset": 2,
+                        "pos": 1244,
+                        "pos_str": "/home/agumi/script/index.as:50:3",
+                        "src": "arr"
+                    },
+                    "start": "/home/agumi/script/index.as:50:3",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:50:15",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 49,
+                                "offset": 14,
+                                "pos": 1259,
+                                "pos_str": "/home/agumi/script/index.as:50:15",
+                                "src": "3"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 49,
+                            "offset": 5,
+                            "pos": 1248,
+                            "pos_str": "/home/agumi/script/index.as:50:6",
+                            "src": "find_index"
+                        },
+                        "start": "/home/agumi/script/index.as:50:6",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:50:15",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:50:6",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 49,
+                "offset": 0,
+                "pos": 1240,
+                "pos_str": "/home/agumi/script/index.as:50:1",
+                "src": "log"
+            },
+            "start": "/home/agumi/script/index.as:50:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:50:3",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:52:28",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 51,
+                    "offset": 27,
+                    "pos": 1295,
+                    "pos_str": "/home/agumi/script/index.as:52:28",
+                    "src": "'object'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:52:36",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 51,
+                    "offset": 35,
+                    "pos": 1305,
+                    "pos_str": "/home/agumi/script/index.as:52:36",
+                    "src": "'entires'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 51,
+                            "offset": 37,
+                            "pos": 1308,
+                            "pos_str": "/home/agumi/script/index.as:52:38",
+                            "src": "this"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "args": [
+                            {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 51,
+                                    "offset": 56,
+                                    "pos": 1332,
+                                    "pos_str": "/home/agumi/script/index.as:52:57",
+                                    "src": "this"
+                                },
+                                "start": "/home/agumi/script/index.as:52:57",
+                                "type": "Identifier"
+                            }
+                        ],
+                        "id": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 51,
+                                "offset": 43,
+                                "pos": 1317,
+                                "pos_str": "/home/agumi/script/index.as:52:44",
+                                "src": "object_entries"
+                            },
+                            "start": "/home/agumi/script/index.as:52:44",
+                            "type": "Identifier"
+                        },
+                        "start": "/home/agumi/script/index.as:52:44",
+                        "type": "FunctionCall"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:52:38",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 51,
+                "offset": 0,
+                "pos": 1264,
+                "pos_str": "/home/agumi/script/index.as:52:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:52:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:52:22",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:53:28",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 52,
+                    "offset": 27,
+                    "pos": 1370,
+                    "pos_str": "/home/agumi/script/index.as:53:28",
+                    "src": "'object'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:53:35",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 52,
+                    "offset": 34,
+                    "pos": 1379,
+                    "pos_str": "/home/agumi/script/index.as:53:35",
+                    "src": "'values'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 52,
+                            "offset": 36,
+                            "pos": 1382,
+                            "pos_str": "/home/agumi/script/index.as:53:37",
+                            "src": "this"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 53,
+                                        "offset": 9,
+                                        "pos": 1403,
+                                        "pos_str": "/home/agumi/script/index.as:54:10",
+                                        "src": "entires"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "object": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 53,
+                                            "offset": 17,
+                                            "pos": 1413,
+                                            "pos_str": "/home/agumi/script/index.as:54:18",
+                                            "src": "this"
+                                        },
+                                        "start": "/home/agumi/script/index.as:54:18",
+                                        "type": "Identifier"
+                                    },
+                                    "propetry": {
+                                        "args": [],
+                                        "id": {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 53,
+                                                "offset": 21,
+                                                "pos": 1418,
+                                                "pos_str": "/home/agumi/script/index.as:54:22",
+                                                "src": "entires"
+                                            },
+                                            "start": "/home/agumi/script/index.as:54:22",
+                                            "type": "Identifier"
+                                        },
+                                        "start": "/home/agumi/script/index.as:54:28",
+                                        "type": "FunctionCall"
+                                    },
+                                    "start": "/home/agumi/script/index.as:54:22",
+                                    "type": "IndexStatement"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:54:10",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 53,
+                                    "offset": 4,
+                                    "pos": 1397,
+                                    "pos_str": "/home/agumi/script/index.as:54:5",
+                                    "src": "const"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 53,
+                            "offset": 4,
+                            "pos": 1397,
+                            "pos_str": "/home/agumi/script/index.as:54:5",
+                            "src": "const"
+                        },
+                        "start": "/home/agumi/script/index.as:54:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 54,
+                                "offset": 4,
+                                "pos": 1432,
+                                "pos_str": "/home/agumi/script/index.as:55:5",
+                                "src": "entires"
+                            },
+                            "start": "/home/agumi/script/index.as:55:5",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 54,
+                                                "offset": 16,
+                                                "pos": 1447,
+                                                "pos_str": "/home/agumi/script/index.as:55:17",
+                                                "src": "v"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "object": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 54,
+                                                    "offset": 19,
+                                                    "pos": 1452,
+                                                    "pos_str": "/home/agumi/script/index.as:55:20",
+                                                    "src": "v"
+                                                },
+                                                "start": "/home/agumi/script/index.as:55:20",
+                                                "type": "Identifier"
+                                            },
+                                            "propetry": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 54,
+                                                    "offset": 20,
+                                                    "pos": 1454,
+                                                    "pos_str": "/home/agumi/script/index.as:55:21",
+                                                    "src": "v"
+                                                },
+                                                "start": "/home/agumi/script/index.as:55:21",
+                                                "type": "Identifier"
+                                            },
+                                            "start": "/home/agumi/script/index.as:55:20",
+                                            "type": "IndexStatement"
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:55:17",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 54,
+                                    "offset": 11,
+                                    "pos": 1440,
+                                    "pos_str": "/home/agumi/script/index.as:55:12",
+                                    "src": "select"
+                                },
+                                "start": "/home/agumi/script/index.as:55:12",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:55:17",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:55:12",
+                        "type": "IndexStatement"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:53:37",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 52,
+                "offset": 0,
+                "pos": 1339,
+                "pos_str": "/home/agumi/script/index.as:53:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:53:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:53:22",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:57:28",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 56,
+                    "offset": 27,
+                    "pos": 1491,
+                    "pos_str": "/home/agumi/script/index.as:57:28",
+                    "src": "'object'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:57:33",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 56,
+                    "offset": 32,
+                    "pos": 1498,
+                    "pos_str": "/home/agumi/script/index.as:57:33",
+                    "src": "'keys'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 56,
+                            "offset": 35,
+                            "pos": 1502,
+                            "pos_str": "/home/agumi/script/index.as:57:36",
+                            "src": "this"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 57,
+                                        "offset": 9,
+                                        "pos": 1523,
+                                        "pos_str": "/home/agumi/script/index.as:58:10",
+                                        "src": "entires"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "object": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 57,
+                                            "offset": 17,
+                                            "pos": 1533,
+                                            "pos_str": "/home/agumi/script/index.as:58:18",
+                                            "src": "this"
+                                        },
+                                        "start": "/home/agumi/script/index.as:58:18",
+                                        "type": "Identifier"
+                                    },
+                                    "propetry": {
+                                        "args": [],
+                                        "id": {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 57,
+                                                "offset": 21,
+                                                "pos": 1538,
+                                                "pos_str": "/home/agumi/script/index.as:58:22",
+                                                "src": "entires"
+                                            },
+                                            "start": "/home/agumi/script/index.as:58:22",
+                                            "type": "Identifier"
+                                        },
+                                        "start": "/home/agumi/script/index.as:58:28",
+                                        "type": "FunctionCall"
+                                    },
+                                    "start": "/home/agumi/script/index.as:58:22",
+                                    "type": "IndexStatement"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:58:10",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 57,
+                                    "offset": 4,
+                                    "pos": 1517,
+                                    "pos_str": "/home/agumi/script/index.as:58:5",
+                                    "src": "const"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 57,
+                            "offset": 4,
+                            "pos": 1517,
+                            "pos_str": "/home/agumi/script/index.as:58:5",
+                            "src": "const"
+                        },
+                        "start": "/home/agumi/script/index.as:58:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 58,
+                                "offset": 4,
+                                "pos": 1552,
+                                "pos_str": "/home/agumi/script/index.as:59:5",
+                                "src": "entires"
+                            },
+                            "start": "/home/agumi/script/index.as:59:5",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [
+                                {
+                                    "arguments": [
+                                        {
+                                            "initialed": false,
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 58,
+                                                "offset": 16,
+                                                "pos": 1567,
+                                                "pos_str": "/home/agumi/script/index.as:59:17",
+                                                "src": "item"
+                                            }
+                                        }
+                                    ],
+                                    "body": [
+                                        {
+                                            "object": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 58,
+                                                    "offset": 22,
+                                                    "pos": 1575,
+                                                    "pos_str": "/home/agumi/script/index.as:59:23",
+                                                    "src": "item"
+                                                },
+                                                "start": "/home/agumi/script/index.as:59:23",
+                                                "type": "Identifier"
+                                            },
+                                            "propetry": {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 58,
+                                                    "offset": 26,
+                                                    "pos": 1580,
+                                                    "pos_str": "/home/agumi/script/index.as:59:27",
+                                                    "src": "k"
+                                                },
+                                                "start": "/home/agumi/script/index.as:59:27",
+                                                "type": "Identifier"
+                                            },
+                                            "start": "/home/agumi/script/index.as:59:23",
+                                            "type": "IndexStatement"
+                                        }
+                                    ],
+                                    "start": "/home/agumi/script/index.as:59:17",
+                                    "type": "FunctionDeclaration"
+                                }
+                            ],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 58,
+                                    "offset": 11,
+                                    "pos": 1560,
+                                    "pos_str": "/home/agumi/script/index.as:59:12",
+                                    "src": "select"
+                                },
+                                "start": "/home/agumi/script/index.as:59:12",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:59:17",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:59:12",
+                        "type": "IndexStatement"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:57:36",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 56,
+                "offset": 0,
+                "pos": 1460,
+                "pos_str": "/home/agumi/script/index.as:57:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:57:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:57:22",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "start": "/home/agumi/script/index.as:61:28",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 60,
+                    "offset": 27,
+                    "pos": 1617,
+                    "pos_str": "/home/agumi/script/index.as:61:28",
+                    "src": "'object'"
+                }
+            },
+            {
+                "start": "/home/agumi/script/index.as:61:33",
+                "type": "StringLiteral",
+                "value": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 60,
+                    "offset": 32,
+                    "pos": 1624,
+                    "pos_str": "/home/agumi/script/index.as:61:33",
+                    "src": "'has'"
+                }
+            },
+            {
+                "arguments": [
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 60,
+                            "offset": 34,
+                            "pos": 1627,
+                            "pos_str": "/home/agumi/script/index.as:61:35",
+                            "src": "this"
+                        }
+                    },
+                    {
+                        "initialed": false,
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 60,
+                            "offset": 38,
+                            "pos": 1632,
+                            "pos_str": "/home/agumi/script/index.as:61:39",
+                            "src": "key"
+                        }
+                    }
+                ],
+                "body": [
+                    {
+                        "declarations": [
+                            {
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 61,
+                                        "offset": 9,
+                                        "pos": 1652,
+                                        "pos_str": "/home/agumi/script/index.as:62:10",
+                                        "src": "keys"
+                                    },
+                                    "start": "native func",
+                                    "type": "Identifier"
+                                },
+                                "init": {
+                                    "object": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 61,
+                                            "offset": 14,
+                                            "pos": 1659,
+                                            "pos_str": "/home/agumi/script/index.as:62:15",
+                                            "src": "this"
+                                        },
+                                        "start": "/home/agumi/script/index.as:62:15",
+                                        "type": "Identifier"
+                                    },
+                                    "propetry": {
+                                        "args": [],
+                                        "id": {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 61,
+                                                "offset": 18,
+                                                "pos": 1664,
+                                                "pos_str": "/home/agumi/script/index.as:62:19",
+                                                "src": "keys"
+                                            },
+                                            "start": "/home/agumi/script/index.as:62:19",
+                                            "type": "Identifier"
+                                        },
+                                        "start": "/home/agumi/script/index.as:62:22",
+                                        "type": "FunctionCall"
+                                    },
+                                    "start": "/home/agumi/script/index.as:62:19",
+                                    "type": "IndexStatement"
+                                },
+                                "initialed": true,
+                                "start": "/home/agumi/script/index.as:62:10",
+                                "type": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 61,
+                                    "offset": 4,
+                                    "pos": 1646,
+                                    "pos_str": "/home/agumi/script/index.as:62:5",
+                                    "src": "const"
+                                }
+                            }
+                        ],
+                        "kind": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 61,
+                            "offset": 4,
+                            "pos": 1646,
+                            "pos_str": "/home/agumi/script/index.as:62:5",
+                            "src": "const"
+                        },
+                        "start": "/home/agumi/script/index.as:62:5",
+                        "type": "VariableDeclaration"
+                    },
+                    {
+                        "left": {
+                            "object": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 62,
+                                    "offset": 4,
+                                    "pos": 1676,
+                                    "pos_str": "/home/agumi/script/index.as:63:5",
+                                    "src": "keys"
+                                },
+                                "start": "/home/agumi/script/index.as:63:5",
+                                "type": "Identifier"
+                            },
+                            "propetry": {
+                                "args": [
+                                    {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 62,
+                                            "offset": 17,
+                                            "pos": 1692,
+                                            "pos_str": "/home/agumi/script/index.as:63:18",
+                                            "src": "key"
+                                        },
+                                        "start": "/home/agumi/script/index.as:63:18",
+                                        "type": "Identifier"
+                                    }
+                                ],
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 62,
+                                        "offset": 8,
+                                        "pos": 1681,
+                                        "pos_str": "/home/agumi/script/index.as:63:9",
+                                        "src": "find_index"
+                                    },
+                                    "start": "/home/agumi/script/index.as:63:9",
+                                    "type": "Identifier"
+                                },
+                                "start": "/home/agumi/script/index.as:63:18",
+                                "type": "FunctionCall"
+                            },
+                            "start": "/home/agumi/script/index.as:63:9",
+                            "type": "IndexStatement"
+                        },
+                        "op": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 62,
+                            "offset": 20,
+                            "pos": 1698,
+                            "pos_str": "/home/agumi/script/index.as:63:21",
+                            "src": "!="
+                        },
+                        "right": {
+                            "start": "/home/agumi/script/index.as:63:23",
+                            "type": "NumberLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 62,
+                                "offset": 22,
+                                "pos": 1701,
+                                "pos_str": "/home/agumi/script/index.as:63:23",
+                                "src": "-1"
+                            }
+                        },
+                        "start": "/home/agumi/script/index.as:63:21",
+                        "type": "BinaryExpression"
+                    }
+                ],
+                "start": "/home/agumi/script/index.as:61:35",
+                "type": "FunctionDeclaration"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 60,
+                "offset": 0,
+                "pos": 1586,
+                "pos_str": "/home/agumi/script/index.as:61:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:61:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:61:22",
+        "type": "FunctionCall"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 64,
+                        "offset": 5,
+                        "pos": 1713,
+                        "pos_str": "/home/agumi/script/index.as:65:6",
+                        "src": "aaa"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "object": {
+                        "args": [],
+                        "id": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 64,
+                                "offset": 9,
+                                "pos": 1719,
+                                "pos_str": "/home/agumi/script/index.as:65:10",
+                                "src": "mem"
+                            },
+                            "start": "/home/agumi/script/index.as:65:10",
+                            "type": "Identifier"
+                        },
+                        "start": "/home/agumi/script/index.as:65:12",
+                        "type": "FunctionCall"
+                    },
+                    "propetry": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 64,
+                            "offset": 12,
+                            "pos": 1725,
+                            "pos_str": "/home/agumi/script/index.as:65:13",
+                            "src": "b"
+                        },
+                        "start": "/home/agumi/script/index.as:65:13",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:65:13",
+                    "type": "IndexStatement"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:65:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 64,
+                    "offset": 0,
+                    "pos": 1707,
+                    "pos_str": "/home/agumi/script/index.as:65:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 64,
+            "offset": 0,
+            "pos": 1707,
+            "pos_str": "/home/agumi/script/index.as:65:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:65:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "args": [
+            {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 65,
+                    "offset": 7,
+                    "pos": 1736,
+                    "pos_str": "/home/agumi/script/index.as:66:8",
+                    "src": "aaa"
+                },
+                "start": "/home/agumi/script/index.as:66:8",
+                "type": "Identifier"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 65,
+                "offset": 0,
+                "pos": 1727,
+                "pos_str": "/home/agumi/script/index.as:66:1",
+                "src": "full_log"
+            },
+            "start": "/home/agumi/script/index.as:66:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:66:8",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "args": [
+                    {
+                        "object": {
+                            "name": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 66,
+                                "offset": 2,
+                                "pos": 1747,
+                                "pos_str": "/home/agumi/script/index.as:67:3",
+                                "src": "aaa"
+                            },
+                            "start": "/home/agumi/script/index.as:67:3",
+                            "type": "Identifier"
+                        },
+                        "propetry": {
+                            "args": [],
+                            "id": {
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 66,
+                                    "offset": 5,
+                                    "pos": 1751,
+                                    "pos_str": "/home/agumi/script/index.as:67:6",
+                                    "src": "keys"
+                                },
+                                "start": "/home/agumi/script/index.as:67:6",
+                                "type": "Identifier"
+                            },
+                            "start": "/home/agumi/script/index.as:67:9",
+                            "type": "FunctionCall"
+                        },
+                        "start": "/home/agumi/script/index.as:67:6",
+                        "type": "IndexStatement"
+                    }
+                ],
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 66,
+                        "offset": 2,
+                        "pos": 1745,
+                        "pos_str": "/home/agumi/script/index.as:67:3",
+                        "src": "s"
+                    },
+                    "start": "/home/agumi/script/index.as:67:3",
+                    "type": "Identifier"
+                },
+                "start": "/home/agumi/script/index.as:67:3",
+                "type": "FunctionCall"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 66,
+                "offset": 0,
+                "pos": 1741,
+                "pos_str": "/home/agumi/script/index.as:67:1",
+                "src": "log"
+            },
+            "start": "/home/agumi/script/index.as:67:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:67:3",
+        "type": "FunctionCall"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 67,
+                        "offset": 2,
+                        "pos": 1764,
+                        "pos_str": "/home/agumi/script/index.as:68:3",
+                        "src": "aaa"
+                    },
+                    "start": "/home/agumi/script/index.as:68:3",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:68:14",
+                            "type": "StringLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 67,
+                                "offset": 13,
+                                "pos": 1780,
+                                "pos_str": "/home/agumi/script/index.as:68:14",
+                                "src": "'typeof'"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 67,
+                            "offset": 5,
+                            "pos": 1768,
+                            "pos_str": "/home/agumi/script/index.as:68:6",
+                            "src": "has"
+                        },
+                        "start": "/home/agumi/script/index.as:68:6",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:68:8",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:68:6",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 67,
+                "offset": 0,
+                "pos": 1760,
+                "pos_str": "/home/agumi/script/index.as:68:1",
+                "src": "log"
+            },
+            "start": "/home/agumi/script/index.as:68:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:68:3",
+        "type": "FunctionCall"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 69,
+                        "offset": 5,
+                        "pos": 1790,
+                        "pos_str": "/home/agumi/script/index.as:70:6",
+                        "src": "debug"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "args": [
+                        {
+                            "start": "/home/agumi/script/index.as:70:28",
+                            "type": "StringLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 69,
+                                "offset": 27,
+                                "pos": 1818,
+                                "pos_str": "/home/agumi/script/index.as:70:28",
+                                "src": "'Debug'"
+                            }
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 69,
+                            "offset": 11,
+                            "pos": 1798,
+                            "pos_str": "/home/agumi/script/index.as:70:12",
+                            "src": "make_ability"
+                        },
+                        "start": "/home/agumi/script/index.as:70:12",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:70:23",
+                    "type": "FunctionCall"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:70:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 69,
+                    "offset": 0,
+                    "pos": 1784,
+                    "pos_str": "/home/agumi/script/index.as:70:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 69,
+            "offset": 0,
+            "pos": 1784,
+            "pos_str": "/home/agumi/script/index.as:70:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:70:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "args": [
+            {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 71,
+                    "offset": 21,
+                    "pos": 1844,
+                    "pos_str": "/home/agumi/script/index.as:72:22",
+                    "src": "debug"
+                },
+                "start": "/home/agumi/script/index.as:72:22",
+                "type": "Identifier"
+            },
+            {
+                "src": {
+                    "equal": {
+                        "arguments": [
+                            {
+                                "initialed": false,
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 73,
+                                    "offset": 10,
+                                    "pos": 1900,
+                                    "pos_str": "/home/agumi/script/index.as:74:11",
+                                    "src": "this"
+                                }
+                            },
+                            {
+                                "initialed": false,
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 73,
+                                    "offset": 15,
+                                    "pos": 1906,
+                                    "pos_str": "/home/agumi/script/index.as:74:16",
+                                    "src": "o"
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "left": {
+                                    "args": [
+                                        {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 74,
+                                                "offset": 8,
+                                                "pos": 1925,
+                                                "pos_str": "/home/agumi/script/index.as:75:9",
+                                                "src": "this"
+                                            },
+                                            "start": "/home/agumi/script/index.as:75:9",
+                                            "type": "Identifier"
+                                        }
+                                    ],
+                                    "id": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 74,
+                                            "offset": 8,
+                                            "pos": 1923,
+                                            "pos_str": "/home/agumi/script/index.as:75:9",
+                                            "src": "s"
+                                        },
+                                        "start": "/home/agumi/script/index.as:75:9",
+                                        "type": "Identifier"
+                                    },
+                                    "start": "/home/agumi/script/index.as:75:9",
+                                    "type": "FunctionCall"
+                                },
+                                "op": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 74,
+                                    "offset": 12,
+                                    "pos": 1931,
+                                    "pos_str": "/home/agumi/script/index.as:75:13",
+                                    "src": "=="
+                                },
+                                "right": {
+                                    "args": [
+                                        {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 74,
+                                                "offset": 14,
+                                                "pos": 1936,
+                                                "pos_str": "/home/agumi/script/index.as:75:15",
+                                                "src": "o"
+                                            },
+                                            "start": "/home/agumi/script/index.as:75:15",
+                                            "type": "Identifier"
+                                        }
+                                    ],
+                                    "id": {
+                                        "name": {
+                                            "file": "/home/agumi/script/index.as",
+                                            "line": 74,
+                                            "offset": 14,
+                                            "pos": 1934,
+                                            "pos_str": "/home/agumi/script/index.as:75:15",
+                                            "src": "s"
+                                        },
+                                        "start": "/home/agumi/script/index.as:75:15",
+                                        "type": "Identifier"
+                                    },
+                                    "start": "/home/agumi/script/index.as:75:15",
+                                    "type": "FunctionCall"
+                                },
+                                "start": "/home/agumi/script/index.as:75:13",
+                                "type": "BinaryExpression"
+                            }
+                        ],
+                        "start": "/home/agumi/script/index.as:74:11",
+                        "type": "FunctionDeclaration"
+                    },
+                    "print": {
+                        "arguments": [
+                            {
+                                "initialed": false,
+                                "name": {
+                                    "file": "/home/agumi/script/index.as",
+                                    "line": 72,
+                                    "offset": 10,
+                                    "pos": 1865,
+                                    "pos_str": "/home/agumi/script/index.as:73:11",
+                                    "src": "this"
+                                }
+                            }
+                        ],
+                        "body": [
+                            {
+                                "args": [
+                                    {
+                                        "args": [
+                                            {
+                                                "name": {
+                                                    "file": "/home/agumi/script/index.as",
+                                                    "line": 72,
+                                                    "offset": 18,
+                                                    "pos": 1880,
+                                                    "pos_str": "/home/agumi/script/index.as:73:19",
+                                                    "src": "this"
+                                                },
+                                                "start": "/home/agumi/script/index.as:73:19",
+                                                "type": "Identifier"
+                                            }
+                                        ],
+                                        "id": {
+                                            "name": {
+                                                "file": "/home/agumi/script/index.as",
+                                                "line": 72,
+                                                "offset": 18,
+                                                "pos": 1878,
+                                                "pos_str": "/home/agumi/script/index.as:73:19",
+                                                "src": "s"
+                                            },
+                                            "start": "/home/agumi/script/index.as:73:19",
+                                            "type": "Identifier"
+                                        },
+                                        "start": "/home/agumi/script/index.as:73:19",
+                                        "type": "FunctionCall"
+                                    }
+                                ],
+                                "id": {
+                                    "name": {
+                                        "file": "/home/agumi/script/index.as",
+                                        "line": 72,
+                                        "offset": 16,
+                                        "pos": 1874,
+                                        "pos_str": "/home/agumi/script/index.as:73:17",
+                                        "src": "log"
+                                    },
+                                    "start": "/home/agumi/script/index.as:73:17",
+                                    "type": "Identifier"
+                                },
+                                "start": "/home/agumi/script/index.as:73:17",
+                                "type": "FunctionCall"
+                            }
+                        ],
+                        "start": "/home/agumi/script/index.as:73:11",
+                        "type": "FunctionDeclaration"
+                    }
+                },
+                "start": "/home/agumi/script/index.as:72:28",
+                "type": "objectInit"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 71,
+                "offset": 0,
+                "pos": 1821,
+                "pos_str": "/home/agumi/script/index.as:72:1",
+                "src": "define_member_function"
+            },
+            "start": "/home/agumi/script/index.as:72:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:72:22",
+        "type": "FunctionCall"
+    },
+    {
+        "declarations": [
+            {
+                "id": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 78,
+                        "offset": 5,
+                        "pos": 1955,
+                        "pos_str": "/home/agumi/script/index.as:79:6",
+                        "src": "foo"
+                    },
+                    "start": "native func",
+                    "type": "Identifier"
+                },
+                "init": {
+                    "src": {
+                        "hello": {
+                            "start": "/home/agumi/script/index.as:79:23",
+                            "type": "StringLiteral",
+                            "value": {
+                                "file": "/home/agumi/script/index.as",
+                                "line": 78,
+                                "offset": 22,
+                                "pos": 1978,
+                                "pos_str": "/home/agumi/script/index.as:79:23",
+                                "src": "'ciallo'"
+                            }
+                        }
+                    },
+                    "start": "/home/agumi/script/index.as:79:11",
+                    "type": "objectInit"
+                },
+                "initialed": true,
+                "start": "/home/agumi/script/index.as:79:6",
+                "type": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 78,
+                    "offset": 0,
+                    "pos": 1949,
+                    "pos_str": "/home/agumi/script/index.as:79:1",
+                    "src": "const"
+                }
+            }
+        ],
+        "kind": {
+            "file": "/home/agumi/script/index.as",
+            "line": 78,
+            "offset": 0,
+            "pos": 1949,
+            "pos_str": "/home/agumi/script/index.as:79:1",
+            "src": "const"
+        },
+        "start": "/home/agumi/script/index.as:79:1",
+        "type": "VariableDeclaration"
+    },
+    {
+        "args": [
+            {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 79,
+                    "offset": 10,
+                    "pos": 1993,
+                    "pos_str": "/home/agumi/script/index.as:80:11",
+                    "src": "foo"
+                },
+                "start": "/home/agumi/script/index.as:80:11",
+                "type": "Identifier"
+            },
+            {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 79,
+                    "offset": 14,
+                    "pos": 1998,
+                    "pos_str": "/home/agumi/script/index.as:80:15",
+                    "src": "debug"
+                },
+                "start": "/home/agumi/script/index.as:80:15",
+                "type": "Identifier"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 79,
+                "offset": 0,
+                "pos": 1981,
+                "pos_str": "/home/agumi/script/index.as:80:1",
+                "src": "use_ability"
+            },
+            "start": "/home/agumi/script/index.as:80:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:80:11",
+        "type": "FunctionCall"
+    },
+    {
+        "object": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 81,
+                "offset": 0,
+                "pos": 2006,
+                "pos_str": "/home/agumi/script/index.as:82:1",
+                "src": "foo"
+            },
+            "start": "/home/agumi/script/index.as:82:1",
+            "type": "Identifier"
+        },
+        "propetry": {
+            "args": [],
+            "id": {
+                "name": {
+                    "file": "/home/agumi/script/index.as",
+                    "line": 81,
+                    "offset": 3,
+                    "pos": 2010,
+                    "pos_str": "/home/agumi/script/index.as:82:4",
+                    "src": "print"
+                },
+                "start": "/home/agumi/script/index.as:82:4",
+                "type": "Identifier"
+            },
+            "start": "/home/agumi/script/index.as:82:8",
+            "type": "FunctionCall"
+        },
+        "start": "/home/agumi/script/index.as:82:4",
+        "type": "IndexStatement"
+    },
+    {
+        "args": [
+            {
+                "object": {
+                    "name": {
+                        "file": "/home/agumi/script/index.as",
+                        "line": 82,
+                        "offset": 2,
+                        "pos": 2022,
+                        "pos_str": "/home/agumi/script/index.as:83:3",
+                        "src": "foo"
+                    },
+                    "start": "/home/agumi/script/index.as:83:3",
+                    "type": "Identifier"
+                },
+                "propetry": {
+                    "args": [
+                        {
+                            "src": {},
+                            "start": "/home/agumi/script/index.as:83:10",
+                            "type": "objectInit"
+                        }
+                    ],
+                    "id": {
+                        "name": {
+                            "file": "/home/agumi/script/index.as",
+                            "line": 82,
+                            "offset": 5,
+                            "pos": 2026,
+                            "pos_str": "/home/agumi/script/index.as:83:6",
+                            "src": "equal"
+                        },
+                        "start": "/home/agumi/script/index.as:83:6",
+                        "type": "Identifier"
+                    },
+                    "start": "/home/agumi/script/index.as:83:10",
+                    "type": "FunctionCall"
+                },
+                "start": "/home/agumi/script/index.as:83:6",
+                "type": "IndexStatement"
+            }
+        ],
+        "id": {
+            "name": {
+                "file": "/home/agumi/script/index.as",
+                "line": 82,
+                "offset": 0,
+                "pos": 2018,
+                "pos_str": "/home/agumi/script/index.as:83:1",
+                "src": "log"
+            },
+            "start": "/home/agumi/script/index.as:83:1",
+            "type": "Identifier"
+        },
+        "start": "/home/agumi/script/index.as:83:3",
+        "type": "FunctionCall"
+    }
+]

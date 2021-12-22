@@ -47,7 +47,12 @@ const make_kv = (dir) => {
     const all_keys = '__all__keys__'
     const base_file_tpl  = path_calc(base_dir, '_kv_{}.json')
     const all_keys_file = f(base_file_tpl, all_keys)
-    use_ability({ base_dir, base_file_tpl, all_keys_file, all_keys }, kv_store)
+    use_ability({
+        base_dir, 
+        base_file_tpl,
+        all_keys_file,
+        all_keys 
+        }, kv_store)
 }
 
 const storage = make_kv('script')

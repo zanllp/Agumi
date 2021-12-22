@@ -176,7 +176,7 @@ namespace agumi
         question_mask_, add_, sub_, mul_, div_,
         mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_,
         more_than_, more_than_equal_, less_than_,
-        less_than_equal_, 
+        less_than_equal_,
         add_equal_, sub_equal_};
     // 多字符的运算符
     Vector<KW> multi_char_operator{
@@ -202,8 +202,8 @@ namespace agumi
         int pos = -1;
         int line = -1;
         int offset = -1;
-        Token(String _kw = "", int _pos = -1, int _line = -1, int _offset = -1, String _file = "") : kw(_kw), pos(_pos), line(_line), offset(_offset), file(_file) {
-            
+        Token(String _kw = "", int _pos = -1, int _line = -1, int _offset = -1, String _file = "") : kw(_kw), pos(_pos), line(_line), offset(_offset), file(_file)
+        {
         }
         Value ToJson() const
         {
@@ -212,6 +212,7 @@ namespace agumi
             m["offset"] = offset;
             m["line"] = line;
             m["pos"] = pos;
+            m["pos_str"] = ToPosStr();
             m["file"] = file;
             return m;
         }
@@ -219,13 +220,13 @@ namespace agumi
         {
             return file + ":" + String(pos);
         }
-        String ToPosStr()
+        String ToPosStr() const
         {
-            if(pos == -1) 
+            if (pos == -1)
             {
                 return "native func";
             }
-            return String::Format("{}:{}", file, line + 1);
+            return String::Format("{}:{}:{}", file, line + 1, offset + 1);
         }
         String ToDebugStr() const
         {
@@ -250,7 +251,7 @@ namespace agumi
             {
                 _kw = String::Format("\"{}\"", _kw);
             }
-            return String::Format("正文：{} \t位置：{} \t行：{} \t列：{}{}", _kw, pos, line, offset, IsEnd() ? " 末尾结束不可访问" : "");
+            return String::Format("正文:{} [{}:{}:{}] {}", _kw, file, line + 1, offset + 1, IsEnd() ? " 末尾结束不可访问" : "");
         }
 
         bool IsLineEndToken() const
@@ -296,7 +297,7 @@ namespace agumi
             return Include({"true", "false"});
         }
 
-        bool IsNull() const 
+        bool IsNull() const
         {
             return kw == "null";
         }
@@ -353,7 +354,7 @@ namespace agumi
         {
             if (!Is(expect_kw))
             {
-                THROW_MSG("未知令牌:\n\t{} \t预期: {}", ToDebugStr(), KeyWordMap.at(expect_kw))
+                THROW_MSG("未知令牌:\n\t{} 预期:\"{}\"", ToDebugStr(), KeyWordMap.at(expect_kw))
             }
         }
 
@@ -463,14 +464,14 @@ namespace agumi
                         { return tok.kw != " "; });
         }
 
-        static String ReplFileName ()
+        static String ReplFileName()
         {
-           return String::Format("repl_{}", ++GeneralTokenizer::uniq_id);
+            return String::Format("repl_{}", ++GeneralTokenizer::uniq_id);
         }
 
     private:
         Token CreateToken(String src)
-        {  
+        {
             return Token(src, ptr, line, offset, file_name);
         }
         String file_name;
@@ -578,6 +579,7 @@ namespace agumi
                     break;
                 }
                 ptr_next++;
+                offset++;
             }
             tok.kw = src.substr(ptr, ptr_next - ptr);
             ptr = ptr_next;
@@ -645,6 +647,7 @@ namespace agumi
                     break;
                 }
                 ptr_next++;
+                offset++;
             }
             tok.kw = src.substr(ptr, ptr_next - ptr);
             ptr = ptr_next;
