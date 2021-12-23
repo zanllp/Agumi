@@ -19,8 +19,12 @@ const String color_e = "\033[0m";
 String FormatError(String err, String stack_trace)
 {
     stringstream str;
-    str << color_red_s << "error :" << color_e << "\t" << err << "\n"
-        << stack_trace << '\n';
+    str << color_red_s << "error :" << color_e << "\t" << err << "\n";
+    if (err.find("stack trace:") == -1)
+    {
+        str << stack_trace << '\n';
+    }
+    
     return str.str();
 }
 

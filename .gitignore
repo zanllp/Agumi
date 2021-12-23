@@ -2,4 +2,5 @@
 bin
 *.log
 hello.txt
-script/_kv_*
+*.ast.json
+*.token.json
