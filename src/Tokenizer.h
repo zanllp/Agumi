@@ -224,7 +224,7 @@ namespace agumi
         {
             if (pos == -1)
             {
-                return "native func";
+                return "[native func]";
             }
             return String::Format("{}:{}:{}", file, line + 1, offset + 1);
         }
@@ -562,6 +562,7 @@ namespace agumi
                 }
             }
             ptr++;
+            offset++;
             res.push_back(tok);
         }
         void Number(char c)
@@ -633,6 +634,7 @@ namespace agumi
         {
             auto tok = CreateToken(c);
             auto ptr_next = ptr + 1;
+            offset++;
             auto len = src.size();
             while (ptr_next < len)
             {

@@ -44,6 +44,7 @@ define_member_function(kv_store, {
 
 const make_kv = (dir) => {
     const base_dir = path_calc(env().working_dir, dir)
+    log(f('start kv base dir:{}', base_dir))
     const all_keys = '__all__keys__'
     const base_file_tpl  = path_calc(base_dir, '_kv_{}.json')
     const all_keys_file = f(base_file_tpl, all_keys)
@@ -55,4 +56,4 @@ const make_kv = (dir) => {
         }, kv_store)
 }
 
-const storage = make_kv('script')
+const storage = make_kv(path_calc(env().curr_dir(),"../temp"))

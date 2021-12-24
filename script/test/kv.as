@@ -1,5 +1,4 @@
-include('./stdafx.as')
-include('./kv.as')
+include('../lib/index')
 
 storage.clear()
 storage.set_item('1111', 23333)

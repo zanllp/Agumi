@@ -106,14 +106,13 @@ namespace agumi
 
         String working_dir = '.';
         Vector<Context> ctx_stack;
-        Vector<Value> temp_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
         Vector<Value> ability_define;
         Value process_arg;
-        const String ability_key =  "#ability";
+        const String ability_key = "#ability";
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
@@ -160,7 +159,7 @@ namespace agumi
             auto &scope = ctx_stack[stack_idx].var;
             if (!scope.In(c.kw))
             {
-                THROW_MSG("token {} is not found", c.kw)
+                THROW_STACK_MSG("token {} is not found", c.kw)
             }
             return {scope[c.kw]};
         }
@@ -178,7 +177,7 @@ namespace agumi
                     return ctx.var[key] = val;
                 }
             }
-            THROW_MSG("{} is not defined", key)
+            THROW_STACK_MSG("{} is not defined", key)
         }
         Value Run(Program prog)
         {
@@ -219,7 +218,7 @@ namespace agumi
             auto fn_iter = func_mem.find(loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_MSG("function {} is not defined", loc.ToString())
+                THROW_STACK_MSG("function {} is not defined", loc.ToString())
             }
             Context fn_ctx;
             Value v;
@@ -252,7 +251,7 @@ namespace agumi
         {
             if (task.Type() != ValueType::function)
             {
-                THROW_MSG("task 只能为函数,当前为{}", task.TypeString())
+                THROW_STACK_MSG("task 只能为函数,当前为{}", task.TypeString())
             }
             auto &q = is_micro ? micro_task_queue : macro_task_queue;
             q.push(task);
@@ -281,7 +280,7 @@ namespace agumi
             for (int i = ctx_stack.size() - 1; i >= 0; i--)
             {
                 auto &ctx = ctx_stack[i];
-                res += String::Format("  at {} -- {} \n", i, ctx.start->ToPosStr());
+                res += String::Format("\tat {} -- {} \n", i, ctx.start->ToPosStr());
             }
             return res;
         }
@@ -310,9 +309,9 @@ namespace agumi
             case StatementType::nullLiteral:
                 return ResolveExecutable(stat);
             }
-            THROW_MSG("未定义类型:{}", (int)stat->Type())
+            THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
         }
-        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr,  Vector<Value> extra_args = {})
+        Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr, Vector<Value> extra_args = {})
         {
             SRC_REF(fn_call, FunctionCall, stat)
             auto is_use_optional = fn_loc_optional.Type() == ValueType::function;
@@ -320,12 +319,12 @@ namespace agumi
             if (fn_loc.Type() != ValueType::function)
             {
                 auto msg = String::Format("'{}' is not a function", fn_loc.ToString());
-                THROW_MSG(is_use_optional ? "{}" : "{} key:{}", msg, fn_call.id->start.kw)
+                THROW_STACK_MSG(is_use_optional ? "{}" : "{} key:{}", msg, fn_call.id->start.kw)
             }
             auto fn_iter = func_mem.find(fn_loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_MSG("function {} is not defined", fn_loc)
+                THROW_STACK_MSG("function {} is not defined", fn_loc)
             }
             Context fn_ctx;
             Value v;
@@ -347,16 +346,16 @@ namespace agumi
                 auto extra_args_size = extra_args.size();
                 if (src_args.size() != fn_call.arguments.size() + extra_args_size)
                 {
-                    THROW_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size() + extra_args_size)
+                    THROW_STACK_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size() + extra_args_size)
                 }
-                size_t i =0;
+                size_t i = 0;
                 for (; i < extra_args_size; i++)
                 {
                     auto arg = src_args[i];
                     auto key = arg.name.kw;
                     fn_ctx.var[key] = extra_args[i];
                 }
-                
+
                 for (; i < fn_call.arguments.size() + extra_args_size; i++)
                 {
                     auto arg = src_args[i];
@@ -382,7 +381,7 @@ namespace agumi
             auto class_iter = class_define.find(t);
             if (class_iter == class_define.end())
             {
-                THROW_MSG("class {} is not defined", type_emun2str[(int)t])
+                THROW_STACK_MSG("class {} is not defined", type_emun2str[(int)t])
             }
             Vector<Value> args;
             for (size_t i = 0; i < fn_call.arguments.size(); i++)
@@ -400,11 +399,11 @@ namespace agumi
                 auto key = i->id.tok.kw;
                 if (CurrScope().In(key))
                 {
-                    THROW_MSG("Identifier '{}' has already been declared", key)
+                    THROW_STACK_MSG("Identifier '{}' has already been declared", key)
                 }
                 if (i->type.Is(const_) && !i->initialed)
                 {
-                    THROW_MSG("Missing initializer in const declaration")
+                    THROW_STACK_MSG("Missing initializer in const declaration")
                 }
                 auto val = i->initialed ? ResolveExecutable(i->init) : nullptr;
                 return CurrScope()[key] = val;
@@ -442,7 +441,7 @@ namespace agumi
             auto v = GetValue(id.tok.kw);
             if (!v)
             {
-                THROW_MSG("{} is not defined", id.tok.kw)
+                THROW_STACK_MSG("{} is not defined", id.tok.kw)
             }
             return v->get();
         }
@@ -453,7 +452,7 @@ namespace agumi
             auto right = ResolveExecutable(expr.right);
             auto type = left.Type();
             auto type_r = right.Type();
-#define ERR_ResolveBinaryExpression THROW_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
+#define ERR_ResolveBinaryExpression THROW_STACK_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
             auto left_type_def = class_define.find(type);
             if (left_type_def == class_define.end())
             {
@@ -492,112 +491,88 @@ namespace agumi
             SRC_REF(init, StringLiteralInit, stat);
             return init.start.toStringContent();
         }
-        Value ResolveObjectIndex(StatPtr stat, Value &par, bool is_literal = false, bool is_dot = false)
+        Value ResolveObjectIndex(StatPtr stat)
         {
             auto t = stat->Type();
-            if (t == StatementType::indexStatement)
+            SRC_REF(idx, IndexStatement, stat);
+            Value par;
+            int num = -1;
+            for (auto &&i : idx.indexes)
             {
-                SRC_REF(idx, IndexStatement, stat);
-                if (par.Type() == ValueType::null) // 首个值初始化
+                num++;
+                if (num == 0)
                 {
-                    auto obj_p = idx.object;
-                    auto obj_is_idx = obj_p->Type() == StatementType::identifier;
-                    if (obj_is_idx)
-                    {
-                        SRC_REF(id_stat, Identifier, obj_p)
-                        Value &obj = ValueOrUndef(id_stat.tok.kw);
-                        return ResolveObjectIndex(idx.property, obj, false, idx.is_dot);
-                    }
-                    else
-                    {
-                        auto v = ResolveExecutable(obj_p);                                            // 可能是字面量
-                        temp_stack.push_back(v);                                                      //  压入临时栈
-                        return ResolveObjectIndex(idx.property, temp_stack.back(), true, idx.is_dot); // 持有刚才值的引用，并标明是一个字面量
-                    }
+                    par = ResolveExecutable(i.stat);
+                    continue;
                 }
-                else // 非首个值迭代
+                if (i.is_dot)
                 {
-                    if (par.Type() != ValueType::object)
+
+                    if (i.stat->Type() == StatementType::functionCall)
                     {
-                        THROW
-                    }
-                    if (idx.is_dot)
-                    {
-                        SRC_REF(id, Identifier, idx.object)
-                        String key = id.tok.kw;
-                        auto &next_par = par[key];
-                        return ResolveObjectIndex(idx.property, next_par, is_literal, true);
-                    }
-                    else
-                    {
-                        Value key = ResolveExecutable(idx.object);
-                        auto &next_par = key.Type() == ValueType::string ? par[key.ToString()] : par[key.Get<double>()];
-                        return ResolveObjectIndex(idx.property, next_par, is_literal, false);
-                    }
-                    // todo 类成员set get
-                    THROW
-                }
-            }
-            else if (t == StatementType::functionCall) // 成员函数调用
-            {
-                SRC_REF(fn, FunctionCall, stat);
-                SRC_REF(key, Identifier, fn.id);
-                auto t = par.Type();
-                auto key_str = key.tok.kw;
-                if (t == ValueType::null)
-                {
-                    THROW_MSG("NullPointerException property:{}", key_str)
-                }
-                if (t == ValueType::object)
-                {
-                    if (par.In(key_str))
-                    {
-                        return ResolveFuncCall(stat, par[key_str]);
-                    }
-                    if (par.In(ability_key))
-                    {
-                        for (auto &&i : par[ability_key].Arr().Src())
+                        SRC_REF(fn, FunctionCall, i.stat);
+                        SRC_REF(key, Identifier, fn.id);
+                        auto t = par.Type();
+                        auto key_str = key.tok.kw;
+                        if (t == ValueType::null)
                         {
-                            auto idx = i["key"].Get<double>();
-                            auto abi = ability_define[idx];
-                            if (abi.In(key_str))
+                            THROW_STACK_MSG("NullPointerException property:{}", key_str)
+                        }
+                        if (t == ValueType::object)
+                        {
+                            if (par.In(key_str))
                             {
-                                return ResolveFuncCall(stat, abi[key_str], { par });
-                            }   
-                        }   
+                                par = ResolveFuncCall(i.stat, par[key_str]);
+                                continue;
+                            }
+                            else if (par.In(ability_key))
+                            {
+                                bool continue_flag = false;
+                                for (auto &&abi_item : par[ability_key].Arr().Src())
+                                {
+                                    auto abi_idx = abi_item["key"].Get<double>();
+                                    auto target_abi = ability_define[abi_idx];
+                                    if (target_abi.In(key_str))
+                                    {
+                                        par = ResolveFuncCall(i.stat, target_abi[key_str], {par});
+                                        continue_flag = true;
+                                        continue;
+                                    }
+                                }
+                                if (continue_flag)
+                                {
+                                    continue;
+                                }
+                                
+                            }
+                        }
+                        par = ResolveLocalClassFuncCall(i.stat, t, key_str, par);
                     }
-                }
-                auto v = ResolveLocalClassFuncCall(stat, t, key_str, par);
-                if (is_literal)
-                {
-                    temp_stack.pop_back(); // 释放临时的字面量
-                }
-                return v;
-            }
-            else // 最后的索引
-            {
-                if (is_dot)
-                {
-                    SRC_REF(id, Identifier, stat)
-                    String key = id.tok.kw;
-                    return par[key];
+                    else
+                    {
+                        SRC_REF(id, Identifier, i.stat)
+                        String key = id.tok.kw;
+                        par = par[key];
+                    }
                 }
                 else
                 {
-                    Value key = ResolveExecutable(stat);
+                    auto key = ResolveExecutable(i.stat);
                     auto kt = key.Type();
                     if (kt == ValueType::string)
                     {
-                        return par[key.ToString()];
+                        par = par[key.ToString()];
+                        continue;
                     }
-                    if (kt == ValueType::number)
+                    else if (kt == ValueType::number)
                     {
-                        return par[key.Get<double>()];
+                        par = par[key.Get<double>()];
+                        continue;
                     }
-                    THROW_MSG("仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
+                    THROW_STACK_MSG("仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
                 }
             }
-            THROW
+            return par;
         }
 
         Value ResolveArrayInit(StatPtr stat)
@@ -644,7 +619,7 @@ namespace agumi
             case StatementType::functionCall:
                 return ResolveFuncCall(stat);
             case StatementType::indexStatement:
-                return ResolveObjectIndex(stat, Value::null);
+                return ResolveObjectIndex(stat);
             case StatementType::arrayInit:
                 return ResolveArrayInit(stat);
             case StatementType::objectInit:
@@ -652,7 +627,7 @@ namespace agumi
             case StatementType::nullLiteral:
                 return nullptr;
             }
-            THROW_MSG("未定义类型:{}", (int)stat->Type())
+            THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
         }
 
         Value ResolveFuncDeclear(StatPtr stat)
@@ -733,21 +708,30 @@ namespace agumi
                 case StatementType::indexStatement:
                 {
                     SRC_REF(obj_idx_stat, IndexStatement, s)
-                    if (obj_idx_stat.object->Type() == StatementType::identifier)
+                    auto par = obj_idx_stat.indexes[0];
+                    if (par.stat->Type() == StatementType::identifier)
                     {
-                        SRC_REF(obj_stat, Identifier, obj_idx_stat.object)
+                        SRC_REF(obj_stat, Identifier, par.stat)
                         save_value_to_closure(obj_stat.tok.kw);
                     }
-                    IndexStatement *obj = &obj_idx_stat;
-                    while (obj->property->Type() == StatementType::indexStatement)
+                    for (auto &&i : obj_idx_stat.indexes.Slice(1))
                     {
-                        obj = static_cast<IndexStatement *>(obj->property.get());
+                        if (i.is_dot)
+                        {
+                            if (i.stat->Type() == StatementType::functionCall)
+                            {
+                                SRC_REF(fn, FunctionCall, i.stat)
+                                for (auto &&arg : fn.arguments)
+                                {
+                                    Visitor(arg, closure);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Visitor(i.stat, closure);
+                        }
                     }
-                    if (obj->property->Type() == StatementType::functionCall)
-                    {
-                        Visitor(obj->property, closure);
-                    }
-
                     return;
                 }
                 case StatementType::conditionExpression:

@@ -43,6 +43,13 @@ namespace agumi
             return "base statement";
         }
         virtual ~Statement(){};
+        virtual void Expect(StatementType type)
+        {
+            if (Type() != type)
+            {
+                throw std::logic_error(String::Format("parse error! expectd {} :  received {}", int(type), int(Type())));
+            }
+        }
     };
 
     using StatPtr = std::shared_ptr<Statement>;
@@ -315,12 +322,30 @@ namespace agumi
         }
     };
 
+    class IndexNodeWrapper 
+    {
+    public:
+        IndexNodeWrapper(StatPtr _stat, bool _is_dot)
+        {
+            stat = _stat;
+            is_dot = _is_dot;
+        }
+        StatPtr stat;
+        bool is_dot;
+        Value ToJson()
+        {
+            Value r = Object();
+            r["type"] = "IndexNodeWrapper";
+            r["stat"] = stat->ToJson();
+            r["is_dot"] = is_dot;
+            return r;
+        }
+    };
+
     class IndexStatement : public Statement
     {
     public:
-        std::shared_ptr<Statement> object;
-        StatPtr property;
-        bool is_dot = true;
+        Vector<IndexNodeWrapper> indexes;
         StatementType Type()
         {
             return StatementType::indexStatement;
@@ -329,9 +354,13 @@ namespace agumi
         {
             Value r = Object();
             r["type"] = "IndexStatement";
-            r["propetry"] = property->ToJson();
-            r["object"] = object->ToJson();
-            r["start"] = start.ToPosStr();
+            auto arr = Array();
+            for (auto &&i : indexes)
+            {
+                arr.Src().push_back(i.ToJson());
+            }
+
+            r["indexes"] = arr;
             return r;
         }
     };
@@ -595,27 +624,49 @@ namespace agumi
             return {stat, pos2_end_iter};
         }
 
-        // is_dot 索引的两个方式. []
-        StatPtrWithEnd ResolveIndex(StatPtr pos1_stat, TokenFlowView tfv, bool is_dot = true)
+        StatPtrWithEnd ResolveIndex(StatPtr pos1_stat, TokenFlowView tfv)
         {
             auto iter = tfv.BeginIter();
-            iter++;
             auto stat = std::make_shared<IndexStatement>();
             stat->start = *iter;
-            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(iter);
-            stat->property = pos2_stat;
-            stat->object = pos1_stat;
-            stat->is_dot = is_dot;
-            if (!is_dot)
+            stat->indexes.push_back(IndexNodeWrapper(pos1_stat, true));
+            while (true)
             {
-                pos2_end_iter->Expect(brackets_end_);
-                pos2_end_iter++;
-                if (pos2_end_iter->Is(brackets_start_))
+                if (iter->Is(dot_))
                 {
-                    return ResolveIndex(stat, pos2_end_iter, false);
+                    iter++;
+                    auto [id_stat, end_iter] = ResolveExecutableStatment(iter);
+                    auto t = id_stat->Type();
+                    if (t == StatementType::identifier || t == StatementType::functionCall)
+                    {
+                        stat->indexes.push_back(IndexNodeWrapper(id_stat, true));
+                        iter = end_iter;
+                        continue;
+                    }
+                    if (t == StatementType::indexStatement)
+                    {
+                        SRC_REF(nested_idx, IndexStatement, id_stat)
+                        stat->indexes.insert(stat->indexes.end(), nested_idx.indexes.begin(), nested_idx.indexes.end());
+                        iter = end_iter;
+                        continue;
+                    }
+                    
+                    THROW_MSG("undefined type {}", int(t))
                 }
+                else if (iter->Is(brackets_start_))
+                {
+                    iter++;
+                    auto [id_stat, end_iter] = ResolveExecutableStatment(iter);
+                    stat->indexes.push_back(IndexNodeWrapper(id_stat, false));
+                    iter = end_iter;
+                    iter->Expect(brackets_end_);
+                    iter++;
+                    continue;
+                }
+                break;
             }
-            return {stat, pos2_end_iter};
+
+            return {stat, iter};
         }
 
         StatPtrWithEnd ResolveExpr(StatPtr pos1_stat, TokenFlowView tfv)
@@ -983,13 +1034,9 @@ namespace agumi
             {
                 return ResolveSubNumberLiteral(left_stat, next_iter);
             }
-            if (next_iter->Is(dot_))
+            if (next_iter->Is(dot_) || next_iter->Is(brackets_start_))
             {
-                return ResolveIndex(left_stat, next_iter, true);
-            }
-            if (next_iter->Is(brackets_start_))
-            {
-                return ResolveIndex(left_stat, next_iter, false);
+                return ResolveIndex(left_stat, next_iter);
             }
             return {left_stat, next_iter};
         };

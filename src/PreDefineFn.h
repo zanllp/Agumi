@@ -18,7 +18,10 @@ namespace agumi
         auto o2 = Object({{"hello", o1}});
         auto o3 = Object({{"o3", o2}});
         vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
-        vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir}, {"process_arg", vm.process_arg}})));
+        vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir},
+                                                        {"process_arg", vm.process_arg},
+                                                        {"curr_dir", vm.DefineFunc(VM_FN(return PathCalc(vm.CurrCtx().start->file, "..");))},
+                                                        {"curr_file", vm.DefineFunc(VM_FN(return vm.CurrCtx().start->file;))}})));
         vm.DefineGlobalFunc("make_ability", [&](Vector<Value> args) -> Value
                             {
             auto name = args.GetOrDefault(0);
@@ -30,12 +33,12 @@ namespace agumi
             auto v = args.GetOrDefault(0);
             if (v.Type() != ValueType::object)
             {
-                THROW_MSG("use_ability only allows using in object")
+                THROW_VM_STACK_MSG("use_ability only allows using in object")
             }
             auto abi = args.GetOrDefault(1);
             if (abi["key"].Get<double>() > vm.ability_define.size())
             {
-                THROW_MSG("it is an invalid ability")
+                THROW_VM_STACK_MSG("it is an invalid ability")
             }
             if (!v.Obj()[vm.ability_key].NotUndef())
             {
@@ -72,7 +75,7 @@ namespace agumi
                     auto idx = target["key"].GetC<double>();
                     if (idx > vm.ability_define.size())
                     {
-                        THROW_MSG("it is an invalid ability")
+                        THROW_VM_STACK_MSG("it is an invalid ability")
                     }
                     auto abi = vm.ability_define[idx]; for (auto &&i : define_obj.ObjC().SrcC())
                     for (auto &&i : define_obj.ObjC().SrcC())
@@ -98,7 +101,7 @@ namespace agumi
                     auto idx = target["key"].GetC<double>();
                     if (idx > vm.ability_define.size())
                     {
-                        THROW_MSG("it is an invalid ability")
+                        THROW_VM_STACK_MSG("it is an invalid ability")
                     }
                     auto abi = vm.ability_define[idx];
                     abi[name] = func;
@@ -148,7 +151,7 @@ namespace agumi
             {
                 if (params_i.Type() != ValueType::object)
                 {
-                    THROW_MSG("params必须为object类型，当前为{}", params_i.TypeString())
+                    THROW_VM_STACK_MSG("params必须为object类型，当前为{}", params_i.TypeString())
                 }
                 auto method_i = params_i["method"];
                 auto headers_i = params_i["headers"];
@@ -165,7 +168,7 @@ namespace agumi
                 {
                     if (headers_i.Type() != ValueType::object)
                     {
-                        THROW_MSG("headers必须为object类型，当前为{}", headers_i.TypeString())
+                        THROW_VM_STACK_MSG("headers必须为object类型，当前为{}", headers_i.TypeString())
                     }
                     for (auto &i : headers_i.ObjC().SrcC())
                     {
@@ -202,7 +205,7 @@ namespace agumi
         auto assert_bind = VM_FN(
             if (!args.GetOrDefault(0).ToBool()) {
                 String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
-                THROW_MSG(msg)
+                THROW_VM_STACK_MSG(msg)
             } return nullptr;);
         vm.DefineGlobalFunc("assert", assert_bind);
         auto parse_agumi_script_bind = VM_FN(
@@ -215,10 +218,10 @@ namespace agumi
             auto script = args.GetOrDefault(0).ToString();
             auto tfv = GeneralTokenizer::Agumi(script, args.GetOrDefault(1).ToString());
             Array arr;
-            for (auto &&i : tfv) {
+            for (auto &&i
+                 : tfv) {
                 arr.Src().push_back(i.ToJson());
-            }
-            return arr;);
+            } return arr;);
         vm.DefineGlobalFunc("generate_agumi_script_token", generate_agumi_script_token_bind);
         auto eval = [&](Vector<Value> args) -> Value
         {
@@ -244,6 +247,7 @@ namespace agumi
             
             return r ; };
         vm.DefineGlobalFunc("eval", eval);
+
         vm.DefineGlobalFunc("include", [&](Vector<Value> args) -> Value
                             {
             auto path = args.GetOrDefault(0).ToString();
@@ -251,13 +255,18 @@ namespace agumi
             auto absolute_path = use_working_dir_as_relative_path 
                 ? PathCalc(vm.working_dir, path)
                 : PathCalc(vm.CurrCtx().start->file, "..", path);
+            if (absolute_path.find(".") == std::string::npos)
+            {
+                absolute_path += ".as";
+            }
+            
             if (vm.included_files.Includes(absolute_path))
             {
                 return nullptr;
             }
             if (!fs_exist_vm(absolute_path))
             {
-                THROW_MSG("the file '{}' is not found", absolute_path)
+                THROW_VM_STACK_MSG("the file '{}' is not found", absolute_path)
             }
             
             auto file = LoadFile(absolute_path);
@@ -278,7 +287,7 @@ namespace agumi
                 idx = args[0].Get<double>();
                 if (idx > vm.ctx_stack.size())
                 {
-                    THROW_MSG("内存越界 参数:{} vm ctx_stack size:{}", idx, vm.ctx_stack.size())
+                    THROW_VM_STACK_MSG("内存越界 参数:{} vm ctx_stack size:{}", idx, vm.ctx_stack.size())
                 }
             } return vm.ctx_stack[idx]
                 .var;);
@@ -294,7 +303,7 @@ namespace agumi
                     auto t = key.Type();
                     if (!(t == ValueType::number || t == ValueType::string))
                     {
-                        THROW_MSG("{} 不允许用来索引", key.TypeString())
+                        THROW_VM_STACK_MSG("{} 不允许用来索引", key.TypeString())
                     }
                     self = t == ValueType::number ? self[key.GetC<double>()] : self[key.ToString()];
                 }
@@ -341,7 +350,7 @@ namespace agumi
             auto v = args.GetOrDefault(0);
             if (v.Type() != ValueType::function)
             {
-                THROW_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
+                THROW_VM_STACK_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
             }
             auto &src = _this.Arr().Src();
             for (size_t i = 0; i < src.size(); i++)
@@ -357,7 +366,7 @@ namespace agumi
             auto v = args.GetOrDefault(0);
             if (v.Type() != ValueType::function)
             {
-                THROW_MSG("array::where 的参数必须为function类型，当前为{}", v.TypeString())
+                THROW_VM_STACK_MSG("array::where 的参数必须为function类型，当前为{}", v.TypeString())
             }
 
             for (auto &i : _this.Arr().Src())
@@ -419,5 +428,6 @@ namespace agumi
             }
             return arr; });
         vm.class_define[ValueType::object] = LocalClassDefine();
+        vm.class_define[ValueType::boolean] = LocalClassDefine();
     }
 }

@@ -19,8 +19,12 @@ const String color_e = "\033[0m";
 String FormatError(String err, String stack_trace)
 {
     stringstream str;
-    str << color_red_s << "error :" << color_e << "\t" << err << "\n"
-        << stack_trace << '\n';
+    str << color_red_s << "error :" << color_e << "\t" << err << "\n";
+    if (err.find("stack trace:") == -1)
+    {
+        str << stack_trace << '\n';
+    }
+    
     return str.str();
 }
 
@@ -283,7 +287,7 @@ void TestScriptExec(String working_dir)
     VmRunScript(vm, "const getInst = instFactory([1,2,3,4,5])");
     ASS(RUN2STR("[] == []"), "false")
     ASS(RUN2STR("getInst() == getInst()"), "true")
-    String file_name = PathCalc(working_dir, "script/index.spec.as");
+    String file_name = PathCalc(working_dir, "script/test/index.as");
     P(file_name)
     String file = LoadFile(file_name);
     ASS_T(file.size() > 0)
