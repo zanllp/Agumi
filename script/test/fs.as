@@ -1,4 +1,4 @@
-include('./stdafx.as')
+include('../lib/index')
 
 const test_json_str = fs.read('test.json')
 ass_t((test_json_str.length()) > 0)

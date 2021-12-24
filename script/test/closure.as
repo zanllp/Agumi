@@ -1,4 +1,4 @@
-include('./stdafx.as')
+include('../lib/index')
 
 const create_closure = str => {
     const vvv = f(1)

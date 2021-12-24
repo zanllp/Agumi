@@ -4,3 +4,4 @@ bin
 hello.txt
 *.ast.json
 *.token.json
+script/temp/_*
