@@ -322,22 +322,32 @@ namespace agumi
         }
     };
 
-    class IndexNodeWrapper 
+    enum class IndexType
+    {
+        // aa.dd aa.dd()
+        property,
+        // sss()()()
+        call,
+        // sss[1]
+        index
+    };
+    class IndexNodeWrapper
     {
     public:
-        IndexNodeWrapper(StatPtr _stat, bool _is_dot)
+        IndexNodeWrapper(StatPtr _stat, IndexType _type = IndexType::property)
         {
             stat = _stat;
-            is_dot = _is_dot;
+            type = _type;
         }
         StatPtr stat;
-        bool is_dot;
+        IndexType type;
+
         Value ToJson()
         {
             Value r = Object();
             r["type"] = "IndexNodeWrapper";
             r["stat"] = stat->ToJson();
-            r["is_dot"] = is_dot;
+            r["type"] = int(type);
             return r;
         }
     };
@@ -452,7 +462,7 @@ namespace agumi
     class AssigmentStatement : public Statement
     {
     public:
-        Token id;
+        StatPtr target;
         StatPtr value;
 
         StatementType Type()
@@ -462,10 +472,9 @@ namespace agumi
         Value ToJson()
         {
             auto r = Object();
-            r["id"] = id.ToJson();
+            r["target"] = target->ToJson();
             r["value"] = value->ToJson();
             r["type"] = "assigmentStatement";
-            r["start"] = start.ToPosStr();
             return r;
         }
     };
@@ -629,7 +638,7 @@ namespace agumi
             auto iter = tfv.BeginIter();
             auto stat = std::make_shared<IndexStatement>();
             stat->start = *iter;
-            stat->indexes.push_back(IndexNodeWrapper(pos1_stat, true));
+            stat->indexes.push_back(IndexNodeWrapper(pos1_stat));
             while (true)
             {
                 if (iter->Is(dot_))
@@ -639,7 +648,7 @@ namespace agumi
                     auto t = id_stat->Type();
                     if (t == StatementType::identifier || t == StatementType::functionCall)
                     {
-                        stat->indexes.push_back(IndexNodeWrapper(id_stat, true));
+                        stat->indexes.push_back(IndexNodeWrapper(id_stat));
                         iter = end_iter;
                         continue;
                     }
@@ -650,18 +659,37 @@ namespace agumi
                         iter = end_iter;
                         continue;
                     }
-                    
                     THROW_MSG("undefined type {}", int(t))
                 }
                 else if (iter->Is(brackets_start_))
                 {
                     iter++;
                     auto [id_stat, end_iter] = ResolveExecutableStatment(iter);
-                    stat->indexes.push_back(IndexNodeWrapper(id_stat, false));
+                    stat->indexes.push_back(IndexNodeWrapper(id_stat, IndexType::index));
                     iter = end_iter;
                     iter->Expect(brackets_end_);
                     iter++;
                     continue;
+                }
+                else if (iter->Is(parenthesis_start_))
+                {
+                    auto [fn_call, end_iter] = ResolveFuncCall(std::make_shared<Statement>(), iter);
+                    auto t = fn_call->Type();
+                    if (t == StatementType::functionCall)
+                    {
+                        stat->indexes.push_back(IndexNodeWrapper(fn_call, IndexType::call));
+                        iter = end_iter;
+                        continue;
+                    }
+                    if (t == StatementType::indexStatement)
+                    {
+                        SRC_REF(nested_idx, IndexStatement, fn_call)
+                        nested_idx.indexes[0].type = IndexType::call; // 嵌套的默认propetry,不检查
+                        stat->indexes.insert(stat->indexes.end(), nested_idx.indexes.begin(), nested_idx.indexes.end());
+                        iter = end_iter;
+                        continue;
+                    }
+                    THROW_MSG("undefined type {}", int(t))
                 }
                 break;
             }
@@ -1044,22 +1072,29 @@ namespace agumi
         StatPtrWithEnd ResovleAssigmentOrIdentify(TokenFlowView tfv)
         {
             auto iter = tfv.BeginIter();
-            auto assigment_or_other = iter + 1;
-            if (assigment_or_other->Is(dot_))
+            auto [probably_assign, assigment_or_other] = ResolveExecutableStatment(iter);
+            auto assignable = probably_assign->Type() == StatementType::identifier || probably_assign->Type() == StatementType::indexStatement;
+            if (assignable && assigment_or_other->Is(assigment_))
             {
-            }
+                if (probably_assign->Type() == StatementType::indexStatement)
+                {
+                    SRC_REF(idx, IndexStatement, probably_assign)
+                    auto last_property = *(idx.indexes.end() - 1);
+                    if (last_property.stat->Type() == StatementType::functionCall)
+                    {
+                        THROW_MSG("assignment statement's last property index is not able to a function call .\nposition:{}", last_property.stat->start.ToPosStr())
+                    }
+                }
 
-            if (assigment_or_other->Is(assigment_))
-            {
                 auto value_iter = assigment_or_other + 1;
                 auto [stat_ptr, end_iter] = ResolveExecutableStatment(value_iter);
                 auto assigment = std::make_shared<AssigmentStatement>();
                 assigment->start = *iter;
-                assigment->id = *iter;
+                assigment->target = probably_assign;
                 assigment->value = stat_ptr;
                 return {assigment, end_iter};
             }
-            return ResolveExecutableStatment(iter);
+            return {probably_assign, assigment_or_other};
         }
 
         StatPtrWithEnd Dispatch(TokenFlowView tfv)
@@ -1069,19 +1104,11 @@ namespace agumi
             {
                 return ResolveDeclearStatment(iter);
             }
-            else if (iter->Is(if_))
-            {
-                ResolveIfStatment(iter);
-            }
             else if (iter->IsIdentifier())
             {
                 return ResovleAssigmentOrIdentify(iter);
             }
-            else
-            {
-                return ResolveExecutableStatment(iter);
-            }
-            THROW
+            return ResolveExecutableStatment(iter);
         }
 
         Program ConstructAST(Vector<Token> &token_flow)

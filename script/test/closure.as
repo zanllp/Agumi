@@ -6,32 +6,39 @@ const create_closure = str => {
         ee => f('{} {} {} {}',str ,vvv ,tt, ee)
     }
 }
-const fn = create_closure('hello')
-log(fn('22')(1))
-log(fn('33')(2))
+const closure_fn = create_closure('hello')
+ass(closure_fn('22')(1), 'hello 1 22 1')
+ass(closure_fn('33')(2), 'hello 1 33 2')
 
 const create_obj = () => {
     { hello: 'world' }
 }
 
-log(create_obj().hello)
+ass(create_obj().hello, 'world')
  
 const while = (s,e,fn) => {
-    const cb = () => {
+    const foo_r = () => {
         fn(s)
         micro(() => while(s+1, e, fn))
     }
-    (s < e) ? cb() : null
+    (s < e) ? foo_r() : null
 }
 
 while(0, 5, log)
-const call = (fn, arg) => fn(arg)
-
-const call_api = (path, cb) => macro(() => {
-    const url = 'http://api.ioflow.link'+path
-    const resp = fetch(url)
-    cb({ resp, url })
-})
 
 
-call_api('/message', v => log(v.resp.data))
+const foo = () => {
+    const bar = { cc: {} }
+    [bar, () => {
+        bar.cc[0]=1
+    }]
+}
+
+const foo_r = foo()
+foo_r[0].cc = [11,2,3]
+foo_r[1]()
+ass(foo_r[0].cc, [1,2,3])
+
+const multi_chain_test = [0, () => { { f: 'HELLO WORLD' } }]
+
+ass(multi_chain_test[1]().f, 'HELLO WORLD')

@@ -319,7 +319,7 @@ namespace agumi
             {
                 return false;
             }
-            return kw.Test(R"(^[_a-z$][_a-z$\w]*$)");
+            return kw.Test(R"(^[_a-zA-Z$][_$\w]*$)");
         }
 
         KW ToKwEnum()
