@@ -1,4 +1,6 @@
 include('lib/index')
+
+
 const socket_push = (data) => {
     make_promise(resolve => {
         const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
@@ -10,7 +12,7 @@ const socket_push = (data) => {
     })
 }
 
-const resp = socket_push([])
+socket_push([]).then(resp => {
+    log(resp.data)
+})
 
-const ee = []
-log(ee.to_string())

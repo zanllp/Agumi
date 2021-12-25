@@ -422,9 +422,14 @@ namespace agumi
         Value ResolveAssigmentStat(StatPtr stat)
         {
             SRC_REF(assig, AssigmentStatement, stat);
-            auto id = assig.id.kw;
             auto val = ResolveExecutable(assig.value);
-            return SetValue(id, val);
+            if (assig.target->Type() == StatementType::identifier)
+            {
+                SRC_REF(id, Identifier, assig.target)
+                return SetValue(id.tok.kw, val);
+            }
+            SRC_REF(idx, IndexStatement, assig.target)
+            return ResolveObjectIndex(assig.target, {val});
         }
         Value ResolveIdentifier(StatPtr stat)
         {
@@ -491,21 +496,22 @@ namespace agumi
             SRC_REF(init, StringLiteralInit, stat);
             return init.start.toStringContent();
         }
-        Value ResolveObjectIndex(StatPtr stat)
+        Value ResolveObjectIndex(StatPtr stat, std::optional<Value> set_value = {})
         {
             auto t = stat->Type();
-            SRC_REF(idx, IndexStatement, stat);
+            SRC_REF(idx_stat, IndexStatement, stat);
             Value par;
-            int num = -1;
-            for (auto &&i : idx.indexes)
+            bool is_set_val = set_value.has_value();
+            for (size_t index = 0; index < idx_stat.indexes.size(); index++)
             {
-                num++;
-                if (num == 0)
+                auto &i = idx_stat.indexes[index];
+                bool is_set = (index + 1 == idx_stat.indexes.size()) && is_set_val;
+                if (index == 0)
                 {
                     par = ResolveExecutable(i.stat);
                     continue;
                 }
-                if (i.is_dot)
+                if (i.type == IndexType::property)
                 {
 
                     if (i.stat->Type() == StatementType::functionCall)
@@ -543,7 +549,6 @@ namespace agumi
                                 {
                                     continue;
                                 }
-                                
                             }
                         }
                         par = ResolveLocalClassFuncCall(i.stat, t, key_str, par);
@@ -552,24 +557,42 @@ namespace agumi
                     {
                         SRC_REF(id, Identifier, i.stat)
                         String key = id.tok.kw;
+                        if (is_set)
+                        {
+                            par[key] = set_value.value();
+                        }
+
                         par = par[key];
                     }
                 }
-                else
+                else if (i.type ==  IndexType::index)
                 {
                     auto key = ResolveExecutable(i.stat);
                     auto kt = key.Type();
                     if (kt == ValueType::string)
                     {
+                        if (is_set)
+                        {
+                            par[key.ToString()] = set_value.value();
+                        }
                         par = par[key.ToString()];
                         continue;
                     }
                     else if (kt == ValueType::number)
                     {
-                        par = par[key.Get<double>()];
+                        auto idx = key.Get<double>();
+                        if (is_set)
+                        {
+                            par[idx] = set_value.value();
+                        }
+                        par = par[idx];
                         continue;
                     }
                     THROW_STACK_MSG("仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())
+                }
+                else
+                {
+                    par = ResolveFuncCall(i.stat, par);
                 }
             }
             return par;
@@ -670,6 +693,13 @@ namespace agumi
                 };
                 switch (s->Type())
                 {
+                case StatementType::assigmentStatement:
+                {
+                    SRC_REF(stat, AssigmentStatement, s)
+                    Visitor(stat.value, closure);
+                    Visitor(stat.target, closure);
+                    return;
+                }
                 case StatementType::functionDeclaration:
                 {
                     SRC_REF(stat, FunctionDeclaration, s)
@@ -716,7 +746,7 @@ namespace agumi
                     }
                     for (auto &&i : obj_idx_stat.indexes.Slice(1))
                     {
-                        if (i.is_dot)
+                        if (i.type == IndexType::property || i.type == IndexType::call)
                         {
                             if (i.stat->Type() == StatementType::functionCall)
                             {
@@ -741,6 +771,16 @@ namespace agumi
                     {
                         Visitor(i, closure);
                     }
+                    return;
+                }
+                case StatementType::arrayInit:
+                {
+                    SRC_REF(arr, ArrayInit, s)
+                    for (auto &i : arr.src)
+                    {
+                        Visitor(i, closure);
+                    }
+
                     return;
                 }
                 case StatementType::objectInit:
