@@ -344,25 +344,24 @@ namespace agumi
             {
                 auto &src_args = fn.src->arguments;
                 auto extra_args_size = extra_args.size();
-                if (src_args.size() != fn_call.arguments.size() + extra_args_size)
+                if (src_args.size() > fn_call.arguments.size() + extra_args_size)
                 {
                     THROW_STACK_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size() + extra_args_size)
                 }
-                size_t i = 0;
-                for (; i < extra_args_size; i++)
+                Vector<Value> args;
+                args.insert(args.begin(), extra_args.begin(), extra_args.end());
+                for (auto &&i : fn_call.arguments)
                 {
-                    auto arg = src_args[i];
-                    auto key = arg.name.kw;
-                    fn_ctx.var[key] = extra_args[i];
+                    args.push_back(ResolveExecutable(i));
                 }
 
-                for (; i < fn_call.arguments.size() + extra_args_size; i++)
+                for (size_t i = 0; i < src_args.size(); i++)
                 {
                     auto arg = src_args[i];
                     auto key = arg.name.kw;
-                    auto incoming_val = ResolveExecutable(fn_call.arguments[i - extra_args_size]);
-                    fn_ctx.var[key] = incoming_val;
+                    fn_ctx.var[key] = args[i];
                 }
+
                 ctx_stack.push_back(fn_ctx);
                 // 执行函数
                 for (auto &stat : fn.src->body)

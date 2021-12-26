@@ -336,6 +336,16 @@ namespace agumi
         {
             return double(_this.ArrC().SrcC().size());
         };
+        array_def.member_func["resize"] = [](Value &_this, Vector<Value> args) -> Value
+        {
+            auto size = args.GetOrDefault(0);
+            if (size.NotUndef())
+            {
+                _this.Arr().Src().resize(size.Get<double>());
+                return true;
+            }
+            return false;
+        };
         array_def.member_func["push"] = [](Value &_this, Vector<Value> args) -> Value
         {
             for (auto &i : args)
@@ -348,34 +358,30 @@ namespace agumi
         {
             Array arr;
             auto v = args.GetOrDefault(0);
+            auto start_raw = args.GetOrDefault(1);
+            if (start_raw.NotUndef() || start_raw.Type() == ValueType::number)
+            {
+                THROW_VM_STACK_MSG("array::select 的第2个参数必须为number类型，当前为{}", start_raw.TypeString())
+            }
+
             if (v.Type() != ValueType::function)
             {
                 THROW_VM_STACK_MSG("array::select 的参数必须为function类型，当前为{}", v.TypeString())
             }
             auto &src = _this.Arr().Src();
-            for (size_t i = 0; i < src.size(); i++)
+            bool stop = false;
+            auto stop_handler = vm.DefineFunc(VM_FN(stop = true; return true;));
+            auto start = start_raw.NotUndef() ? start_raw.Get<double>() : 0;
+            for (size_t i = start; i < src.size(); i++)
             {
-                arr.Src().push_back(vm.FuncCall(v, {src[i], double(i)}));
-            }
-
-            return arr;
-        };
-        array_def.member_func["where"] = [&](Value &_this, Vector<Value> args) -> Value
-        {
-            Array arr;
-            auto v = args.GetOrDefault(0);
-            if (v.Type() != ValueType::function)
-            {
-                THROW_VM_STACK_MSG("array::where 的参数必须为function类型，当前为{}", v.TypeString())
-            }
-
-            for (auto &i : _this.Arr().Src())
-            {
-                if (vm.FuncCall(v, i).ToBool())
+                if (stop)
                 {
-                    arr.Src().push_back(i);
+                    break;
                 }
+                auto args = Vector<Value>::From({src[i], double(i), stop_handler});
+                arr.Src().push_back(vm.FuncCall(v, args));
             }
+
             return arr;
         };
         vm.class_define[ValueType::array] = array_def;
