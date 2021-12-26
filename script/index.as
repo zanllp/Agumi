@@ -15,4 +15,3 @@ const socket_push = (data) => {
 socket_push([]).then(resp => {
     log(resp.data)
 })
-

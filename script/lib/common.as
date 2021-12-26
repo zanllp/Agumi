@@ -8,6 +8,7 @@ const types = ['number','boolean','array','object','function','string']
 types.select(type => {
     define_member_function(type, {
         to_string: this => f(this),
-        to_bool: this => to_bool(this)
+        to_bool: this => to_bool(this),
+        type_str: this => typeof(this)
     })
 })
