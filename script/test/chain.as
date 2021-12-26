@@ -18,3 +18,8 @@ ass(obj.dd.agumi().foo(), 'ciallo')
 
 const arr = [1,2,3, 4, 5]
 ass(arr.select(v => v*3).where(v => v>3).range(0, 2)[1], 9)
+
+const inx_test =  {
+    foo: () => () => [1,2,42]
+}
+ass(inx_test.foo()()[2], 42)

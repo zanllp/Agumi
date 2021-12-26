@@ -644,22 +644,15 @@ namespace agumi
                 if (iter->Is(dot_))
                 {
                     iter++;
-                    auto [id_stat, end_iter] = ResolveExecutableStatment(iter);
-                    auto t = id_stat->Type();
-                    if (t == StatementType::identifier || t == StatementType::functionCall)
+                    if (!iter->IsIdentifier())
                     {
-                        stat->indexes.push_back(IndexNodeWrapper(id_stat));
-                        iter = end_iter;
-                        continue;
+                        THROW_TOKEN(*iter)
                     }
-                    if (t == StatementType::indexStatement)
-                    {
-                        SRC_REF(nested_idx, IndexStatement, id_stat)
-                        stat->indexes.insert(stat->indexes.end(), nested_idx.indexes.begin(), nested_idx.indexes.end());
-                        iter = end_iter;
-                        continue;
-                    }
-                    THROW_MSG("undefined type {}", int(t))
+                    auto id_stat = std::make_shared<Identifier>(*iter);
+                    id_stat->start = *iter;
+                    stat->indexes.push_back(IndexNodeWrapper(id_stat));
+                    iter++;
+                    continue;
                 }
                 else if (iter->Is(brackets_start_))
                 {
@@ -673,20 +666,12 @@ namespace agumi
                 }
                 else if (iter->Is(parenthesis_start_))
                 {
-                    auto [fn_call, end_iter] = ResolveFuncCall(std::make_shared<Statement>(), iter);
+                    auto [fn_call, end_iter] = ResolveFuncCall(std::make_shared<Statement>(), iter, false);
                     auto t = fn_call->Type();
                     if (t == StatementType::functionCall)
                     {
                         stat->indexes.push_back(IndexNodeWrapper(fn_call, IndexType::call));
-                        iter = end_iter;
-                        continue;
-                    }
-                    if (t == StatementType::indexStatement)
-                    {
-                        SRC_REF(nested_idx, IndexStatement, fn_call)
-                        nested_idx.indexes[0].type = IndexType::call; // 嵌套的默认propetry,不检查
-                        stat->indexes.insert(stat->indexes.end(), nested_idx.indexes.begin(), nested_idx.indexes.end());
-                        iter = end_iter;
+                        iter = end_iter + 1;
                         continue;
                     }
                     THROW_MSG("undefined type {}", int(t))
@@ -812,7 +797,7 @@ namespace agumi
         }
 
         //
-        StatPtrWithEnd ResolveFuncCall(StatPtr func, TokenFlowView tfv)
+        StatPtrWithEnd ResolveFuncCall(StatPtr func, TokenFlowView tfv, bool seek = true)
         {
             auto iter = tfv.BeginIter(); // (
             auto stat = std::make_shared<FunctionCall>();
@@ -836,6 +821,11 @@ namespace agumi
                 }
                 THROW_TOKEN(*iter)
             }
+            if (!seek)
+            {
+                return {stat, iter};
+            }
+
             return SeekIfExpr(stat, iter);
         }
 
@@ -1082,7 +1072,7 @@ namespace agumi
                     auto last_property = *(idx.indexes.end() - 1);
                     if (last_property.stat->Type() == StatementType::functionCall)
                     {
-                        THROW_MSG("assignment statement's last property index is not able to a function call .\nposition:{}", last_property.stat->start.ToPosStr())
+                        THROW_MSG("assignment statements last property index cannot be a function call .\nposition:{}", last_property.stat->start.ToPosStr())
                     }
                 }
 
