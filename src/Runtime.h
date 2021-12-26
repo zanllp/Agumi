@@ -502,10 +502,12 @@ namespace agumi
             SRC_REF(idx_stat, IndexStatement, stat);
             Value par;
             bool is_set_val = set_value.has_value();
+            std::optional<String> defer_func_key;
             for (size_t index = 0; index < idx_stat.indexes.size(); index++)
             {
                 auto &i = idx_stat.indexes[index];
-                bool is_set = (index + 1 == idx_stat.indexes.size()) && is_set_val;
+                bool is_last = index + 1 == idx_stat.indexes.size();
+                bool is_set = is_last && is_set_val;
                 if (index == 0)
                 {
                     par = ResolveExecutable(i.stat);
@@ -513,59 +515,38 @@ namespace agumi
                 }
                 if (i.type == IndexType::property)
                 {
-
-                    if (i.stat->Type() == StatementType::functionCall)
+                    SRC_REF(id, Identifier, i.stat)
+                    String key = id.tok.kw;
+                    if (is_set)
                     {
-                        SRC_REF(fn, FunctionCall, i.stat);
-                        SRC_REF(key, Identifier, fn.id);
-                        auto t = par.Type();
-                        auto key_str = key.tok.kw;
-                        if (t == ValueType::null)
+                        par[key] = set_value.value();
+                    }
+                    auto need_defer_exec_fn = false;
+                    auto is_next_fn = !is_last && idx_stat.indexes[index + 1].type == IndexType::call;
+                    if (par.Type() == ValueType::object)
+                    {
+                        if (!par.In(key) && is_next_fn)
                         {
-                            THROW_STACK_MSG("NullPointerException property:{}", key_str)
+                            need_defer_exec_fn = true;
                         }
-                        if (t == ValueType::object)
-                        {
-                            if (par.In(key_str))
-                            {
-                                par = ResolveFuncCall(i.stat, par[key_str]);
-                                continue;
-                            }
-                            else if (par.In(ability_key))
-                            {
-                                bool continue_flag = false;
-                                for (auto &&abi_item : par[ability_key].Arr().Src())
-                                {
-                                    auto abi_idx = abi_item["key"].Get<double>();
-                                    auto target_abi = ability_define[abi_idx];
-                                    if (target_abi.In(key_str))
-                                    {
-                                        par = ResolveFuncCall(i.stat, target_abi[key_str], {par});
-                                        continue_flag = true;
-                                        continue;
-                                    }
-                                }
-                                if (continue_flag)
-                                {
-                                    continue;
-                                }
-                            }
-                        }
-                        par = ResolveLocalClassFuncCall(i.stat, t, key_str, par);
                     }
                     else
                     {
-                        SRC_REF(id, Identifier, i.stat)
-                        String key = id.tok.kw;
-                        if (is_set)
+                        if (is_next_fn)
                         {
-                            par[key] = set_value.value();
+                            need_defer_exec_fn = true;
                         }
-
-                        par = par[key];
                     }
+
+                    if (need_defer_exec_fn)
+                    {
+                        defer_func_key = {key};
+                        continue;
+                    }
+
+                    par = par[key];
                 }
-                else if (i.type ==  IndexType::index)
+                else if (i.type == IndexType::index)
                 {
                     auto key = ResolveExecutable(i.stat);
                     auto kt = key.Type();
@@ -592,7 +573,43 @@ namespace agumi
                 }
                 else
                 {
-                    par = ResolveFuncCall(i.stat, par);
+                    SRC_REF(fn, FunctionCall, i.stat);
+                    SRC_REF(key, Identifier, fn.id);
+                    auto t = par.Type();
+                    auto key_str = defer_func_key.value_or("");
+                    defer_func_key = {};
+                    switch (t)
+                    {
+                    case ValueType::null:
+                        THROW_STACK_MSG("NullPointerException property:{}", key_str);
+                    case ValueType::function:
+                        par = ResolveFuncCall(i.stat, par);
+                        break;
+                    case ValueType::object:
+                        if (par.In(ability_key))
+                        {
+                            bool continue_flag = false;
+                            for (auto &&abi_item : par[ability_key].Arr().Src())
+                            {
+                                auto abi_idx = abi_item["key"].Get<double>();
+                                auto target_abi = ability_define[abi_idx];
+                                if (target_abi.In(key_str))
+                                {
+                                    par = ResolveFuncCall(i.stat, target_abi[key_str], {par});
+                                    continue_flag = true;
+                                    continue;
+                                }
+                            }
+                            if (continue_flag)
+                            {
+                                continue;
+                            }
+                        }
+                    default:
+                        ASS_T(key_str.size() > 0)
+                        par = ResolveLocalClassFuncCall(i.stat, t, key_str, par);
+                        break;
+                    }
                 }
             }
             return par;
