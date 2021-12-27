@@ -68,24 +68,9 @@ namespace agumi
             auto iter = member_func.find(key);
             if (iter == member_func.end())
             {
-                THROW_MSG("{} is not a function", key)
+                throw std::range_error(String::Format("{} is not a function", key))
             }
             return iter->second(val, args);
-        }
-        Value ExecBinaryOperator(ValueType t, KW op, Value &l, Value &r)
-        {
-            auto type_def = binary_operator_overload.find(t);
-            if (type_def == binary_operator_overload.end())
-            {
-                String t_str = type_emun2str[static_cast<int>(t)];
-                THROW_MSG("{} is not defined", t_str)
-            }
-            auto op_def = type_def->second.find(op);
-            if (op_def == type_def->second.end())
-            {
-                THROW_MSG("{} is not defined", Token::Kw2Str(op))
-            }
-            return op_def->second(l, r);
         }
     };
 
@@ -388,7 +373,15 @@ namespace agumi
                 auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
                 args.push_back(incoming_val);
             }
-            return class_iter->second.ExecFunc(key, val, args);
+            try
+            {
+                return class_iter->second.ExecFunc(key, val, args);
+            }
+            catch(const std::exception& e)
+            {
+                THROW_STACK_MSG(e.what())
+            }
+            
         }
         Value ResolveVariableDeclaration(StatPtr stat)
         {

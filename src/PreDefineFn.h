@@ -321,7 +321,7 @@ namespace agumi
         str_op_def[add_equal_] = BIN_OPERATOR(l.Get<String>() += r.GetC<String>());
         str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())));
         string_def.binary_operator_overload[ValueType::string] = str_op_def;
-        string_def.member_func["length"] = [](Value &_this, Vector<Value> args) -> Value
+        string_def.member_func["byte_len"] = [](Value &_this, Vector<Value> args) -> Value
         {
             return static_cast<int>(_this.GetC<String>().length());
         };
@@ -436,5 +436,9 @@ namespace agumi
             return arr; });
         vm.class_define[ValueType::object] = LocalClassDefine();
         vm.class_define[ValueType::boolean] = LocalClassDefine();
+        
+        auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
+        P("lib path: {}", libPath)
+        vm.FuncCall(vm.ValueOrUndef("include"), { libPath , true});
     }
 }
