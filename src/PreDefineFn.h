@@ -436,9 +436,9 @@ namespace agumi
             return arr; });
         vm.class_define[ValueType::object] = LocalClassDefine();
         vm.class_define[ValueType::boolean] = LocalClassDefine();
-        
+
         auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
         P("lib path: {}", libPath)
-        vm.FuncCall(vm.ValueOrUndef("include"), { libPath , true});
+        vm.FuncCall(vm.ValueOrUndef("include"), {libPath, true});
     }
 }
