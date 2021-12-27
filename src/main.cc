@@ -279,7 +279,7 @@ void TestScriptExec(String working_dir)
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
     ASS(RUN2STR("fib(10)"), "55")
-    ASS(RUN2STR("'hello world'.length()"), "11")
+    ASS(RUN2STR("'hello world'.byte_len()"), "11")
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
     ASS(RUN2STR("[typeof([]),typeof(''),typeof(1),typeof(()=>1)]"), "[\"array\",\"string\",\"number\",\"function\"]")
     ASS(RUN2STR("lens(1,2)([0,[0,1,2]])"), "2")

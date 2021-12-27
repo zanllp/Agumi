@@ -15,3 +15,10 @@ const socket_push = (data) => {
 socket_push([]).then(resp => {
     log(resp.data)
 })
+
+
+const hh = "😄"
+const h1 = "w"
+const h2 = "好"
+const dd = () => [ hh, hh.byte_len(), h1.byte_len(), h2.byte_len()]
+log(s(dd()))
