@@ -68,7 +68,7 @@ namespace agumi
             auto iter = member_func.find(key);
             if (iter == member_func.end())
             {
-                throw std::range_error(String::Format("{} is not a function", key))
+                throw std::range_error(String::Format("{} is not a function", key));
             }
             return iter->second(val, args);
         }
