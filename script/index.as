@@ -3,7 +3,7 @@ include('lib/index')
 
 const socket_push = (data) => {
     make_promise(resolve => {
-        const resp = fetch('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
+        const resp = fetch('http://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
             data,
             method: 'post',
             headers: { 'Content-Type': 'application/json' }
@@ -13,7 +13,7 @@ const socket_push = (data) => {
 }
 
 socket_push([]).then(resp => {
-    log(resp.data)
+    // log(resp.data)
 })
 
 
@@ -21,4 +21,10 @@ const hh = "😄"
 const h1 = "w"
 const h2 = "好"
 const dd = () => [ hh, hh.byte_len(), h1.byte_len(), h2.byte_len()]
-log(s(dd()))
+const dd2 = () => [ hh, hh.length(), h1.length(), h2.length()]
+const emojis = "🐶🍐🍎🏡💀🐜".substr(0)
+
+// log(s(dd()), s(dd2()))
+log(emojis.length(), emojis.substr(2))
+
+emojis.split().select(log)

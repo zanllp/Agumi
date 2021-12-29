@@ -28,12 +28,79 @@ namespace agumi
         (*this)[0] = arg;
     }
 
+    Vector<String> String::USpilt() const
+    {
+        int codepoint;
+        auto data = c_str();
+        char str[5];
+        std::vector<String> dataSet;
+        for (auto v = utf8codepoint(data, &codepoint); '\0' != codepoint;
+             v = utf8codepoint(v, &codepoint))
+        {
+            memset(str, 0, 5);
+            auto size = utf8codepointsize(codepoint);
+            memcpy(str, v - size, size);
+            if (v != 0)
+            {
+                dataSet.push_back(str);
+            }
+        }
+        return dataSet;
+    }
+
+    size_t String::Ulength() const
+    {
+        return utf8len(data());
+    }
+    String String::USubStr(size_t start, size_t count) const
+    {
+        auto data = c_str();
+        auto start_pos = 0;
+
+        int codepoint;
+        int code_n = 0;
+        for (auto v = utf8codepoint(data, &codepoint); code_n != start;
+             v = utf8codepoint(v, &codepoint))
+        {
+            auto size = utf8codepointsize(codepoint);
+            if (v != 0)
+            {
+                start_pos += size;
+                code_n++;
+            }
+        }
+        auto len = Ulength();
+        if (count == -1 || count + start > len)
+        {
+            count = len - start;
+        }
+        P(count)
+        size_t need_len = 0;
+        code_n = 0;
+        for (auto v = utf8codepoint(data, &codepoint); code_n < count;
+             v = utf8codepoint(v, &codepoint))
+        {
+            auto size = utf8codepointsize(codepoint);
+            if (v != 0)
+            {
+                need_len += size;
+                code_n++;
+            }
+        }
+        return substr(start_pos, need_len);
+    }
+
     // 使用字符串分割
     // flag 分割标志,返回的字符串向量会剔除,flag不要用char，会重载不明确
     // num 分割次数，默认-1即分割到结束，例num=1,返回开头到flag,flag到结束size=2的字符串向量
     // skipEmpty 跳过空字符串，即不压入length==0的字符串
-    Vector<String> String::Split(String flag, int num, bool skipEmpty) const
+    Vector<String> String::Split(String flag, int num, bool skipEmpty, bool utf8) const
     {
+        if (utf8 && flag.length() == 0)
+        {
+            return USpilt();
+        }
+
         std::vector<String> dataSet;
         auto PushData = [&](String line)
         {

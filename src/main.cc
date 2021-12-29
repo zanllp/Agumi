@@ -24,7 +24,7 @@ String FormatError(String err, String stack_trace)
     {
         str << stack_trace << '\n';
     }
-    
+
     return str.str();
 }
 
@@ -248,6 +248,16 @@ void TestString()
     ASS(String(R"({ "hello": "world" })").Escape(), R"({ \"hello\": \"world\" })")
     ASS(String(R"({ "hello": "world" })").Escape().Escape(), R"({ \\"hello\\": \\"world\\" })")
     ASS(String(R"({ "hello": "world" })").Escape().Escape().Unescape().Unescape(), R"({ "hello": "world" })")
+    const String utf8str = "苟利国家生死以";
+    const String emoji = "🐶🍐🍎🏡🆙💀🐜";
+    ASS(utf8str.Ulength(), 7)
+    ASS(emoji.Ulength(), 7)
+    ASS(utf8str.USubStr(0,2), "苟利")
+    ASS(utf8str.USubStr(2,2), "国家")
+    ASS(emoji.Split("", -1, true, true).Join(""), emoji)
+    ASS(emoji.USubStr(0,2), "🐶🍐")
+    ASS(emoji.USubStr(2,3), "🍎🏡🆙")
+    ASS(emoji.USubStr(2), "🍎🏡🆙💀🐜")
 }
 
 Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
@@ -278,6 +288,7 @@ void TestScriptExec(String working_dir)
     AddPreDefine(vm);
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
+    RUN2STR("\"🐶🍐🍎🏡💀🐜\".substr(2)");
     ASS(RUN2STR("fib(10)"), "55")
     ASS(RUN2STR("'hello world'.byte_len()"), "11")
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
@@ -420,7 +431,7 @@ int main(int argc, char **argv)
             cout << Json::Stringify(v) << endl;
             cout << Json::Stringify(v, 2, false) << endl;
             TestJsonNextPref();
-            TestString();
+            // TestString();
             TestVec();
             TestToken();
             TestGcPref();

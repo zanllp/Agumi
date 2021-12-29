@@ -5,3 +5,4 @@ hello.txt
 *.ast.json
 *.token.json
 script/temp/_*
+.DS_Store

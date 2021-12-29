@@ -325,6 +325,28 @@ namespace agumi
         {
             return static_cast<int>(_this.GetC<String>().length());
         };
+        string_def.member_func["length"] = [](Value &_this, Vector<Value> args) -> Value
+        {
+            return static_cast<int>(_this.GetC<String>().Ulength());
+        };
+        string_def.member_func["substr"] = [](Value &_this, Vector<Value> args) -> Value
+        {
+            auto start = args.GetOrDefault(0);
+            auto count = args.GetOrDefault(1);
+            auto c = count.GetOr<double>(-1);
+            return _this.GetC<String>().USubStr(start.GetOr<double>(0), c);
+        };
+        string_def.member_func["split"] = [](Value &_this, Vector<Value> args) -> Value
+        {
+            auto r = _this.GetC<String>().Split(
+                args.GetOr(0, "").ToString(),
+                args.GetOrDefault(1).GetOr<double>(-1),
+                args.GetOr(2, false).ToBool(),
+                true);
+                Array res;
+            res.Src().insert(res.Src().begin(), r.begin(), r.end());
+            return res;
+        };
         vm.class_define[ValueType::string] = string_def;
 
         LocalClassDefine array_def;
