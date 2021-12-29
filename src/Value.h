@@ -33,6 +33,18 @@ namespace agumi
         }
 
         template <typename T>
+        constexpr T GetOr(T backup)
+        {
+            if (type == ValueType::null)
+            {
+                return backup;
+            }
+            
+            CheckType(typeid(T));
+            return *(T *)data_ptr;
+        }
+
+        template <typename T>
         constexpr const T &GetC() const
         {
             CheckType(typeid(T));

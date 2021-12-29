@@ -18,6 +18,8 @@
 #include <optional>
 #include "String.h"
 #include "Vector.h"
+#include "utf8.h"
+
 namespace agumi
 {
     class String;

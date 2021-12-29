@@ -100,6 +100,15 @@ namespace agumi
             return T();
         }
 
+        T GetOr(size_t idx, T backup)
+        {
+            if (idx < this->size())
+            {
+                return (*this)[idx];
+            }
+            return backup;
+        }
+
         Vector<T> Slice(size_t start, size_t end = -1)
         {
             Vector<T> res;
