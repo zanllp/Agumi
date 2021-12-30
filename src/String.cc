@@ -52,7 +52,7 @@ namespace agumi
     {
         return utf8len(data());
     }
-    String String::USubStr(size_t start, size_t count) const
+    String String::USubStr(int start, int count) const
     {
         auto data = c_str();
         auto start_pos = 0;
@@ -74,7 +74,6 @@ namespace agumi
         {
             count = len - start;
         }
-        P(count)
         size_t need_len = 0;
         code_n = 0;
         for (auto v = utf8codepoint(data, &codepoint); code_n < count;

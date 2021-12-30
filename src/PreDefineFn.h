@@ -333,8 +333,7 @@ namespace agumi
         {
             auto start = args.GetOrDefault(0);
             auto count = args.GetOrDefault(1);
-            auto c = count.GetOr<double>(-1);
-            return _this.GetC<String>().USubStr(start.GetOr<double>(0), c);
+            return _this.GetC<String>().USubStr(start.GetOr<double>(0), count.GetOr<double>(-1));
         };
         string_def.member_func["split"] = [](Value &_this, Vector<Value> args) -> Value
         {
