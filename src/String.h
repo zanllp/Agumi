@@ -50,7 +50,7 @@ namespace agumi
 
         Vector<String> USpilt() const;
         size_t Ulength() const;
-        String USubStr(size_t start = 0, size_t count = -1) const;
+        String USubStr(int start = 0, int count = -1) const;
 
         // 字符串替换
         // oldStr 被替换的字符串
@@ -69,6 +69,11 @@ namespace agumi
         }
 
         static bool IncludeSym(const String &syms, char sym);
+
+        static String FromCodePoint (String hex_str);
+
+        static String FromUtf8EncodeStr (String str);
+
         String Repeat(int num) const;
 
         bool Test(String reg) const;
