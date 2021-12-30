@@ -431,7 +431,7 @@ int main(int argc, char **argv)
             cout << Json::Stringify(v) << endl;
             cout << Json::Stringify(v, 2, false) << endl;
             TestJsonNextPref();
-            // TestString();
+            TestString();
             TestVec();
             TestToken();
             TestGcPref();
