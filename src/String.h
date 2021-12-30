@@ -69,6 +69,11 @@ namespace agumi
         }
 
         static bool IncludeSym(const String &syms, char sym);
+
+        static String FromCodePoint (String hex_str);
+
+        static String FromUtf8EncodeStr (String str);
+
         String Repeat(int num) const;
 
         bool Test(String reg) const;

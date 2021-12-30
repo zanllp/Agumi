@@ -258,6 +258,8 @@ void TestString()
     ASS(emoji.USubStr(0,2), "🐶🍐")
     ASS(emoji.USubStr(2,3), "🍎🏡🆙")
     ASS(emoji.USubStr(2), "🍎🏡🆙💀🐜")
+    ASS(String::FromUtf8EncodeStr(R"(\u6d4b12\u8bd51234)"), "测12试1234")
+    ASS(String::FromCodePoint("0x1f9d9"), "🧙")
 }
 
 Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())

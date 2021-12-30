@@ -248,6 +248,35 @@ namespace agumi
         }
         return false;
     }
+
+    String String::FromCodePoint(String hex_str)
+    {
+        char str[5] = {0};
+        auto hex = stoi(hex_str, nullptr, 16);
+        utf8catcodepoint(str, hex, 5);
+        return String(str);
+    }
+
+    String String::FromUtf8EncodeStr(String str)
+    {
+        Vector<String> res;
+        auto dd = str.Split("\\u");
+        for (auto &&i : dd)
+        {
+            if (i.size() > 3)
+            {
+                auto hex_str = i.substr(0, 4);
+                res.push_back(FromCodePoint(hex_str) + i.substr(4));
+            }
+            else
+            {
+                res.push_back(i);
+            }
+        }
+
+        return res.Join("");
+    }
+
     bool String::StartWith(String sub)
     {
         return this->find(sub) == 0;
