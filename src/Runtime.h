@@ -98,6 +98,8 @@ namespace agumi
         Vector<Value> ability_define;
         Value process_arg;
         const String ability_key = "#ability";
+        std::map<int, Value> timer_fn;
+        std::map<int, std::chrono::steady_clock::time_point> timer_time_rec;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
@@ -118,6 +120,39 @@ namespace agumi
                 }
             }
             return {};
+        }
+        Value StartTimer(Value fn, int interval_ms, bool once)
+        {
+            static int id = 0;
+            auto curr_id = ++id;
+            std::time_t result = std::time(nullptr);
+
+            auto start = std::chrono::steady_clock::now();
+            timer_time_rec[curr_id] = start;
+            auto wrap_fn = DefineFunc([&, curr_id, fn, interval_ms, once](Vector<Value>)
+                                      {
+                if (timer_time_rec.find(curr_id) == timer_time_rec.end())
+                {
+                   return false;
+                }
+                auto last = timer_time_rec[curr_id];
+                auto now = std::chrono::steady_clock::now();
+                auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
+                if (int_ms.count() > interval_ms)
+                {
+                    FuncCall(fn);
+                    if (once)
+                    {
+                        return false;
+                    }
+                    timer_time_rec[curr_id] = std::chrono::steady_clock::now();
+                    AddTask2Queue(timer_fn[curr_id], false);
+                } else {
+                    AddTask2Queue(timer_fn[curr_id], false);
+                } });
+            timer_fn[curr_id] = wrap_fn;
+            AddTask2Queue(wrap_fn, false);
+            return curr_id;
         }
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
@@ -377,11 +412,10 @@ namespace agumi
             {
                 return class_iter->second.ExecFunc(key, val, args);
             }
-            catch(const std::exception& e)
+            catch (const std::exception &e)
             {
                 THROW_STACK_MSG(e.what())
             }
-            
         }
         Value ResolveVariableDeclaration(StatPtr stat)
         {

@@ -29,4 +29,4 @@ log(emojis.length(), emojis.substr(2))
 
 emojis.split().select(log)
 
-log(string_from_utf8('\u6d4b12\u8bd51234\u27ab'))
+log(utf8.decode('\u6d4b12\u8bd51234\u27ab'))
