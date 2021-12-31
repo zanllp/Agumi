@@ -312,12 +312,12 @@ namespace agumi
             return vm.DefineFunc(fn);
         };
         vm.DefineGlobalFunc("lens", lens_bind);
-        vm.DefineGlobalFunc("string_from_code_point", [&](Vector<Value> args) {
-            return String::FromCodePoint(args.GetOr(0, "").ToString());
-        });
-        vm.DefineGlobalFunc("string_from_utf8", [&](Vector<Value> args) {
-            return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString());
-        });
+        vm.ctx_stack[0].var["utf8"] = Object({{"from_code_point",
+                                               vm.DefineFunc([&](Vector<Value> args)
+                                                             { return String::FromCodePoint(args.GetOr(0, "").ToString()); })},
+                                              {"decode",
+                                               vm.DefineFunc([&](Vector<Value> args)
+                                                             { return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString()); })}});
         // 定义本地类成员函数
         LocalClassDefine string_def;
         std::map<KW, std::function<Value(Value &, Value &)>> str_op_def;
@@ -348,7 +348,7 @@ namespace agumi
                 args.GetOrDefault(1).GetOr<double>(-1),
                 args.GetOr(2, false).ToBool(),
                 true);
-                Array res;
+            Array res;
             res.Src().insert(res.Src().begin(), r.begin(), r.end());
             return res;
         };
