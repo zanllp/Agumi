@@ -3,7 +3,7 @@
 // msg, {__VA_ARGS__}
 namespace agumi
 {
-
+    using TimePoint = std::chrono::steady_clock::time_point;
     class Closure
     {
     public:
@@ -74,11 +74,46 @@ namespace agumi
         }
     };
 
-    class ClosureMemory
+    struct ClosureMemory
     {
-    public:
         std::map<String, ClosureMemory> children;
         std::map<String, Closure> map;
+    };
+
+    class TimerPackage
+    {
+        TimePoint last_call;
+        TimePoint last_poll;
+        std::chrono::milliseconds interval;
+        std::chrono::milliseconds min_interval = std::chrono::milliseconds(2);
+
+    public:
+        Value func;
+        bool CanCall()
+        {
+            return Now() - last_call > interval;
+        }
+        bool CanImmediatlyPoll()
+        {
+            return Now() - last_poll > min_interval;
+        }
+        void UpdateCallTime()
+        {
+            last_call = Now();
+        }
+
+        void UpdatePollTime()
+        {
+            last_poll = Now();
+        }
+        void SetInterval(int ms)
+        {
+            interval = std::chrono::milliseconds(ms);
+        }
+        TimePoint Now()
+        {
+            return std::chrono::steady_clock::now();
+        }
     };
 
     class VM
@@ -98,8 +133,7 @@ namespace agumi
         Vector<Value> ability_define;
         Value process_arg;
         const String ability_key = "#ability";
-        std::map<int, Value> timer_fn;
-        std::map<int, std::chrono::steady_clock::time_point> timer_time_rec;
+        std::map<int, TimerPackage> timer_map;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
@@ -125,34 +159,46 @@ namespace agumi
         {
             static int id = 0;
             auto curr_id = ++id;
-            std::time_t result = std::time(nullptr);
-
-            auto start = std::chrono::steady_clock::now();
-            timer_time_rec[curr_id] = start;
-            auto wrap_fn = DefineFunc([&, curr_id, fn, interval_ms, once](Vector<Value>)
-                                      {
-                if (timer_time_rec.find(curr_id) == timer_time_rec.end())
+            TimerPackage tp;
+            tp.func = DefineFunc([&, curr_id, once, fn](Vector<Value>)
+                                 {
+                if (timer_map.find(curr_id) == timer_map.end())
                 {
                    return false;
                 }
-                auto last = timer_time_rec[curr_id];
-                auto now = std::chrono::steady_clock::now();
-                auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
-                if (int_ms.count() > interval_ms)
+                auto& tp = timer_map[curr_id];
+                if (tp.CanCall())
                 {
+                    tp.UpdateCallTime();
                     FuncCall(fn);
                     if (once)
                     {
+                        RemoveTimer(curr_id);
                         return false;
                     }
-                    timer_time_rec[curr_id] = std::chrono::steady_clock::now();
-                    AddTask2Queue(timer_fn[curr_id], false);
+                    AddTask2Queue(tp.func, false);
                 } else {
-                    AddTask2Queue(timer_fn[curr_id], false);
+                    if (tp.CanImmediatlyPoll())
+                    {
+                        tp.UpdatePollTime();
+                    } 
+                    else
+                     {
+                        tp.UpdatePollTime();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                    }
+                    AddTask2Queue(tp.func, false);
                 } });
-            timer_fn[curr_id] = wrap_fn;
-            AddTask2Queue(wrap_fn, false);
+            tp.SetInterval(interval_ms);
+            tp.UpdateCallTime();
+            tp.UpdatePollTime();
+            timer_map[curr_id] = tp;
+            AddTask2Queue(tp.func, false);
             return curr_id;
+        }
+        void RemoveTimer(int id)
+        {
+            timer_map.erase(id);
         }
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {

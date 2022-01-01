@@ -463,6 +463,11 @@ namespace agumi
             return arr; });
         vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value
                             { return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0), args.GetOrDefault(2).ToBool()); });
+
+        vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value
+                            { 
+                                vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
+                                return nullptr; });
         vm.class_define[ValueType::object] = LocalClassDefine();
         vm.class_define[ValueType::boolean] = LocalClassDefine();
 
