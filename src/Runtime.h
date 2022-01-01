@@ -116,6 +116,15 @@ namespace agumi
         }
     };
 
+    /*
+     * 必要事件处理完之前不允许退出 
+    */
+    struct RequiredEvent
+    {
+        String event_name;
+        Value val;
+    };
+
     class VM
     {
     public:
@@ -128,6 +137,9 @@ namespace agumi
         Vector<Context> ctx_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
+        std::queue<RequiredEvent> event_required_queue;
+        std::map<String, std::function<void(RequiredEvent)>> required_event_handlers;
+        int required_event_timer_id = -1;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
         Vector<Value> ability_define;
@@ -200,6 +212,40 @@ namespace agumi
         {
             timer_map.erase(id);
         }
+        void addRequiredEventListener(String event_name, std::function<void(RequiredEvent)> callback)
+        {
+            required_event_handlers[event_name] = callback;
+            if (required_event_timer_id == -1)
+            {
+                auto fn = DefineFunc(
+                    [&](Vector<Value>)
+                    {
+                        if (event_required_queue.size() == 0)
+                        {
+                            return false;
+                        }
+                        auto event = event_required_queue.front();
+                        event_required_queue.pop();
+                        auto iter = required_event_handlers.find(event.event_name);
+                        if (iter == required_event_handlers.end())
+                        {
+                            return false;
+                        }
+                        required_event_handlers.erase(event.event_name);
+                        iter->second(event);
+                        if (required_event_handlers.size() == 0)
+                        {
+                            RemoveTimer(required_event_timer_id);
+                            required_event_timer_id = -1;
+                        }
+                        
+                    });
+                required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
+            }
+        }
+
+        
+
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
             auto clos = CurrCtx().closeure;
@@ -292,7 +338,9 @@ namespace agumi
             fn_ctx.closeure = &fn.closure;
             if (fn.is_native_func)
             {
+                ctx_stack.push_back(fn_ctx);
                 v = fn.native_fn(args);
+                ctx_stack.pop_back();
             }
             else
             {
