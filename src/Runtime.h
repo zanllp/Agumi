@@ -117,8 +117,8 @@ namespace agumi
     };
 
     /*
-     * 必要事件处理完之前不允许退出 
-    */
+     * 必要事件处理完之前不允许退出
+     */
     struct RequiredEvent
     {
         String event_name;
@@ -137,8 +137,9 @@ namespace agumi
         Vector<Context> ctx_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
+        std::mutex event_required_queue_mutex;
         std::queue<RequiredEvent> event_required_queue;
-        std::map<String, std::function<void(RequiredEvent)>> required_event_handlers;
+        std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
         int required_event_timer_id = -1;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
@@ -188,7 +189,10 @@ namespace agumi
                         RemoveTimer(curr_id);
                         return false;
                     }
-                    AddTask2Queue(tp.func, false);
+                    if (timer_map.find(curr_id) != timer_map.end())
+                    {
+                        AddTask2Queue(tp.func, false);
+                    }
                 } else {
                     if (tp.CanImmediatlyPoll())
                     {
@@ -212,39 +216,49 @@ namespace agumi
         {
             timer_map.erase(id);
         }
-        void addRequiredEventListener(String event_name, std::function<void(RequiredEvent)> callback)
+        void AddRequiredEventCustomer(String event_name, std::function<void(RequiredEvent)> callback)
         {
-            required_event_handlers[event_name] = callback;
+            required_event_customers[event_name] = callback;
             if (required_event_timer_id == -1)
             {
                 auto fn = DefineFunc(
                     [&](Vector<Value>)
                     {
-                        if (event_required_queue.size() == 0)
+                        RequiredEvent event;
+                        std::function<void(RequiredEvent)> cb;
                         {
-                            return false;
+                            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+                            if (event_required_queue.size() == 0)
+                            {
+                                return false;
+                            }
+                            event = event_required_queue.front();
+                            event_required_queue.pop();
+                            auto iter = required_event_customers.find(event.event_name);
+                            if (iter == required_event_customers.end())
+                            {
+                                return false;
+                            }
+                            cb = iter->second;
+                            required_event_customers.erase(event.event_name);
+                            if (required_event_customers.size() == 0)
+                            {
+                                
+                                RemoveTimer(required_event_timer_id);
+                                required_event_timer_id = -1;
+                            }
                         }
-                        auto event = event_required_queue.front();
-                        event_required_queue.pop();
-                        auto iter = required_event_handlers.find(event.event_name);
-                        if (iter == required_event_handlers.end())
-                        {
-                            return false;
-                        }
-                        required_event_handlers.erase(event.event_name);
-                        iter->second(event);
-                        if (required_event_handlers.size() == 0)
-                        {
-                            RemoveTimer(required_event_timer_id);
-                            required_event_timer_id = -1;
-                        }
-                        
+                        cb(event);
                     });
                 required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
             }
         }
 
-        
+        void Push2RequiredEventPendingQueue(RequiredEvent event)
+        {
+            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+            event_required_queue.push(event);
+        }
 
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
@@ -338,9 +352,7 @@ namespace agumi
             fn_ctx.closeure = &fn.closure;
             if (fn.is_native_func)
             {
-                ctx_stack.push_back(fn_ctx);
                 v = fn.native_fn(args);
-                ctx_stack.pop_back();
             }
             else
             {

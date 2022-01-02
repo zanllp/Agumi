@@ -1,19 +1,17 @@
-include('lib/index')
 
 
 const socket_push = (data) => {
     make_promise(resolve => {
-        const resp = fetch('http://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
+        const resp = fetch_async('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
             data,
             method: 'post',
             headers: { 'Content-Type': 'application/json' }
-        })
-        resolve(resp)
+        }, resolve)
     })
 }
 
 socket_push([]).then(resp => {
-    // log(resp.data)
+    log(resp.data)
 })
 
 
