@@ -290,7 +290,6 @@ void TestScriptExec(String working_dir)
     AddPreDefine(vm);
 #define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
-    RUN2STR("\"🐶🍐🍎🏡💀🐜\".substr(2)");
     ASS(RUN2STR("fib(10)"), "55")
     ASS(RUN2STR("'hello world'.byte_len()"), "11")
     ASS(RUN2STR("[1,2,3,4].push(5,6)"), "[1,2,3,4,5,6]")
@@ -321,6 +320,7 @@ void TestPath()
 
 int main(int argc, char **argv)
 {
+    std::iostream::sync_with_stdio(true);
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif

@@ -3,7 +3,7 @@
 // msg, {__VA_ARGS__}
 namespace agumi
 {
-
+    using TimePoint = std::chrono::steady_clock::time_point;
     class Closure
     {
     public:
@@ -74,11 +74,55 @@ namespace agumi
         }
     };
 
-    class ClosureMemory
+    struct ClosureMemory
     {
-    public:
         std::map<String, ClosureMemory> children;
         std::map<String, Closure> map;
+    };
+
+    class TimerPackage
+    {
+        TimePoint last_call;
+        TimePoint last_poll;
+        std::chrono::milliseconds interval;
+        std::chrono::milliseconds min_interval = std::chrono::milliseconds(2);
+
+    public:
+        Value func;
+        bool CanCall()
+        {
+            return Now() - last_call > interval;
+        }
+        bool CanImmediatlyPoll()
+        {
+            return Now() - last_poll > min_interval;
+        }
+        void UpdateCallTime()
+        {
+            last_call = Now();
+        }
+
+        void UpdatePollTime()
+        {
+            last_poll = Now();
+        }
+        void SetInterval(int ms)
+        {
+            interval = std::chrono::milliseconds(ms);
+        }
+        TimePoint Now()
+        {
+            return std::chrono::steady_clock::now();
+        }
+    };
+
+    /*
+     * 必要事件处理完之前不允许退出
+     */
+    struct RequiredEvent
+    {
+        String event_name;
+        Value val;
     };
 
     class VM
@@ -93,11 +137,16 @@ namespace agumi
         Vector<Context> ctx_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
+        std::mutex event_required_queue_mutex;
+        std::queue<RequiredEvent> event_required_queue;
+        std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
+        int required_event_timer_id = -1;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
         Vector<Value> ability_define;
         Value process_arg;
         const String ability_key = "#ability";
+        std::map<int, TimerPackage> timer_map;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
         {
@@ -119,6 +168,98 @@ namespace agumi
             }
             return {};
         }
+        Value StartTimer(Value fn, int interval_ms, bool once)
+        {
+            static int id = 0;
+            auto curr_id = ++id;
+            TimerPackage tp;
+            tp.func = DefineFunc([&, curr_id, once, fn](Vector<Value>)
+                                 {
+                if (timer_map.find(curr_id) == timer_map.end())
+                {
+                   return false;
+                }
+                auto& tp = timer_map[curr_id];
+                if (tp.CanCall())
+                {
+                    tp.UpdateCallTime();
+                    FuncCall(fn);
+                    if (once)
+                    {
+                        RemoveTimer(curr_id);
+                        return false;
+                    }
+                    if (timer_map.find(curr_id) != timer_map.end())
+                    {
+                        AddTask2Queue(tp.func, false);
+                    }
+                } else {
+                    if (tp.CanImmediatlyPoll())
+                    {
+                        tp.UpdatePollTime();
+                    } 
+                    else
+                     {
+                        tp.UpdatePollTime();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                    }
+                    AddTask2Queue(tp.func, false);
+                } });
+            tp.SetInterval(interval_ms);
+            tp.UpdateCallTime();
+            tp.UpdatePollTime();
+            timer_map[curr_id] = tp;
+            AddTask2Queue(tp.func, false);
+            return curr_id;
+        }
+        void RemoveTimer(int id)
+        {
+            timer_map.erase(id);
+        }
+        void AddRequiredEventCustomer(String event_name, std::function<void(RequiredEvent)> callback)
+        {
+            required_event_customers[event_name] = callback;
+            if (required_event_timer_id == -1)
+            {
+                auto fn = DefineFunc(
+                    [&](Vector<Value>)
+                    {
+                        RequiredEvent event;
+                        std::function<void(RequiredEvent)> cb;
+                        {
+                            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+                            if (event_required_queue.size() == 0)
+                            {
+                                return false;
+                            }
+                            event = event_required_queue.front();
+                            event_required_queue.pop();
+                            auto iter = required_event_customers.find(event.event_name);
+                            if (iter == required_event_customers.end())
+                            {
+                                return false;
+                            }
+                            cb = iter->second;
+                            required_event_customers.erase(event.event_name);
+                            if (required_event_customers.size() == 0)
+                            {
+                                
+                                RemoveTimer(required_event_timer_id);
+                                required_event_timer_id = -1;
+                            }
+                        }
+                        cb(event);
+                    });
+                required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
+            }
+        }
+
+        void Push2RequiredEventPendingQueue(RequiredEvent event)
+        {
+            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+            event_required_queue.push(event);
+        }
+
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
         {
             auto clos = CurrCtx().closeure;
@@ -377,11 +518,10 @@ namespace agumi
             {
                 return class_iter->second.ExecFunc(key, val, args);
             }
-            catch(const std::exception& e)
+            catch (const std::exception &e)
             {
                 THROW_STACK_MSG(e.what())
             }
-            
         }
         Value ResolveVariableDeclaration(StatPtr stat)
         {

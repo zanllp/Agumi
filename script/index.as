@@ -1,19 +1,17 @@
-include('lib/index')
 
 
 const socket_push = (data) => {
     make_promise(resolve => {
-        const resp = fetch('http://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
+        const resp = fetch_async('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
             data,
             method: 'post',
             headers: { 'Content-Type': 'application/json' }
-        })
-        resolve(resp)
+        }, resolve)
     })
 }
 
 socket_push([]).then(resp => {
-    // log(resp.data)
+    log(resp.data)
 })
 
 
@@ -29,4 +27,4 @@ log(emojis.length(), emojis.substr(2))
 
 emojis.split().select(log)
 
-log(string_from_utf8('\u6d4b12\u8bd51234\u27ab'))
+log(utf8.decode('\u6d4b12\u8bd51234\u27ab'))

@@ -7,6 +7,7 @@
 #include "sion.h"
 
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
+#define CLONE(v) JSON_PARSE(Json::Stringify(v))
 #define BIN_OPERATOR(body) [](Value &l, Value &r) { return body; };
 #define VM_FN(body) [&](Vector<Value> args) -> Value { body; }
 
@@ -189,7 +190,6 @@ namespace agumi
                 obj["v"] = i.second;
                 res["headers"].Arr().Src().push_back(obj);
             }
-            // auto res = vm.FuncCall(vm.ValueOrUndef("make_promise"), vm.DefineFunc(resolve));
             return res;
         };
         vm.DefineGlobalFunc("fetch", fetch_bind);
@@ -312,12 +312,12 @@ namespace agumi
             return vm.DefineFunc(fn);
         };
         vm.DefineGlobalFunc("lens", lens_bind);
-        vm.DefineGlobalFunc("string_from_code_point", [&](Vector<Value> args) {
-            return String::FromCodePoint(args.GetOr(0, "").ToString());
-        });
-        vm.DefineGlobalFunc("string_from_utf8", [&](Vector<Value> args) {
-            return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString());
-        });
+        vm.ctx_stack[0].var["utf8"] = Object({{"from_code_point",
+                                               vm.DefineFunc([&](Vector<Value> args)
+                                                             { return String::FromCodePoint(args.GetOr(0, "").ToString()); })},
+                                              {"decode",
+                                               vm.DefineFunc([&](Vector<Value> args)
+                                                             { return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString()); })}});
         // 定义本地类成员函数
         LocalClassDefine string_def;
         std::map<KW, std::function<Value(Value &, Value &)>> str_op_def;
@@ -348,7 +348,7 @@ namespace agumi
                 args.GetOrDefault(1).GetOr<double>(-1),
                 args.GetOr(2, false).ToBool(),
                 true);
-                Array res;
+            Array res;
             res.Src().insert(res.Src().begin(), r.begin(), r.end());
             return res;
         };
@@ -461,6 +461,67 @@ namespace agumi
                 arr.Src().push_back(obj);
             }
             return arr; });
+        vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value
+                            { return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0), args.GetOrDefault(2).ToBool()); });
+
+        vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value
+                            { 
+                                vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
+                                return nullptr; });
+        vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value
+                            { 
+                                auto url = args.GetOrDefault(0).ToString();
+                                auto cb = args.GetOrDefault(2);
+                                auto params_i = CLONE(args.GetOrDefault(1));
+                                if (params_i.Type() != ValueType::object)
+                                {
+                                    THROW_VM_STACK_MSG("params必须为object类型，当前为{}", params_i.TypeString())
+                                }
+                                static int id = 0;
+                                String event_name = String::Format("fetch_async:{}", ++id);
+                                vm.AddRequiredEventCustomer(event_name, [&, cb](RequiredEvent e) {
+                                   vm.FuncCall(cb, e.val);
+                                });
+                                std::thread t([&,event_name,url,params_i]{
+                                    auto req = sion::Request().SetUrl(url);
+                                    auto p_i = params_i;
+                                    auto method_i = p_i["method"];
+                                    auto headers_i = p_i["headers"];
+                                    auto data_i = p_i["data"];
+                                    if (method_i.NotUndef())
+                                    {
+                                        req.SetHttpMethod(method_i.ToString().ToUpperCase());
+                                    }
+                                    if (data_i.NotUndef())
+                                    {
+                                        req.SetBody(json_stringify({data_i, 0}).ToString());
+                                    }
+                                    if (headers_i.NotUndef() && headers_i.Type() == ValueType::object)
+                                    {
+                                        for (auto &i : headers_i.ObjC().SrcC())
+                                        {
+                                            req.SetHeader(i.first, i.second.ToString());
+                                        }
+                                    }
+                                    auto resp = req.Send();
+                                    auto res = Object();
+                                    RequiredEvent e;
+                                    e.event_name = event_name;
+                                    e.val = res;
+                                    res["data"] = resp.Body();
+                                    res["code"] = resp.Code();
+                                    res["headers"] = Array();
+                                    for (auto &i : resp.HeaderSrc().data)
+                                    {
+                                        auto obj = Object();
+                                        obj["k"] = i.first;
+                                        obj["v"] = i.second;
+                                        res["headers"].Arr().Src().push_back(obj);
+                                    }
+                                    vm.Push2RequiredEventPendingQueue(e);
+                                });
+                                t.detach();
+                                return nullptr; });
         vm.class_define[ValueType::object] = LocalClassDefine();
         vm.class_define[ValueType::boolean] = LocalClassDefine();
 

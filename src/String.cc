@@ -260,9 +260,20 @@ namespace agumi
     String String::FromUtf8EncodeStr(String str)
     {
         Vector<String> res;
-        auto dd = str.Split("\\u");
-        for (auto &&i : dd)
+        auto frags = str.Split("\\u", -1, false);
+        size_t idx = 1;
+        if (frags[0].StartWith("\\u"))
         {
+            idx = 0;
+        }
+        else
+        {
+            res.push_back(frags[0]);
+        }
+
+        for (; idx < frags.size(); idx++)
+        {
+            auto &i = frags[idx];
             if (i.size() > 3)
             {
                 auto hex_str = i.substr(0, 4);
