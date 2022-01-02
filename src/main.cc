@@ -6,7 +6,6 @@
 #include "sion.h"
 #include "Runtime.h"
 #include "PreDefineFn.h"
-#include <filesystem>
 
 using namespace std;
 using namespace agumi;

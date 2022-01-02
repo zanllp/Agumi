@@ -5,6 +5,7 @@
 #include "Json.h"
 #include "Object.h"
 #include "sion.h"
+#include "sion/server.h"
 
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define CLONE(v) JSON_PARSE(Json::Stringify(v))
@@ -468,6 +469,24 @@ namespace agumi
                             { 
                                 vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
                                 return nullptr; });
+        vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
+                            { 
+                                auto port = args.GetOrDefault(0).Get<double>();
+                                static int id = 0;
+                                String event_name = String::Format("make_server:{}", ++id);
+                                vm.AddRequiredEventCustomer(event_name, [&](RequiredEvent e) {
+                                   
+                                });
+                               std::thread t ([&, event_name, port] {
+                                   P("run server on port:{}", port)
+                                    sion::MakeServer(port);
+                                    RequiredEvent e;
+                                    e.event_name = event_name;
+                                    vm.Push2RequiredEventPendingQueue(e);
+                               });
+                               t.detach();
+                                return nullptr; });
+
         vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value
                             { 
                                 auto url = args.GetOrDefault(0).ToString();

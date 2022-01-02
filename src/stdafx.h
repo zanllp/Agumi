@@ -19,6 +19,8 @@
 #include "String.h"
 #include "Vector.h"
 #include "utf8.h"
+#include <filesystem>
+#include <sys/socket.h>
 
 namespace agumi
 {
