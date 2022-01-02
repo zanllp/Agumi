@@ -1,4 +1,5 @@
 #include "../stdafx.h"
+#include "../Event.h"
 
 namespace sion
 {
@@ -9,13 +10,11 @@ namespace sion
         exit(1);
     }
 
-    int MakeServer(int portno)
+    int MakeServer(int portno, agumi::ServerHandler handler)
     {
-        int sockfd, newsockfd;
+        int sockfd;
         socklen_t clilen;
-        char buffer[256];
-        struct sockaddr_in serv_addr, cli_addr;
-        int n;
+        sockaddr_in serv_addr, cli_addr;
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd < 0)
             error("ERROR opening socket");
@@ -23,25 +22,39 @@ namespace sion
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_addr.s_addr = INADDR_ANY;
         serv_addr.sin_port = htons(portno);
-        if (bind(sockfd, (struct sockaddr *)&serv_addr,
-                 sizeof(serv_addr)) < 0)
+        if (bind(sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
             error("ERROR on binding");
-        listen(sockfd, 5);
+        listen(sockfd, 50);
         clilen = sizeof(cli_addr);
-        newsockfd = accept(sockfd,
-                           (struct sockaddr *)&cli_addr,
-                           &clilen);
-        if (newsockfd < 0)
-            error("ERROR on accept");
-        bzero(buffer, 256);
-        n = read(newsockfd, buffer, 255);
-        if (n < 0)
-            error("ERROR reading from socket");
-        printf("Here is the message: %s\n", buffer);
-        n = write(newsockfd, "I got your message", 18);
-        if (n < 0)
-            error("ERROR writing to socket");
-        close(newsockfd);
+        while (true)
+        {
+            int newsockfd = accept(sockfd, (sockaddr *)&cli_addr, &clilen);
+            if (newsockfd < 0)
+                error("ERROR on accept");
+            auto msg_handler = [=]
+            {
+                while (true)
+                {
+                    char buf[256];
+                    bzero(buf, 256);
+                    int n = read(newsockfd, buf, 255);
+                    if (n < 0)
+                        error("ERROR reading from socket");
+                    agumi::ServerRecvEvent recv_e;
+                    recv_e.event_name = "ServerRecvEvent";
+                    recv_e.val = buf;
+                    recv_e.fd = newsockfd;
+                    if (!handler.on_recv(recv_e))
+                    {
+                        close(newsockfd);
+                        return;
+                    }
+                }
+            };
+            std::thread t(msg_handler);
+            t.detach();
+        }
+
         close(sockfd);
         return 0;
     }

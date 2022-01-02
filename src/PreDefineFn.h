@@ -472,14 +472,22 @@ namespace agumi
         vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
                             { 
                                 auto port = args.GetOrDefault(0).Get<double>();
+                                auto cb = args.GetOrDefault(1);
                                 static int id = 0;
                                 String event_name = String::Format("make_server:{}", ++id);
                                 vm.AddRequiredEventCustomer(event_name, [&](RequiredEvent e) {
                                    
                                 });
-                               std::thread t ([&, event_name, port] {
+                               std::thread t ([&, event_name, port, id, cb] {
                                    P("run server on port:{}", port)
-                                    sion::MakeServer(port);
+                                    ServerHandler sh;
+                                    sh.on_recv = [&, cb](ServerRecvEvent e){
+                                        auto msg = Object();
+                                        msg["name"] = e.event_name;
+                                        msg["data"] = e.val;
+                                        return vm.FuncCall(cb, msg).ToBool();
+                                    };
+                                    sion::MakeServer(port, sh);
                                     RequiredEvent e;
                                     e.event_name = event_name;
                                     vm.Push2RequiredEventPendingQueue(e);
@@ -513,7 +521,7 @@ namespace agumi
                                     }
                                     if (data_i.NotUndef())
                                     {
-                                        req.SetBody(json_stringify({data_i, 0}).ToString());
+                                        req.SetBody(data_i.ToString());
                                     }
                                     if (headers_i.NotUndef() && headers_i.Type() == ValueType::object)
                                     {

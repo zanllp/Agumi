@@ -1,5 +1,7 @@
 #pragma once
 #include "Parser.h"
+#include "Event.h"
+
 // msg, {__VA_ARGS__}
 namespace agumi
 {
@@ -116,15 +118,6 @@ namespace agumi
         }
     };
 
-    /*
-     * 必要事件处理完之前不允许退出
-     */
-    struct RequiredEvent
-    {
-        String event_name;
-        Value val;
-    };
-
     class VM
     {
     public:
@@ -138,8 +131,11 @@ namespace agumi
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
         std::mutex event_required_queue_mutex;
+        std::mutex cross_thread_mutex;
         std::queue<RequiredEvent> event_required_queue;
+        std::queue<CrossThreadEvent> event_cross_thread_queue;
         std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
+        std::map<String, Vector<std::function<void(CrossThreadEvent)>>> cross_event;
         int required_event_timer_id = -1;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
@@ -254,10 +250,27 @@ namespace agumi
             }
         }
 
+        void AddCrossThreadEventListener(String event_name, std::function<void(CrossThreadEvent)> callback)
+        {
+            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+            if (cross_event.find(event_name) == cross_event.end())
+            {
+               cross_event[event_name] = {};
+            }
+            cross_event[event_name].push_back(callback);
+        }
+
+
         void Push2RequiredEventPendingQueue(RequiredEvent event)
         {
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_required_queue.push(event);
+        }
+
+        void Push2CrossThreadEventPendingQueue(CrossThreadEvent event)
+        {
+            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+            event_cross_thread_queue.push(event);
         }
 
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
