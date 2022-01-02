@@ -262,7 +262,7 @@ namespace agumi
         Vector<String> res;
         auto frags = str.Split("\\u", -1, false);
         size_t idx = 1;
-        if (frags[0].StartWith('\\u'))
+        if (frags[0].StartWith("\\u"))
         {
             idx = 0;
         }
