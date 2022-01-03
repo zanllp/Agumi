@@ -133,9 +133,8 @@ namespace agumi
         std::mutex event_required_queue_mutex;
         std::mutex cross_thread_mutex;
         std::queue<RequiredEvent> event_required_queue;
-        std::queue<CrossThreadEvent> event_cross_thread_queue;
+        std::queue<CrossThreadCallBack> event_cross_thread_queue;
         std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
-        std::map<String, Vector<std::function<void(CrossThreadEvent)>>> cross_event;
         int required_event_timer_id = -1;
         Vector<String> included_files;
         std::map<String, Function> func_mem;
@@ -239,7 +238,7 @@ namespace agumi
                             required_event_customers.erase(event.event_name);
                             if (required_event_customers.size() == 0)
                             {
-                                
+
                                 RemoveTimer(required_event_timer_id);
                                 required_event_timer_id = -1;
                             }
@@ -250,27 +249,16 @@ namespace agumi
             }
         }
 
-        void AddCrossThreadEventListener(String event_name, std::function<void(CrossThreadEvent)> callback)
-        {
-            std::lock_guard<std::mutex> m(event_required_queue_mutex);
-            if (cross_event.find(event_name) == cross_event.end())
-            {
-               cross_event[event_name] = {};
-            }
-            cross_event[event_name].push_back(callback);
-        }
-
-
         void Push2RequiredEventPendingQueue(RequiredEvent event)
         {
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_required_queue.push(event);
         }
 
-        void Push2CrossThreadEventPendingQueue(CrossThreadEvent event)
+        void Push2CrossThreadEventPendingQueue(CrossThreadCallBack cb)
         {
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
-            event_cross_thread_queue.push(event);
+            event_cross_thread_queue.push(cb);
         }
 
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
@@ -400,6 +388,16 @@ namespace agumi
         {
             while (micro_task_queue.size() + macro_task_queue.size())
             {
+                {
+                    std::lock_guard<std::mutex> m(cross_thread_mutex);
+                    while (event_cross_thread_queue.size())
+                    {
+                        auto cb = event_cross_thread_queue.front();
+                        event_cross_thread_queue.pop();
+                        FuncCall(cb.cb, cb.event.val);
+                    }
+                    
+                }
                 while (micro_task_queue.size())
                 {
                     FuncCall(micro_task_queue.front());

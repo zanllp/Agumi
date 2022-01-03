@@ -482,10 +482,14 @@ namespace agumi
                                    P("run server on port:{}", port)
                                     ServerHandler sh;
                                     sh.on_recv = [&, cb](ServerRecvEvent e){
-                                        auto msg = Object();
-                                        msg["name"] = e.event_name;
-                                        msg["data"] = e.val;
-                                        return vm.FuncCall(cb, msg).ToBool();
+                                        CrossThreadEvent cte;
+                                        cte.val = Object({{"name",e.event_name}, {"data", e.val}});
+                                        cte.event_name = e.event_name;
+                                        CrossThreadCallBack ctcb;
+                                        ctcb.cb = cb;
+                                        ctcb.event = cte;
+                                        vm.Push2CrossThreadEventPendingQueue(ctcb);
+                                        return false;
                                     };
                                     sion::MakeServer(port, sh);
                                     RequiredEvent e;

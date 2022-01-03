@@ -21,6 +21,12 @@ namespace agumi
     {
     };
 
+    struct CrossThreadCallBack
+    {
+        Value cb;
+        CrossThreadEvent event;
+    };
+
     struct ServerRecvEvent : BaseEvent
     {
         int fd;

@@ -40,15 +40,19 @@ namespace sion
                     int n = read(newsockfd, buf, 255);
                     if (n < 0)
                         error("ERROR reading from socket");
+                    if (n == 0)
+                    {
+                        std::this_thread::yield();
+                        continue;
+                    }
+                        
                     agumi::ServerRecvEvent recv_e;
                     recv_e.event_name = "ServerRecvEvent";
                     recv_e.val = buf;
                     recv_e.fd = newsockfd;
-                    if (!handler.on_recv(recv_e))
-                    {
-                        close(newsockfd);
-                        return;
-                    }
+                    handler.on_recv(recv_e);
+                    
+                        // close(newsockfd);
                 }
             };
             std::thread t(msg_handler);
