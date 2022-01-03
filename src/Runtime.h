@@ -87,7 +87,7 @@ namespace agumi
         TimePoint last_call;
         TimePoint last_poll;
         std::chrono::milliseconds interval;
-        std::chrono::milliseconds min_interval = std::chrono::milliseconds(2);
+        std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
 
     public:
         Value func;
@@ -132,8 +132,10 @@ namespace agumi
         std::queue<Value> macro_task_queue;
         std::mutex event_required_queue_mutex;
         std::mutex cross_thread_mutex;
+        std::mutex channel_mutex;
         std::queue<RequiredEvent> event_required_queue;
         std::queue<CrossThreadCallBack> event_cross_thread_queue;
+        std::map<double, Vector<ChannelPayload>> sub_thread_channel;
         std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
         int required_event_timer_id = -1;
         Vector<String> included_files;
@@ -196,7 +198,7 @@ namespace agumi
                     else
                      {
                         tp.UpdatePollTime();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     }
                     AddTask2Queue(tp.func, false);
                 } });
@@ -259,6 +261,16 @@ namespace agumi
         {
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_cross_thread_queue.push(cb);
+        }
+
+        void ChannelPublish (double tid,ChannelPayload payload) 
+        {
+            std::lock_guard<std::mutex> m(channel_mutex);
+            if (sub_thread_channel.find(tid) == sub_thread_channel.end())
+            {
+                sub_thread_channel[tid] = {};
+            }
+            sub_thread_channel[tid].push_back(payload);
         }
 
         std::optional<std::reference_wrapper<Value>> GetValue(String key)

@@ -98,4 +98,5 @@ namespace agumi
         return PathCalc({args...});
     }
 
+    double get_thread_id();
 }

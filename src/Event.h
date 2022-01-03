@@ -30,11 +30,20 @@ namespace agumi
     struct ServerRecvEvent : BaseEvent
     {
         int fd;
+        double tid_unsafe; // 仅用于比较，map
     };
+
+    struct ChannelPayload  : BaseEvent
+    {
+        int id;
+    };
+    
 
     struct ServerHandler
     {
+        using ChannelPayloadArr = Vector<ChannelPayload>;
         std::function<bool(ServerRecvEvent)> on_recv;
+        std::function<ChannelPayloadArr(double)> on_channel_message;
     };
     
 }

@@ -319,7 +319,6 @@ void TestPath()
 
 int main(int argc, char **argv)
 {
-    std::iostream::sync_with_stdio(true);
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif

@@ -4,10 +4,19 @@
 namespace sion
 {
 
-    void error(const char *msg)
+    void setNonBlock(int fd)
     {
+        int flags = fcntl(fd, F_GETFL, 0);
+        agumi::Assest(flags >= 0, "fcntl failed");
+        int r = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+        agumi::Assest(r >= 0, "fcntl failed");
+    }
+
+    void error(const char *msg, int socket = -1)
+    {
+        close(socket);
         perror(msg);
-        exit(1);
+        throw std::runtime_error("");
     }
 
     int MakeServer(int portno, agumi::ServerHandler handler)
@@ -31,28 +40,50 @@ namespace sion
             int newsockfd = accept(sockfd, (sockaddr *)&cli_addr, &clilen);
             if (newsockfd < 0)
                 error("ERROR on accept");
+            setNonBlock(newsockfd);
             auto msg_handler = [=]
             {
+                auto unsafe_tid = agumi::get_thread_id();
+
                 while (true)
                 {
+                    auto message = handler.on_channel_message(unsafe_tid);
+                    for (auto &&i : message)
+                    {
+                        if (i.event_name == "send_data")
+                        {
+                            auto data = i.val.ToString();
+                            auto ee = write(newsockfd, data.c_str(), data.size());
+                        }
+                        else if (i.event_name == "close_connection")
+                        {
+                            close(newsockfd);
+                            return;
+                        }
+                    }
+
                     char buf[256];
                     bzero(buf, 256);
                     int n = read(newsockfd, buf, 255);
                     if (n < 0)
-                        error("ERROR reading from socket");
+                    {
+                        if (errno == EAGAIN || errno == EINPROGRESS)
+                        {
+                            continue;
+                        }
+                        error("ERROR reading from socket", newsockfd);
+                    }
                     if (n == 0)
                     {
                         std::this_thread::yield();
                         continue;
                     }
-                        
                     agumi::ServerRecvEvent recv_e;
                     recv_e.event_name = "ServerRecvEvent";
                     recv_e.val = buf;
                     recv_e.fd = newsockfd;
+                    recv_e.tid_unsafe = unsafe_tid;
                     handler.on_recv(recv_e);
-                    
-                        // close(newsockfd);
                 }
             };
             std::thread t(msg_handler);

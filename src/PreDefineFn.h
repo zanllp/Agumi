@@ -469,6 +469,21 @@ namespace agumi
                             { 
                                 vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
                                 return nullptr; });
+          vm.DefineGlobalFunc("send_server_data", [&](Vector<Value> args) -> Value
+                            { 
+                                auto arg = args.GetOrDefault(0);
+                                ChannelPayload payload;
+                                payload.event_name = "send_data";
+                                payload.val = args.GetOrDefault(1);
+                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                return nullptr; });
+          vm.DefineGlobalFunc("close_server_connection", [&](Vector<Value> args) -> Value
+                            { 
+                                auto arg = args.GetOrDefault(0);
+                                ChannelPayload payload;
+                                payload.event_name = "close_connection";
+                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                return nullptr; });
         vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
                             { 
                                 auto port = args.GetOrDefault(0).Get<double>();
@@ -489,13 +504,27 @@ namespace agumi
                                     ServerHandler sh;
                                     sh.on_recv = [&, cb](ServerRecvEvent e){
                                         CrossThreadEvent cte;
-                                        cte.val = Object({{"name",e.event_name}, {"buf", e.val}, { "socket", e.fd }});
+                                        cte.val = Object({
+                                            {"name",e.event_name},
+                                            {"buf", e.val}, 
+                                            { "socket", e.fd },
+                                            {"#tid_unsafe", e.tid_unsafe}
+                                            });
                                         cte.event_name = e.event_name;
                                         CrossThreadCallBack ctcb;
                                         ctcb.cb = cb;
                                         ctcb.event = cte;
                                         vm.Push2CrossThreadEventPendingQueue(ctcb);
                                         return false;
+                                    };
+                                    sh.on_channel_message = [&](double tid) -> Vector<ChannelPayload> {
+                                        std::lock_guard<std::mutex> m (vm.channel_mutex);
+                                        if (vm.sub_thread_channel.find(tid) == vm.sub_thread_channel.end()) {
+                                            return {};
+                                        }
+                                        auto payload_queue = vm.sub_thread_channel[tid];
+                                        vm.sub_thread_channel.erase(tid);
+                                        return payload_queue;
                                     };
                                     sion::MakeServer(port, sh);
                                     RequiredEvent e;
