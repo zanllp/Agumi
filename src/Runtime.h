@@ -294,6 +294,12 @@ namespace agumi
         {
             return GetValue(key).value_or(Value::null);
         }
+
+        Value &GlobalVal(String key)
+        {
+            auto& mem = ctx_stack[0].var;
+            return mem.In(key) ? mem[key] : Value::null;
+        }
         Value SetValue(String key, Value val)
         {
             for (size_t i = 0; i < ctx_stack.size(); i++)

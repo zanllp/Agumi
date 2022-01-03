@@ -472,18 +472,24 @@ namespace agumi
         vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
                             { 
                                 auto port = args.GetOrDefault(0).Get<double>();
-                                auto cb = args.GetOrDefault(1);
+                                auto agumiCb = args.GetOrDefault(1);
                                 static int id = 0;
                                 String event_name = String::Format("make_server:{}", ++id);
                                 vm.AddRequiredEventCustomer(event_name, [&](RequiredEvent e) {
                                    
+                                });
+                                auto cb = vm.DefineFunc([&, agumiCb](Vector<Value> args){
+                                    auto conn = args.GetOrDefault(0); 
+                                    vm.FuncCall(vm.GlobalVal("use_ability"), conn, vm.GlobalVal("ServerConnection"));
+                                    vm.FuncCall(agumiCb, conn);
+                                    return nullptr;
                                 });
                                std::thread t ([&, event_name, port, id, cb] {
                                    P("run server on port:{}", port)
                                     ServerHandler sh;
                                     sh.on_recv = [&, cb](ServerRecvEvent e){
                                         CrossThreadEvent cte;
-                                        cte.val = Object({{"name",e.event_name}, {"data", e.val}});
+                                        cte.val = Object({{"name",e.event_name}, {"buf", e.val}, { "socket", e.fd }});
                                         cte.event_name = e.event_name;
                                         CrossThreadCallBack ctcb;
                                         ctcb.cb = cb;
@@ -558,6 +564,6 @@ namespace agumi
 
         auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
         P("lib path: {}", libPath)
-        vm.FuncCall(vm.ValueOrUndef("include"), {libPath, true});
+        vm.FuncCall(vm.GlobalVal("include"), {libPath, true});
     }
 }
