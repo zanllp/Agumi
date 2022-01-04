@@ -499,7 +499,7 @@ namespace agumi
                                     vm.FuncCall(agumiCb, conn);
                                     return nullptr;
                                 });
-                               std::thread t ([&, event_name, port, id, cb] {
+                               std::thread t ([&, event_name, port, cb] {
                                    P("run server on port:{}", port)
                                     ServerHandler sh;
                                     sh.on_recv = [&, cb](ServerRecvEvent e){
