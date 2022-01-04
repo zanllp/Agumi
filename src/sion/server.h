@@ -19,6 +19,9 @@ namespace sion
         throw std::runtime_error("");
     }
 
+    /*
+    * 先随便写写能跑就行，后面再换成epoll/kqueue/iocp
+    */
     int MakeServer(int portno, agumi::ServerHandler handler)
     {
         int sockfd;
