@@ -87,17 +87,16 @@ namespace agumi
         TimePoint last_call;
         TimePoint last_poll;
         std::chrono::milliseconds interval;
-        std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
 
     public:
         Value func;
         bool CanCall()
         {
-            return Now() - last_call > interval;
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_call).count() > interval.count();
         }
         bool CanImmediatlyPoll()
         {
-            return Now() - last_poll > min_interval;
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_poll).count() > min_interval.count();
         }
         void UpdateCallTime()
         {
@@ -112,10 +111,12 @@ namespace agumi
         {
             interval = std::chrono::milliseconds(ms);
         }
-        TimePoint Now()
+        static TimePoint Now()
         {
             return std::chrono::steady_clock::now();
         }
+        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
+        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(5);
     };
 
     class VM
@@ -180,6 +181,7 @@ namespace agumi
                 if (tp.CanCall())
                 {
                     tp.UpdateCallTime();
+                   P("call {}", fn.ToString())
                     FuncCall(fn);
                     if (once)
                     {
@@ -193,12 +195,14 @@ namespace agumi
                 } else {
                     if (tp.CanImmediatlyPoll())
                     {
+                        P("poll")
                         tp.UpdatePollTime();
                     } 
                     else
                      {
+                       P("sleep")
                         tp.UpdatePollTime();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                        std::this_thread::sleep_for(TimerPackage::sleep_time);
                     }
                     AddTask2Queue(tp.func, false);
                 } });
@@ -246,25 +250,30 @@ namespace agumi
                             }
                         }
                         cb(event);
-                    });
+                    },
+                    "RequiredEventTimerPollFunc");
+                // P("define RequiredEventTimerPollFunc")
                 required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
             }
         }
 
         void Push2RequiredEventPendingQueue(RequiredEvent event)
         {
+            // P("Push2RequiredEventPendingQueue")
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_required_queue.push(event);
         }
 
         void Push2CrossThreadEventPendingQueue(CrossThreadCallBack cb)
         {
+            // P("Push2CrossThreadEventPendingQueue")
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_cross_thread_queue.push(cb);
         }
 
-        void ChannelPublish (double tid,ChannelPayload payload) 
+        void ChannelPublish(double tid, ChannelPayload payload)
         {
+            // P("ChannelPublish")
             std::lock_guard<std::mutex> m(channel_mutex);
             if (sub_thread_channel.find(tid) == sub_thread_channel.end())
             {
@@ -309,7 +318,7 @@ namespace agumi
 
         Value &GlobalVal(String key)
         {
-            auto& mem = ctx_stack[0].var;
+            auto &mem = ctx_stack[0].var;
             return mem.In(key) ? mem[key] : Value::null;
         }
         Value SetValue(String key, Value val)
@@ -340,10 +349,11 @@ namespace agumi
             ctx_stack[0].var[name] = DefineFunc(native_fn);
         }
 
-        Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn)
+        Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn, String name = "")
         {
+            // P("DefineFunc")
             static int id = 0;
-            auto fn_unique_id = String::Format("native func code:{}", ++id);
+            auto fn_unique_id = String::Format("native func code:{}{}", ++id, name.size() ? String::Format("  {}", name) : name);
             auto fn = Value::CreateFunc(fn_unique_id);
             Function fn_src(fn_unique_id);
             fn_src.is_native_func = true;
