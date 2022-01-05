@@ -27,6 +27,7 @@ namespace agumi
         std::set<const ArrayVec *> can_reach_arr;
         void ReachObjectNode(Object start);
         void GC();
+        Object& Closure ();
         static MemManger &Get();
     };
 }

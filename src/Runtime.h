@@ -92,11 +92,11 @@ namespace agumi
         Value func;
         bool CanCall()
         {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_call).count() > interval.count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_call) > interval;
         }
         bool CanImmediatlyPoll()
         {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_poll).count() > min_interval.count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_poll) > min_interval;
         }
         void UpdateCallTime()
         {
@@ -115,8 +115,9 @@ namespace agumi
         {
             return std::chrono::steady_clock::now();
         }
-        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
-        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(5);
+        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(200);
+        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(200);
+        static constexpr std::chrono::milliseconds long_sleep_time = std::chrono::milliseconds(1000);
     };
 
     class VM
@@ -125,8 +126,13 @@ namespace agumi
         VM()
         {
             ctx_stack.resize(1);
+            id = ++incr_id;
+            MemManger::Get().gc_root[String::Format("vm:{}", id)] = CurrCtx().var;
         }
+        int id =0;
+        bool enable_gc = false;
 
+        static int incr_id;
         String working_dir = '.';
         Vector<Context> ctx_stack;
         std::queue<Value> micro_task_queue;
@@ -144,6 +150,7 @@ namespace agumi
         Vector<Value> ability_define;
         Value process_arg;
         const String ability_key = "#ability";
+        const String next_stack_key = "#next-stack-key";
         std::map<int, TimerPackage> timer_map;
         std::map<ValueType, LocalClassDefine> class_define;
         Context &CurrCtx()
@@ -166,11 +173,13 @@ namespace agumi
             }
             return {};
         }
+       //  int last_gc = 1000;
         Value StartTimer(Value fn, int interval_ms, bool once)
         {
             static int id = 0;
             auto curr_id = ++id;
             TimerPackage tp;
+
             tp.func = DefineFunc([&, curr_id, once, fn](Vector<Value>)
                                  {
                 if (timer_map.find(curr_id) == timer_map.end())
@@ -181,7 +190,14 @@ namespace agumi
                 if (tp.CanCall())
                 {
                     tp.UpdateCallTime();
-                   P("call {}", fn.ToString())
+                    // auto alloc_size = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                    if (enable_gc && (last_gc + 1000 < alloc_size))
+                    {
+                        // FuncCall(GlobalVal("gc"));
+                         // last_gc = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                    }
+                    
+                    // P("call arr：{} obj:{} {}", MemAllocCollect::vec_quene.size(), MemAllocCollect::obj_quene.size() , fn.ToString())
                     FuncCall(fn);
                     if (once)
                     {
@@ -195,12 +211,12 @@ namespace agumi
                 } else {
                     if (tp.CanImmediatlyPoll())
                     {
-                        P("poll")
+                        // P("poll")
                         tp.UpdatePollTime();
                     } 
                     else
                      {
-                       P("sleep")
+                       // P("sleep")
                         tp.UpdatePollTime();
                         std::this_thread::sleep_for(TimerPackage::sleep_time);
                     }
@@ -392,12 +408,12 @@ namespace agumi
                     auto key = arg.name.kw;
                     fn_ctx.var[key] = args[i];
                 }
-                ctx_stack.push_back(fn_ctx);
+                PushContext(fn_ctx);
                 for (auto &stat : fn.src->body)
                 {
                     v = Dispatch(stat);
                 }
-                ctx_stack.pop_back();
+                PopContext();
             }
             return v;
         }
@@ -412,6 +428,18 @@ namespace agumi
             q.push(task);
         }
 
+        void PushContext(Context fn_ctx)
+        {
+            CurrScope()[next_stack_key] = fn_ctx.var; // 产生gc关联
+            ctx_stack.push_back(fn_ctx);
+        }
+
+        void PopContext()
+        {
+            ctx_stack.pop_back();
+            CurrScope().Obj().Src().erase(next_stack_key);
+        }
+
         void RunQueueTaskUntilEmpty()
         {
             while (micro_task_queue.size() + macro_task_queue.size())
@@ -424,7 +452,6 @@ namespace agumi
                         event_cross_thread_queue.pop();
                         FuncCall(cb.cb, cb.event.val);
                     }
-                    
                 }
                 while (micro_task_queue.size())
                 {
@@ -527,13 +554,13 @@ namespace agumi
                     fn_ctx.var[key] = args[i];
                 }
 
-                ctx_stack.push_back(fn_ctx);
+                PushContext(fn_ctx);
                 // 执行函数
                 for (auto &stat : fn.src->body)
                 {
                     v = Dispatch(stat);
                 }
-                ctx_stack.pop_back();
+                PopContext();
             }
 
             return v;
@@ -1034,7 +1061,16 @@ namespace agumi
                         else if (deep <= clos.stack_offset) // 在当前上下文生成，已生成的
                         {
                             // P("has created kw:{} value:{}", clos.kw, ValueOrUndef(clos.kw))
-                            closure_curr.map[clos.kw] = Closure::From(ValueOrUndef(clos.kw)); // 会优先从当前上下文的闭包中取
+                            auto v = ValueOrUndef(clos.kw);
+                            closure_curr.map[clos.kw] = Closure::From(v); // 会优先从当前上下文的闭包中取
+                            if (v.Type() == ValueType::array)
+                            {
+                                MemManger::Get().Closure()[std::to_string(size_t(v.ArrC().Ptr()))] = v;
+                            }
+                            else if (v.Type() == ValueType::object)
+                            {
+                                MemManger::Get().Closure()[std::to_string(size_t(v.ObjC().Ptr()))] = v;
+                            }
                         }
                     }
                     for (auto &i : mem.children) // 递归处理嵌套的函数
@@ -1058,4 +1094,5 @@ namespace agumi
             return Value::CreateFunc(fn.id);
         }
     };
+    int VM::incr_id =0;
 }
