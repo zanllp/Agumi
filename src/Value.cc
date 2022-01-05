@@ -92,6 +92,11 @@ namespace agumi
         type = ValueType::string;
         data_ptr = new String(data);
     }
+    Value::Value(String data)
+    {
+        type = ValueType::string;
+        data_ptr = new String(data);
+    }
 
     Value::Value(Object obj)
     {
@@ -178,10 +183,19 @@ namespace agumi
 
     bool Value::In(const String &key) const
     {
+        if (type != ValueType::object)
+        {
+            return false;
+        }
+        
         return this->ObjC().In(key);
     }
     bool Value::In(size_t idx) const
     {
+        if (type != ValueType::array)
+        {
+            return false;
+        }
         return this->ArrC().In(idx);
     }
 

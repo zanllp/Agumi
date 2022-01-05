@@ -7,50 +7,8 @@
 
 namespace agumi
 {
-    class Profile
-    {
-        std::chrono::nanoseconds r;
-        std::chrono::time_point<std::chrono::system_clock> l;
+   
 
-    public:
-        Profile()
-        {
-            Reset();
-        }
-        std::optional<std::string> Start()
-        {
-            l = std::chrono::system_clock::now();
-            return "";
-        }
-        void Pause()
-        {
-            auto n = std::chrono::system_clock::now();
-            r += (n - l);
-        }
-        void Print(double scale = 1)
-        {
-            std::cout << ToMs(scale) << " ms" << std::endl;
-        }
-        double ToMs(double scale = 1)
-        {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(r).count() / scale;
-        }
-        std::chrono::nanoseconds Reduce()
-        {
-            return r;
-        }
-        void Reset()
-        {
-            r = std::chrono::nanoseconds();
-        }
-    };
-
-    Profile p;
-
-#define e(l)   \
-    p.Start(); \
-    l;         \
-    p.Pause();
     String ReadConstStr(String &src, char symbol, int &ptr, int &line, int &offset)
     {
         auto next_ptr = ptr + 1;

@@ -98,5 +98,37 @@ namespace agumi
         return PathCalc({args...});
     }
 
-    double get_thread_id();
+    double get_thread_id(); class Profile
+    {
+        std::chrono::nanoseconds r;
+        std::chrono::time_point<std::chrono::system_clock> l;
+
+    public:
+        Profile()
+        {
+            Reset();
+            Start();
+        }
+        void Start()
+        {
+            l = std::chrono::system_clock::now();
+        }
+        void Pause()
+        {
+            auto n = std::chrono::system_clock::now();
+            r += (n - l);
+        }
+        void Print(double scale = 1)
+        {
+            std::cout << ToMs(scale) << " ms" << std::endl;
+        }
+        double ToMs(double scale = 1)
+        {
+            return std::chrono::duration_cast<std::chrono::milliseconds>(r).count() / scale;
+        }
+        void Reset()
+        {
+            r = std::chrono::nanoseconds();
+        }
+    };
 }

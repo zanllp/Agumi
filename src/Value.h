@@ -22,6 +22,7 @@ namespace agumi
         Value(std::nullptr_t null);
         Value(double data);
         Value(std::string data);
+        Value(String data);
         Value(Object obj);
         Value(Array arr);
         ValueType Type() const;

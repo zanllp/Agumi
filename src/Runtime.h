@@ -115,8 +115,8 @@ namespace agumi
         {
             return std::chrono::steady_clock::now();
         }
-        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(200);
-        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(200);
+        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
+        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(5);
         static constexpr std::chrono::milliseconds long_sleep_time = std::chrono::milliseconds(1000);
     };
 
@@ -129,7 +129,7 @@ namespace agumi
             id = ++incr_id;
             MemManger::Get().gc_root[String::Format("vm:{}", id)] = CurrCtx().var;
         }
-        int id =0;
+        int id = 0;
         bool enable_gc = false;
 
         static int incr_id;
@@ -153,6 +153,8 @@ namespace agumi
         const String next_stack_key = "#next-stack-key";
         std::map<int, TimerPackage> timer_map;
         std::map<ValueType, LocalClassDefine> class_define;
+        int last_gc = 1000;
+        int gc_step = 1000;
         Context &CurrCtx()
         {
             return ctx_stack.back();
@@ -173,7 +175,6 @@ namespace agumi
             }
             return {};
         }
-       //  int last_gc = 1000;
         Value StartTimer(Value fn, int interval_ms, bool once)
         {
             static int id = 0;
@@ -190,11 +191,11 @@ namespace agumi
                 if (tp.CanCall())
                 {
                     tp.UpdateCallTime();
-                    // auto alloc_size = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
-                    if (enable_gc && (last_gc + 1000 < alloc_size))
+                    auto alloc_size = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                    if (enable_gc && (last_gc + gc_step < alloc_size))
                     {
-                        // FuncCall(GlobalVal("gc"));
-                         // last_gc = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                        MemManger::Get().GC();
+                        last_gc = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
                     }
                     
                     // P("call arr：{} obj:{} {}", MemAllocCollect::vec_quene.size(), MemAllocCollect::obj_quene.size() , fn.ToString())
@@ -516,7 +517,7 @@ namespace agumi
             auto fn_iter = func_mem.find(fn_loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_STACK_MSG("function {} is not defined", fn_loc)
+                THROW_STACK_MSG("function {} is not defined", fn_loc.ToString())
             }
             Context fn_ctx;
             Value v;
@@ -793,7 +794,9 @@ namespace agumi
                                 auto target_abi = ability_define[abi_idx];
                                 if (target_abi.In(key_str))
                                 {
-                                    par = ResolveFuncCall(i.stat, target_abi[key_str], {par});
+                                    auto fn = target_abi[key_str];
+                                    P("___{}", fn.ToString())
+                                    par = ResolveFuncCall(i.stat, fn, {par});
                                     continue_flag = true;
                                     continue;
                                 }
@@ -1061,8 +1064,8 @@ namespace agumi
                         else if (deep <= clos.stack_offset) // 在当前上下文生成，已生成的
                         {
                             // P("has created kw:{} value:{}", clos.kw, ValueOrUndef(clos.kw))
-                            auto v = ValueOrUndef(clos.kw);
-                            closure_curr.map[clos.kw] = Closure::From(v); // 会优先从当前上下文的闭包中取
+                            closure_curr.map[clos.kw] = Closure::From(ValueOrUndef(clos.kw)); // 会优先从当前上下文的闭包中取
+                            auto &v = closure_curr.map[clos.kw].val;
                             if (v.Type() == ValueType::array)
                             {
                                 MemManger::Get().Closure()[std::to_string(size_t(v.ArrC().Ptr()))] = v;
@@ -1094,5 +1097,5 @@ namespace agumi
             return Value::CreateFunc(fn.id);
         }
     };
-    int VM::incr_id =0;
+    int VM::incr_id = 0;
 }

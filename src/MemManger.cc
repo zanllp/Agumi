@@ -1,6 +1,7 @@
 #include "MemManger.h"
 #include "Object.h"
 #include "stdafx.h"
+#include "util.h"
 namespace agumi
 {
 
@@ -80,6 +81,7 @@ namespace agumi
 
     void MemManger::GC()
     {
+        Profile p;
         auto src_obj = MemAllocCollect::obj_quene.size();
         auto vec_obj = MemAllocCollect::vec_quene.size();
         can_reach_obj.insert(gc_root.Obj().Ptr());
@@ -104,6 +106,7 @@ namespace agumi
         copy(can_reach_obj.begin(), can_reach_obj.end(), MemAllocCollect::obj_quene.begin());
         can_reach_obj.clear();
         can_reach_arr.clear();
-        P("GC完成  对象数量：{} 数组数量：{}", src_obj - MemAllocCollect::obj_quene.size(),vec_obj - MemAllocCollect::vec_quene.size() )
+        p.Pause();
+        P("GC完成 回收 对象数量：{} 数组数量：{} 消耗时间：{}ms", src_obj - MemAllocCollect::obj_quene.size(),vec_obj - MemAllocCollect::vec_quene.size(), p.ToMs() )
     }
 }

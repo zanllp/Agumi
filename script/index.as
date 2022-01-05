@@ -10,7 +10,8 @@ const socket_push = (data) => {
     })
 }
 
-socket_push("hell world").then(resp => {
-    log(resp.data)
-})
-
+start_timer(() => {
+    socket_push("hell world").then(resp => {
+        log(resp.data)
+    })
+}, 1000)
