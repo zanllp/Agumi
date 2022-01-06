@@ -131,4 +131,13 @@ namespace agumi
         }
         return res.size() ? res.Join(separate) : separate;
     }
+
+    
+    double get_thread_id()
+    {
+        static_assert(sizeof(std::thread::id) == sizeof(double), "this function only works if size of thead::id is equal to the size of uint_64");
+        auto id = std::this_thread::get_id();
+        double *ptr = (double *)&id;
+        return (*ptr);
+    }
 }

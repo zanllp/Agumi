@@ -5,6 +5,7 @@
 #include "Json.h"
 #include "Object.h"
 #include "sion.h"
+#include "sion/server.h"
 
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define CLONE(v) JSON_PARSE(Json::Stringify(v))
@@ -27,7 +28,7 @@ namespace agumi
                             {
             auto name = args.GetOrDefault(0);
             auto curr_key = vm.ability_define.size();
-            vm.ability_define.push_back(Object());
+            vm.AddInitAbility();
             return Object({ {"key", double(curr_key)}, { "name",name.NotUndef() ? name: "anonymous"  } }); });
         vm.DefineGlobalFunc("use_ability", [&](Vector<Value> args) -> Value
                             {
@@ -461,6 +462,20 @@ namespace agumi
                 arr.Src().push_back(obj);
             }
             return arr; });
+        
+        vm.DefineGlobalFunc("set_gc", [&](Vector<Value> args) -> Value
+                            {
+                                auto conf = args.GetOrDefault(0);
+                                if(conf.In("enable")) {
+                                    vm.enable_gc = conf["enable"].ToBool();
+                                }
+                                if(conf.In("step")) {
+                                    vm.gc_step = conf["step"].Get<double>();
+                                }
+                                return nullptr; 
+                            });
+        vm.DefineGlobalFunc("gc", [&](Vector<Value> args) -> Value
+                            { MemManger::Get().GC();return nullptr; });
         vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value
                             { return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0), args.GetOrDefault(2).ToBool()); });
 
@@ -468,6 +483,71 @@ namespace agumi
                             { 
                                 vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
                                 return nullptr; });
+          vm.DefineGlobalFunc("send_server_data", [&](Vector<Value> args) -> Value
+                            { 
+                                auto arg = args.GetOrDefault(0);
+                                ChannelPayload payload;
+                                payload.event_name = "send_data";
+                                payload.val = args.GetOrDefault(1);
+                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                return nullptr; });
+          vm.DefineGlobalFunc("close_server_connection", [&](Vector<Value> args) -> Value
+                            { 
+                                auto arg = args.GetOrDefault(0);
+                                ChannelPayload payload;
+                                payload.event_name = "close_connection";
+                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                return nullptr; });
+        vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
+                            { 
+                                auto port = args.GetOrDefault(0).Get<double>();
+                                auto agumiCb = args.GetOrDefault(1);
+                                static int id = 0;
+                                String event_name = String::Format("make_server:{}", ++id);
+                                vm.AddRequiredEventCustomer(event_name, [&](RequiredEvent e) {
+                                   
+                                });
+                                auto cb = vm.DefineFunc([&, agumiCb](Vector<Value> args){
+                                    auto conn = args.GetOrDefault(0); 
+                                    vm.FuncCall(vm.GlobalVal("use_ability"), conn, vm.GlobalVal("ServerConnection"));
+                                    vm.FuncCall(agumiCb, conn);
+                                    return nullptr;
+                                });
+                               std::thread t ([&, event_name, port, cb] {
+                                   P("run server on port:{}", port)
+                                    ServerHandler sh;
+                                    sh.on_recv = [&, cb](ServerRecvEvent e){
+                                        CrossThreadEvent cte;
+                                        cte.val = Object({
+                                            {"name",e.event_name},
+                                            {"buf", e.val}, 
+                                            { "socket", e.fd },
+                                            {"#tid_unsafe", e.tid_unsafe}
+                                            });
+                                        cte.event_name = e.event_name;
+                                        CrossThreadCallBack ctcb;
+                                        ctcb.cb = cb;
+                                        ctcb.event = cte;
+                                        vm.Push2CrossThreadEventPendingQueue(ctcb);
+                                        return false;
+                                    };
+                                    sh.on_channel_message = [&](double tid) -> Vector<ChannelPayload> {
+                                        std::lock_guard<std::mutex> m (vm.channel_mutex);
+                                        if (vm.sub_thread_channel.find(tid) == vm.sub_thread_channel.end()) {
+                                            return {};
+                                        }
+                                        auto payload_queue = vm.sub_thread_channel[tid];
+                                        vm.sub_thread_channel.erase(tid);
+                                        return payload_queue;
+                                    };
+                                    sion::MakeServer(port, sh);
+                                    RequiredEvent e;
+                                    e.event_name = event_name;
+                                    vm.Push2RequiredEventPendingQueue(e);
+                               });
+                               t.detach();
+                                return nullptr; });
+
         vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value
                             { 
                                 auto url = args.GetOrDefault(0).ToString();
@@ -494,7 +574,7 @@ namespace agumi
                                     }
                                     if (data_i.NotUndef())
                                     {
-                                        req.SetBody(json_stringify({data_i, 0}).ToString());
+                                        req.SetBody(data_i.ToString());
                                     }
                                     if (headers_i.NotUndef() && headers_i.Type() == ValueType::object)
                                     {
@@ -527,6 +607,6 @@ namespace agumi
 
         auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
         P("lib path: {}", libPath)
-        vm.FuncCall(vm.ValueOrUndef("include"), {libPath, true});
+        vm.FuncCall(vm.GlobalVal("include"), {libPath, true});
     }
 }

@@ -1,10 +1,14 @@
 #include "MemManger.h"
 #include "Object.h"
 #include "stdafx.h"
+#include "util.h"
 namespace agumi
 {
 
-    MemManger::MemManger() : gc_root(Object()) {}
+    MemManger::MemManger() : gc_root(Object())
+    {
+        gc_root["#closure"] = Object();
+    }
     MemManger::~MemManger() {}
 
     Vector<const ObjectMap *> MemAllocCollect::obj_quene = {};
@@ -17,6 +21,11 @@ namespace agumi
             mem = new MemManger();
         }
         return *mem;
+    }
+
+    Object &MemManger::Closure()
+    {
+        return gc_root["#closure"].Obj();
     }
 
     void MemManger::ReachObjectNode(Object start)
@@ -72,6 +81,9 @@ namespace agumi
 
     void MemManger::GC()
     {
+        Profile p;
+        auto src_obj = MemAllocCollect::obj_quene.size();
+        auto vec_obj = MemAllocCollect::vec_quene.size();
         can_reach_obj.insert(gc_root.Obj().Ptr());
         ReachObjectNode(gc_root.Obj());
         for (auto i : MemAllocCollect::obj_quene)
@@ -94,9 +106,7 @@ namespace agumi
         copy(can_reach_obj.begin(), can_reach_obj.end(), MemAllocCollect::obj_quene.begin());
         can_reach_obj.clear();
         can_reach_arr.clear();
-#ifdef JS_RUNTIME_TEST
-        cout << "GC完成  对象数量：" << MemAllocCollect::obj_quene.size() << "   "
-             << "数组数量：" << MemAllocCollect::vec_quene.size() << endl;
-#endif
+        p.Pause();
+        P("GC完成 回收 对象数量：{} 数组数量：{} 消耗时间：{}ms", src_obj - MemAllocCollect::obj_quene.size(),vec_obj - MemAllocCollect::vec_quene.size(), p.ToMs() )
     }
 }

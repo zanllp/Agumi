@@ -19,6 +19,10 @@
 #include "String.h"
 #include "Vector.h"
 #include "utf8.h"
+#include <fcntl.h>
+
+#include <filesystem>
+#include <sys/socket.h>
 
 namespace agumi
 {
@@ -60,6 +64,6 @@ namespace agumi
 #define THROW_MSG(msg, ...) throw std::logic_error(String::Format("{} \n\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), __FILE__, __LINE__));
 #define THROW_STACK_MSG(msg, ...) throw std::logic_error(String::Format("{} \nstack trace:\n{}\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), StackTrace(), __FILE__, __LINE__));
 #define THROW_VM_STACK_MSG(msg, ...) throw std::logic_error(String::Format("{} \nstack trace:\n{}\t发生在: {}:{} ", String::Format(msg, {__VA_ARGS__}), vm.StackTrace(), __FILE__, __LINE__));
-#define P(msg, ...) std::cout<<String::Format("\033[32m{}:{}\033[0m ",  __FILE__, __LINE__)<<String::Format(msg, {__VA_ARGS__})<<std::endl;
+#define P(msg, ...) std::cout<<agumi::String::Format("\033[32m{}:{}\033[0m ",  __FILE__, __LINE__)<<agumi::String::Format(msg, {__VA_ARGS__})<<std::endl;
 
 }

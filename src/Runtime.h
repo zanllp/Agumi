@@ -1,5 +1,7 @@
 #pragma once
 #include "Parser.h"
+#include "Event.h"
+
 // msg, {__VA_ARGS__}
 namespace agumi
 {
@@ -85,17 +87,16 @@ namespace agumi
         TimePoint last_call;
         TimePoint last_poll;
         std::chrono::milliseconds interval;
-        std::chrono::milliseconds min_interval = std::chrono::milliseconds(2);
 
     public:
         Value func;
         bool CanCall()
         {
-            return Now() - last_call > interval;
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_call) > interval;
         }
         bool CanImmediatlyPoll()
         {
-            return Now() - last_poll > min_interval;
+            return std::chrono::duration_cast<std::chrono::milliseconds>(Now() - last_poll) > min_interval;
         }
         void UpdateCallTime()
         {
@@ -110,19 +111,13 @@ namespace agumi
         {
             interval = std::chrono::milliseconds(ms);
         }
-        TimePoint Now()
+        static TimePoint Now()
         {
             return std::chrono::steady_clock::now();
         }
-    };
-
-    /*
-     * 必要事件处理完之前不允许退出
-     */
-    struct RequiredEvent
-    {
-        String event_name;
-        Value val;
+        static constexpr std::chrono::milliseconds min_interval = std::chrono::milliseconds(5);
+        static constexpr std::chrono::milliseconds sleep_time = std::chrono::milliseconds(5);
+        static constexpr std::chrono::milliseconds long_sleep_time = std::chrono::milliseconds(1000);
     };
 
     class VM
@@ -131,14 +126,23 @@ namespace agumi
         VM()
         {
             ctx_stack.resize(1);
+            id = ++incr_id;
+            MemManger::Get().gc_root[String::Format("vm:{}", id)] = CurrCtx().var;
         }
+        int id = 0;
+        bool enable_gc = false;
 
+        static int incr_id;
         String working_dir = '.';
         Vector<Context> ctx_stack;
         std::queue<Value> micro_task_queue;
         std::queue<Value> macro_task_queue;
         std::mutex event_required_queue_mutex;
+        std::mutex cross_thread_mutex;
+        std::mutex channel_mutex;
         std::queue<RequiredEvent> event_required_queue;
+        std::queue<CrossThreadCallBack> event_cross_thread_queue;
+        std::map<double, Vector<ChannelPayload>> sub_thread_channel;
         std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
         int required_event_timer_id = -1;
         Vector<String> included_files;
@@ -146,8 +150,11 @@ namespace agumi
         Vector<Value> ability_define;
         Value process_arg;
         const String ability_key = "#ability";
+        const String next_stack_key = "#next-stack-key";
         std::map<int, TimerPackage> timer_map;
         std::map<ValueType, LocalClassDefine> class_define;
+        int last_gc = 1000;
+        int gc_step = 1000;
         Context &CurrCtx()
         {
             return ctx_stack.back();
@@ -168,11 +175,25 @@ namespace agumi
             }
             return {};
         }
+        void AddInitAbility()
+        {
+            Object obj;
+            ability_define.push_back(obj);
+            auto ability_gc_key = ability_key + "__gc";
+            auto mem = MemManger::Get().Closure();
+            if (!mem.In(ability_gc_key))
+            {
+                mem[ability_gc_key] = Array();
+            }
+            mem[ability_gc_key].Arr().Src().push_back(obj);
+            
+        }
         Value StartTimer(Value fn, int interval_ms, bool once)
         {
             static int id = 0;
             auto curr_id = ++id;
             TimerPackage tp;
+
             tp.func = DefineFunc([&, curr_id, once, fn](Vector<Value>)
                                  {
                 if (timer_map.find(curr_id) == timer_map.end())
@@ -183,6 +204,14 @@ namespace agumi
                 if (tp.CanCall())
                 {
                     tp.UpdateCallTime();
+                    auto alloc_size = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                    if (enable_gc && (last_gc + gc_step < alloc_size))
+                    {
+                        MemManger::Get().GC();
+                        last_gc = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                    }
+                    
+                    // P("call arr：{} obj:{} {}", MemAllocCollect::vec_quene.size(), MemAllocCollect::obj_quene.size() , fn.ToString())
                     FuncCall(fn);
                     if (once)
                     {
@@ -196,12 +225,14 @@ namespace agumi
                 } else {
                     if (tp.CanImmediatlyPoll())
                     {
+                        // P("poll")
                         tp.UpdatePollTime();
                     } 
                     else
                      {
+                       // P("sleep")
                         tp.UpdatePollTime();
-                        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                        std::this_thread::sleep_for(TimerPackage::sleep_time);
                     }
                     AddTask2Queue(tp.func, false);
                 } });
@@ -243,21 +274,42 @@ namespace agumi
                             required_event_customers.erase(event.event_name);
                             if (required_event_customers.size() == 0)
                             {
-                                
+
                                 RemoveTimer(required_event_timer_id);
                                 required_event_timer_id = -1;
                             }
                         }
                         cb(event);
-                    });
+                    },
+                    "RequiredEventTimerPollFunc");
+                // P("define RequiredEventTimerPollFunc")
                 required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
             }
         }
 
         void Push2RequiredEventPendingQueue(RequiredEvent event)
         {
+            // P("Push2RequiredEventPendingQueue")
             std::lock_guard<std::mutex> m(event_required_queue_mutex);
             event_required_queue.push(event);
+        }
+
+        void Push2CrossThreadEventPendingQueue(CrossThreadCallBack cb)
+        {
+            // P("Push2CrossThreadEventPendingQueue")
+            std::lock_guard<std::mutex> m(event_required_queue_mutex);
+            event_cross_thread_queue.push(cb);
+        }
+
+        void ChannelPublish(double tid, ChannelPayload payload)
+        {
+            // P("ChannelPublish")
+            std::lock_guard<std::mutex> m(channel_mutex);
+            if (sub_thread_channel.find(tid) == sub_thread_channel.end())
+            {
+                sub_thread_channel[tid] = {};
+            }
+            sub_thread_channel[tid].push_back(payload);
         }
 
         std::optional<std::reference_wrapper<Value>> GetValue(String key)
@@ -293,6 +345,12 @@ namespace agumi
         {
             return GetValue(key).value_or(Value::null);
         }
+
+        Value &GlobalVal(String key)
+        {
+            auto &mem = ctx_stack[0].var;
+            return mem.In(key) ? mem[key] : Value::null;
+        }
         Value SetValue(String key, Value val)
         {
             for (size_t i = 0; i < ctx_stack.size(); i++)
@@ -321,10 +379,11 @@ namespace agumi
             ctx_stack[0].var[name] = DefineFunc(native_fn);
         }
 
-        Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn)
+        Value DefineFunc(const std::function<Value(Vector<Value>)> &native_fn, String name = "")
         {
+            // P("DefineFunc")
             static int id = 0;
-            auto fn_unique_id = String::Format("native func code:{}", ++id);
+            auto fn_unique_id = String::Format("native func code:{}{}", ++id, name.size() ? String::Format("  {}", name) : name);
             auto fn = Value::CreateFunc(fn_unique_id);
             Function fn_src(fn_unique_id);
             fn_src.is_native_func = true;
@@ -363,12 +422,12 @@ namespace agumi
                     auto key = arg.name.kw;
                     fn_ctx.var[key] = args[i];
                 }
-                ctx_stack.push_back(fn_ctx);
+                PushContext(fn_ctx);
                 for (auto &stat : fn.src->body)
                 {
                     v = Dispatch(stat);
                 }
-                ctx_stack.pop_back();
+                PopContext();
             }
             return v;
         }
@@ -383,10 +442,31 @@ namespace agumi
             q.push(task);
         }
 
+        void PushContext(Context fn_ctx)
+        {
+            CurrScope()[next_stack_key] = fn_ctx.var; // 产生gc关联
+            ctx_stack.push_back(fn_ctx);
+        }
+
+        void PopContext()
+        {
+            ctx_stack.pop_back();
+            CurrScope().Obj().Src().erase(next_stack_key);
+        }
+
         void RunQueueTaskUntilEmpty()
         {
             while (micro_task_queue.size() + macro_task_queue.size())
             {
+                {
+                    std::lock_guard<std::mutex> m(cross_thread_mutex);
+                    while (event_cross_thread_queue.size())
+                    {
+                        auto cb = event_cross_thread_queue.front();
+                        event_cross_thread_queue.pop();
+                        FuncCall(cb.cb, cb.event.val);
+                    }
+                }
                 while (micro_task_queue.size())
                 {
                     FuncCall(micro_task_queue.front());
@@ -450,7 +530,7 @@ namespace agumi
             auto fn_iter = func_mem.find(fn_loc.GetC<String>());
             if (fn_iter == func_mem.end())
             {
-                THROW_STACK_MSG("function {} is not defined", fn_loc)
+                THROW_STACK_MSG("function {} is not defined", fn_loc.ToString())
             }
             Context fn_ctx;
             Value v;
@@ -488,13 +568,13 @@ namespace agumi
                     fn_ctx.var[key] = args[i];
                 }
 
-                ctx_stack.push_back(fn_ctx);
+                PushContext(fn_ctx);
                 // 执行函数
                 for (auto &stat : fn.src->body)
                 {
                     v = Dispatch(stat);
                 }
-                ctx_stack.pop_back();
+                PopContext();
             }
 
             return v;
@@ -996,6 +1076,15 @@ namespace agumi
                         {
                             // P("has created kw:{} value:{}", clos.kw, ValueOrUndef(clos.kw))
                             closure_curr.map[clos.kw] = Closure::From(ValueOrUndef(clos.kw)); // 会优先从当前上下文的闭包中取
+                            auto &v = closure_curr.map[clos.kw].val;
+                            if (v.Type() == ValueType::array)
+                            {
+                                MemManger::Get().Closure()[std::to_string(size_t(v.ArrC().Ptr()))] = v;
+                            }
+                            else if (v.Type() == ValueType::object)
+                            {
+                                MemManger::Get().Closure()[std::to_string(size_t(v.ObjC().Ptr()))] = v;
+                            }
                         }
                     }
                     for (auto &i : mem.children) // 递归处理嵌套的函数
@@ -1019,4 +1108,5 @@ namespace agumi
             return Value::CreateFunc(fn.id);
         }
     };
+    int VM::incr_id = 0;
 }
