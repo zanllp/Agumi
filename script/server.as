@@ -11,7 +11,7 @@ define_member_function(ServerConnection, {
 })
 
 const server = make_server(12345,  conn => {
-    full_log(conn.buf)
+    // full_log(conn.buf)
     conn.send(resp_tpl).close()
 })
 

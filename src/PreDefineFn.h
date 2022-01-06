@@ -28,7 +28,7 @@ namespace agumi
                             {
             auto name = args.GetOrDefault(0);
             auto curr_key = vm.ability_define.size();
-            vm.ability_define.push_back(Object());
+            vm.AddInitAbility();
             return Object({ {"key", double(curr_key)}, { "name",name.NotUndef() ? name: "anonymous"  } }); });
         vm.DefineGlobalFunc("use_ability", [&](Vector<Value> args) -> Value
                             {

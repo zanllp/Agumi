@@ -175,6 +175,19 @@ namespace agumi
             }
             return {};
         }
+        void AddInitAbility()
+        {
+            Object obj;
+            ability_define.push_back(obj);
+            auto ability_gc_key = ability_key + "__gc";
+            auto mem = MemManger::Get().Closure();
+            if (!mem.In(ability_gc_key))
+            {
+                mem[ability_gc_key] = Array();
+            }
+            mem[ability_gc_key].Arr().Src().push_back(obj);
+            
+        }
         Value StartTimer(Value fn, int interval_ms, bool once)
         {
             static int id = 0;
@@ -794,9 +807,7 @@ namespace agumi
                                 auto target_abi = ability_define[abi_idx];
                                 if (target_abi.In(key_str))
                                 {
-                                    auto fn = target_abi[key_str];
-                                    P("___{}", fn.ToString())
-                                    par = ResolveFuncCall(i.stat, fn, {par});
+                                    par = ResolveFuncCall(i.stat, target_abi[key_str], {par});
                                     continue_flag = true;
                                     continue;
                                 }

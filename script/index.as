@@ -14,4 +14,4 @@ start_timer(() => {
     socket_push("hell world").then(resp => {
         log(resp.data)
     })
-}, 1000)
+}, 100)
