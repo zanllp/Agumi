@@ -7,7 +7,6 @@
 
 namespace agumi
 {
-   
 
     String ReadConstStr(String &src, char symbol, int &ptr, int &line, int &offset)
     {
@@ -150,7 +149,6 @@ namespace agumi
         sub_equal_,
         sub_sub_,
     };
-
     class Token : public ViewEnd
     {
 
@@ -160,6 +158,8 @@ namespace agumi
         int pos = -1;
         int line = -1;
         int offset = -1;
+        bool kw_enum_inited = false;
+        KW kw_enum;
         Token(String _kw = "", int _pos = -1, int _line = -1, int _offset = -1, String _file = "") : kw(_kw), pos(_pos), line(_line), offset(_offset), file(_file)
         {
         }
@@ -282,7 +282,12 @@ namespace agumi
 
         KW ToKwEnum()
         {
-            return Token::Str2kw(this->kw);
+            if (!kw_enum_inited)
+            {
+                kw_enum = Token::Str2kw(kw);
+                kw_enum_inited = true;
+            }
+            return kw_enum;
         }
 
         // 去掉两边的’”·

@@ -692,7 +692,7 @@ namespace agumi
         Value ResolveBoolLiteralInit(StatPtr stat)
         {
             SRC_REF(init, BoolLiteralInit, stat);
-            return init.start.kw == "true";
+            return init.val;
         }
         Value ResolvNullLiteralInit(StatPtr)
         {

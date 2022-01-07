@@ -399,9 +399,11 @@ namespace agumi
     class BoolLiteralInit : public Statement
     {
     public:
+        bool val;
         BoolLiteralInit(Token _tok)
         {
             this->start = _tok;
+            val = _tok.Is(true_);
         }
         StatementType Type()
         {
@@ -413,6 +415,7 @@ namespace agumi
             r["type"] = "BoolLiteral";
             r["value"] = start.ToJson();
             r["start"] = start.ToPosStr();
+            r["val"] = val;
             return r;
         }
     };
