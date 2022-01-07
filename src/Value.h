@@ -26,31 +26,24 @@ namespace agumi
         Value(Object obj);
         Value(Array arr);
         ValueType Type() const;
-        template <typename T>
-        constexpr T &Get()
-        {
-            CheckType(typeid(T));
-            return *(T *)data_ptr;
-        }
 
         template <typename T>
-        constexpr T GetOr(T backup)
+        constexpr T GetOr(T backup, ValueType expectType)
         {
             if (type == ValueType::null)
             {
                 return backup;
             }
-            
-            CheckType(typeid(T));
+            CheckType(expectType);
             return *(T *)data_ptr;
         }
-
-        template <typename T>
-        constexpr const T &GetC() const
-        {
-            CheckType(typeid(T));
-            return *(T *)data_ptr;
-        }
+        double &Number();
+        bool &Bool();
+        String &Str();
+        const double &NumberC() const;
+        const bool &BoolC() const;
+        const String &StrC() const;
+        void CheckType(ValueType t) const;
 
         Value &operator=(const Value &v);
         Value &operator[](String key);
@@ -80,29 +73,5 @@ namespace agumi
     private:
         ValueType type = ValueType::null;
         void *data_ptr = nullptr;
-
-        constexpr void CheckType(const std::type_info &t) const
-        {
-            switch (type)
-            {
-            case ValueType::number:
-                Assest(typeid(double).hash_code(), t.hash_code(), "类型不对");
-                break;
-            case ValueType::function:
-            case ValueType::string:
-                Assest(typeid(String).hash_code(), t.hash_code(), "类型不对");
-                break;
-            case ValueType::boolean:
-                Assest(typeid(bool).hash_code(), t.hash_code(), "类型不对");
-                break;
-            case ValueType::null:
-                Assest(typeid(nullptr).hash_code(), t.hash_code(), "类型不对");
-                break;
-            case ValueType::array:
-            case ValueType::object:
-                THROW_MSG("不应该使用get来获取Object/Array");
-                break;
-            }
-        }
     };
 }

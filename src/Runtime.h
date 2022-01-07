@@ -283,7 +283,7 @@ namespace agumi
                     },
                     "RequiredEventTimerPollFunc");
                 // P("define RequiredEventTimerPollFunc")
-                required_event_timer_id = StartTimer(fn, 0, false).Get<double>();
+                required_event_timer_id = StartTimer(fn, 0, false).Number();
             }
         }
 
@@ -400,7 +400,7 @@ namespace agumi
 
         Value FuncCall(Value loc, Vector<Value> args)
         {
-            auto fn_iter = func_mem.find(loc.GetC<String>());
+            auto fn_iter = func_mem.find(loc.StrC());
             if (fn_iter == func_mem.end())
             {
                 THROW_STACK_MSG("function {} is not defined", loc.ToString())
@@ -527,7 +527,7 @@ namespace agumi
                 auto msg = String::Format("'{}' is not a function", fn_loc.ToString());
                 THROW_STACK_MSG(is_use_optional ? "{}" : "{} key:{}", msg, fn_call.id->start.kw)
             }
-            auto fn_iter = func_mem.find(fn_loc.GetC<String>());
+            auto fn_iter = func_mem.find(fn_loc.StrC());
             if (fn_iter == func_mem.end())
             {
                 THROW_STACK_MSG("function {} is not defined", fn_loc.ToString())
@@ -773,7 +773,7 @@ namespace agumi
                     }
                     else if (kt == ValueType::number)
                     {
-                        auto idx = key.Get<double>();
+                        auto idx = key.Number();
                         if (is_set)
                         {
                             par[idx] = set_value.value();
@@ -803,7 +803,7 @@ namespace agumi
                             bool continue_flag = false;
                             for (auto &&abi_item : par[ability_key].Arr().Src())
                             {
-                                auto abi_idx = abi_item["key"].Get<double>();
+                                auto abi_idx = abi_item["key"].Number();
                                 auto target_abi = ability_define[abi_idx];
                                 if (target_abi.In(key_str))
                                 {

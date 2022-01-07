@@ -187,7 +187,7 @@ namespace agumi
         {
             return false;
         }
-        
+
         return this->ObjC().In(key);
     }
     bool Value::In(size_t idx) const
@@ -217,11 +217,11 @@ namespace agumi
         switch (type)
         {
         case ValueType::boolean:
-            return GetC<bool>();
+            return BoolC();
         case ValueType::number:
-            return GetC<double>();
+            return NumberC();
         case ValueType::string:
-            return GetC<String>();
+            return StrC();
         case ValueType::null:
             return "null";
         case ValueType::array:
@@ -229,7 +229,48 @@ namespace agumi
         case ValueType::object:
             return "[Object]";
         case ValueType::function:
-            return String::Format("[Function id:{}]", GetC<String>());
+            return String::Format("[Function id:{}]", StrC());
+        }
+    }
+    double &Value::Number()
+    {
+        CheckType(ValueType::number);
+        return *(double *)data_ptr;
+    }
+    bool &Value::Bool()
+    {
+        CheckType(ValueType::boolean);
+        return *(bool *)data_ptr;
+    }
+    String &Value::Str()
+    {
+        CheckType(ValueType::string);
+        return *(String *)data_ptr;
+    }
+    const double &Value::NumberC() const
+    {
+        CheckType(ValueType::number);
+        return *(double *)data_ptr;
+    }
+    const bool &Value::BoolC() const
+    {
+        CheckType(ValueType::boolean);
+        return *(bool *)data_ptr;
+    }
+    const String &Value::StrC() const
+    {
+        CheckType(ValueType::string);
+        return *(String *)data_ptr;
+    }
+    void Value::CheckType(ValueType t) const
+    {
+        if (type != t)
+        {
+            if (type == ValueType::function && t == ValueType::string)
+            {
+                return;
+            }
+            THROW_MSG("type error. expect '{}' reality '{}'", type_emun2str[(int)t], TypeString())
         }
     }
 
@@ -238,11 +279,11 @@ namespace agumi
         switch (type)
         {
         case ValueType::boolean:
-            return GetC<bool>();
+            return BoolC();
         case ValueType::number:
-            return GetC<double>() != 0.0;
+            return NumberC() != 0.0;
         case ValueType::string:
-            return GetC<String>().size() != 0;
+            return StrC().size() != 0;
         case ValueType::null:
             return false;
         case ValueType::array:
@@ -267,7 +308,7 @@ namespace agumi
         }
         if (type == ValueType::function)
         {
-            return l.GetC<String>() == r.GetC<String>();
+            return l.StrC() == r.StrC();
         }
         else if (type == ValueType::object)
         {

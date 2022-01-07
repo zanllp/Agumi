@@ -48,16 +48,16 @@ void TestMemMange()
     ASS_2UL(mem.gc_root["hl"].Obj().Ptr(), mem.gc_root["cao"].Obj().Ptr())
     auto o1 = mem.gc_root["cao"];
     o1["emmmm"] = 12345;
-    ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == (double)12345, "object的引用修改异常")
-    auto &olv = o1["emmmm"].Get<double>();
+    ASS2(mem.gc_root["cao"]["emmmm"].Number() == (double)12345, "object的引用修改异常")
+    auto &olv = o1["emmmm"].Number();
     olv = 2333.1;
-    ASS2(mem.gc_root["cao"]["emmmm"].Get<double>() == 2333.1, "object的引用修改异常")
+    ASS2(mem.gc_root["cao"]["emmmm"].Number() == 2333.1, "object的引用修改异常")
     Value obj = Object();
     o1["test-obj"] = obj;
     ASS_2UL(o1["test-obj"].Type(), ValueType::object);
     o1["test-obj"] = nullptr;
     mem.GC();
-    ASS(mem.gc_root["c"][6]["emmm"][2].Get<double>(), (double)3)
+    ASS(mem.gc_root["c"][6]["emmm"][2].Number(), (double)3)
     ASS_T(!MemAllocCollect::obj_quene.Includes(obj.Obj().Ptr()))
     ASS_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Obj().Ptr()))
     Value v1 = Array();
@@ -116,14 +116,14 @@ void TestJson()
 {
     auto &mem = MemManger::Get();
     ASS(mem.gc_root["__23333"].ToString(), "null")
-    ASS(JSON_PARSE(" 123.123 ").Get<double>(), 123.123)
+    ASS(JSON_PARSE(" 123.123 ").Number(), 123.123)
     ASS(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
     ASS(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i)
                                                            { return i.ToString(); })
             .Join(),
         "1,2,3,4,2")
-    ASS(JSON_PARSE(" true").Get<bool>(), true)
-    ASS(JSON_PARSE("false").Get<bool>(), false)
+    ASS(JSON_PARSE(" true").Bool(), true)
+    ASS(JSON_PARSE("false").Bool(), false)
     ASS(JSON_PARSE(R"( "hello world" )").ToString(), "hello world")
     ASS_2UL(JSON_PARSE("null").Type(), ValueType::null)
     auto parse_obj = JSON_PARSE(R"({
@@ -159,13 +159,13 @@ void TestJson()
     "eeee": true
 })");
     // cout << Json::Stringify(parse_obj) << endl;
-    ASS(parse_obj["dddd"][0].Get<double>(), 123.233)
-    ASS(parse_obj["dddd"][2][0].Get<double>(), double(1234))
+    ASS(parse_obj["dddd"][0].Number(), 123.233)
+    ASS(parse_obj["dddd"][2][0].Number(), double(1234))
     ASS(parse_obj["dddd"].Arr().Src().back().ToString(), "32]{{22")
     ASS(parse_obj["dddd"][2][5]["艹"].Arr().Src().size(), 4)
-    ASS_T(parse_obj["c"]["ec"]["ddd"].Get<bool>())
+    ASS_T(parse_obj["c"]["ec"]["ddd"].Bool())
     ASS(parse_obj["c"]["ec"]["f\""].ToString(), "c[cc{c&%$")
-    ASS_T(parse_obj["eeee"].Get<bool>())
+    ASS_T(parse_obj["eeee"].Bool())
     ASS_2UL(parse_obj["shit"].Type(), ValueType::null)
     ASS_2UL(parse_obj["emmm"].Type(), ValueType::null)
     ASS_T(mem.gc_root.DeepCompare(mem.gc_root))

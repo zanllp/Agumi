@@ -38,7 +38,7 @@ namespace agumi
                 THROW_VM_STACK_MSG("use_ability only allows using in object")
             }
             auto abi = args.GetOrDefault(1);
-            if (abi["key"].Get<double>() > vm.ability_define.size())
+            if (abi["key"].Number() > vm.ability_define.size())
             {
                 THROW_VM_STACK_MSG("it is an invalid ability")
             }
@@ -74,7 +74,7 @@ namespace agumi
                     }
                     
                 } else {
-                    auto idx = target["key"].GetC<double>();
+                    auto idx = target["key"].NumberC();
                     if (idx > vm.ability_define.size())
                     {
                         THROW_VM_STACK_MSG("it is an invalid ability")
@@ -100,7 +100,7 @@ namespace agumi
                         return vm.FuncCall(func,args);
                     };
                 } else {
-                    auto idx = target["key"].GetC<double>();
+                    auto idx = target["key"].NumberC();
                     if (idx > vm.ability_define.size())
                     {
                         THROW_VM_STACK_MSG("it is an invalid ability")
@@ -138,7 +138,7 @@ namespace agumi
                                                     return nullptr;));
         auto json_stringify = VM_FN(
             auto indent = args.GetOrDefault(1);
-            return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Get<double>() : 4););
+            return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
         auto json_module = Object({{"parse", vm.DefineFunc(json_parse)},
                                    {"stringify", vm.DefineFunc(json_stringify)}});
         vm.ctx_stack[0].var["json"] = json_module;
@@ -285,7 +285,7 @@ namespace agumi
         auto mem_bind = VM_FN(
             size_t idx = 0;
             if (args.size()) {
-                idx = args[0].Get<double>();
+                idx = args[0].Number();
                 if (idx > vm.ctx_stack.size())
                 {
                     THROW_VM_STACK_MSG("内存越界 参数:{} vm ctx_stack size:{}", idx, vm.ctx_stack.size())
@@ -306,7 +306,7 @@ namespace agumi
                     {
                         THROW_VM_STACK_MSG("{} 不允许用来索引", key.TypeString())
                     }
-                    self = t == ValueType::number ? self[key.GetC<double>()] : self[key.ToString()];
+                    self = t == ValueType::number ? self[key.NumberC()] : self[key.ToString()];
                 }
                 return self;
             };
@@ -322,31 +322,31 @@ namespace agumi
         // 定义本地类成员函数
         LocalClassDefine string_def;
         std::map<KW, std::function<Value(Value &, Value &)>> str_op_def;
-        str_op_def[add_] = BIN_OPERATOR(l.GetC<String>() + r.GetC<String>());
-        str_op_def[eqeq_] = BIN_OPERATOR(l.GetC<String>() == r.GetC<String>());
-        str_op_def[eqeqeq_] = BIN_OPERATOR(l.GetC<String>() == r.GetC<String>());
-        str_op_def[add_equal_] = BIN_OPERATOR(l.Get<String>() += r.GetC<String>());
-        str_op_def[mul_] = BIN_OPERATOR(l.GetC<String>().Repeat(stoi(r.GetC<String>())));
+        str_op_def[add_] = BIN_OPERATOR(l.StrC() + r.StrC());
+        str_op_def[eqeq_] = BIN_OPERATOR(l.StrC() == r.StrC());
+        str_op_def[eqeqeq_] = BIN_OPERATOR(l.StrC() == r.StrC());
+        str_op_def[add_equal_] = BIN_OPERATOR(l.Str() += r.StrC());
+        str_op_def[mul_] = BIN_OPERATOR(l.StrC().Repeat(stoi(r.StrC())));
         string_def.binary_operator_overload[ValueType::string] = str_op_def;
         string_def.member_func["byte_len"] = [](Value &_this, Vector<Value> args) -> Value
         {
-            return static_cast<int>(_this.GetC<String>().length());
+            return static_cast<int>(_this.StrC().length());
         };
         string_def.member_func["length"] = [](Value &_this, Vector<Value> args) -> Value
         {
-            return static_cast<int>(_this.GetC<String>().Ulength());
+            return static_cast<int>(_this.StrC().Ulength());
         };
         string_def.member_func["substr"] = [](Value &_this, Vector<Value> args) -> Value
         {
             auto start = args.GetOrDefault(0);
             auto count = args.GetOrDefault(1);
-            return _this.GetC<String>().USubStr(start.GetOr<double>(0), count.GetOr<double>(-1));
+            return _this.StrC().USubStr(start.GetOr<double>(0, ValueType::number), count.GetOr<double>(-1, ValueType::number));
         };
         string_def.member_func["split"] = [](Value &_this, Vector<Value> args) -> Value
         {
-            auto r = _this.GetC<String>().Split(
+            auto r = _this.StrC().Split(
                 args.GetOr(0, "").ToString(),
-                args.GetOrDefault(1).GetOr<double>(-1),
+                args.GetOrDefault(1).GetOr<double>(-1, ValueType::number),
                 args.GetOr(2, false).ToBool(),
                 true);
             Array res;
@@ -369,7 +369,7 @@ namespace agumi
             auto size = args.GetOrDefault(0);
             if (size.NotUndef())
             {
-                _this.Arr().Src().resize(size.Get<double>());
+                _this.Arr().Src().resize(size.Number());
                 return true;
             }
             return false;
@@ -399,7 +399,7 @@ namespace agumi
             auto &src = _this.Arr().Src();
             bool stop = false;
             auto stop_handler = vm.DefineFunc(VM_FN(stop = true; return true;));
-            auto start = start_raw.NotUndef() ? start_raw.Get<double>() : 0;
+            auto start = start_raw.NotUndef() ? start_raw.Number() : 0;
             for (size_t i = start; i < src.size(); i++)
             {
                 if (stop)
@@ -417,10 +417,10 @@ namespace agumi
         LocalClassDefine num_def;
         num_def.member_func["incr"] = [](Value &_this, Vector<Value> args) -> Value
         {
-            return ++_this.Get<double>();
+            return ++_this.Number();
         };
         std::map<KW, std::function<Value(Value &, Value &)>> num_op_def;
-#define BIN_OP_NUM(tk, op) num_op_def[tk] = BIN_OPERATOR(l.GetC<double>() op r.GetC<double>())
+#define BIN_OP_NUM(tk, op) num_op_def[tk] = BIN_OPERATOR(l.NumberC() op r.NumberC())
         BIN_OP_NUM(eqeq_, ==);
         BIN_OP_NUM(eqeqeq_, ==);
         BIN_OP_NUM(not_eq_, !=);
@@ -433,9 +433,9 @@ namespace agumi
         BIN_OP_NUM(sub_, -);
         BIN_OP_NUM(mul_, *);
         BIN_OP_NUM(div_, /);
-        num_op_def[mod_] = BIN_OPERATOR(fmod(l.GetC<double>(), r.GetC<double>()));
-        num_op_def[sub_equal_] = BIN_OPERATOR(l.Get<double>() -= r.GetC<double>());
-        num_op_def[add_equal_] = BIN_OPERATOR(l.Get<double>() += r.GetC<double>());
+        num_op_def[mod_] = BIN_OPERATOR(fmod(l.NumberC(), r.NumberC()));
+        num_op_def[sub_equal_] = BIN_OPERATOR(l.Number() -= r.NumberC());
+        num_op_def[add_equal_] = BIN_OPERATOR(l.Number() += r.NumberC());
         num_def.binary_operator_overload[ValueType::number] = num_op_def;
         vm.class_define[ValueType::number] = num_def;
 
@@ -462,7 +462,7 @@ namespace agumi
                 arr.Src().push_back(obj);
             }
             return arr; });
-        
+
         vm.DefineGlobalFunc("set_gc", [&](Vector<Value> args) -> Value
                             {
                                 auto conf = args.GetOrDefault(0);
@@ -470,37 +470,36 @@ namespace agumi
                                     vm.enable_gc = conf["enable"].ToBool();
                                 }
                                 if(conf.In("step")) {
-                                    vm.gc_step = conf["step"].Get<double>();
+                                    vm.gc_step = conf["step"].Number();
                                 }
-                                return nullptr; 
-                            });
+                                return nullptr; });
         vm.DefineGlobalFunc("gc", [&](Vector<Value> args) -> Value
                             { MemManger::Get().GC();return nullptr; });
         vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value
-                            { return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0), args.GetOrDefault(2).ToBool()); });
+                            { return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0, ValueType::number), args.GetOrDefault(2).ToBool()); });
 
         vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value
                             { 
-                                vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1));
+                                vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1, ValueType::number));
                                 return nullptr; });
-          vm.DefineGlobalFunc("send_server_data", [&](Vector<Value> args) -> Value
+        vm.DefineGlobalFunc("send_server_data", [&](Vector<Value> args) -> Value
                             { 
                                 auto arg = args.GetOrDefault(0);
                                 ChannelPayload payload;
                                 payload.event_name = "send_data";
                                 payload.val = args.GetOrDefault(1);
-                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                vm.ChannelPublish(arg["#tid_unsafe"].Number(), payload);
                                 return nullptr; });
-          vm.DefineGlobalFunc("close_server_connection", [&](Vector<Value> args) -> Value
+        vm.DefineGlobalFunc("close_server_connection", [&](Vector<Value> args) -> Value
                             { 
                                 auto arg = args.GetOrDefault(0);
                                 ChannelPayload payload;
                                 payload.event_name = "close_connection";
-                                vm.ChannelPublish(arg["#tid_unsafe"].Get<double>(), payload);
+                                vm.ChannelPublish(arg["#tid_unsafe"].Number(), payload);
                                 return nullptr; });
         vm.DefineGlobalFunc("make_server", [&](Vector<Value> args) -> Value
                             { 
-                                auto port = args.GetOrDefault(0).Get<double>();
+                                auto port = args.GetOrDefault(0).Number();
                                 auto agumiCb = args.GetOrDefault(1);
                                 static int id = 0;
                                 String event_name = String::Format("make_server:{}", ++id);
