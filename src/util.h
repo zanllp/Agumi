@@ -19,14 +19,14 @@ namespace agumi
     void Assest(bool condition, String msg = "");
 
 // 断言宏
-#define ASS(l, r) Assest(l == r, String::Format("断言错误 实际:{} 预期:{} 发生在: {}:{} ", l, r, __FILE__, __LINE__));
+#define ASSERT(l, r) Assest(l == r, String::Format("断言错误 实际:{} 预期:{} 发生在: {}:{} ", l, r, __FILE__, __LINE__));
 // 默认true的断言
-#define ASS_T(l) ASS(l, true);
+#define ASSERT_T(l) ASSERT(l, true);
 //针对一些String未实现转换的类型可以尝试使用这个
-#define ASS_2UL(l, r) ASS((unsigned long)l, (unsigned long)r);
+#define ASSERT_2UL(l, r) ASSERT((unsigned long)l, (unsigned long)r);
     Vector<String> CreateVecFromStartParams(int argc, char **argv);
-// 可以单独加原因的ASS
-#define ASS2(cond, s) Assest(cond, String::Format("断言错误:{} 发生在: {}:{}", s, __FILE__, __LINE__));
+// 可以单独加原因的ASSERT
+#define ASSERT2(cond, s) Assest(cond, String::Format("断言错误:{} 发生在: {}:{}", s, __FILE__, __LINE__));
 
     String double2stringEarse0(double val);
 

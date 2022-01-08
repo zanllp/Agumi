@@ -18,6 +18,7 @@
 #include <optional>
 #include "String.h"
 #include "Vector.h"
+#include <memory>
 #include "utf8.h"
 #include <fcntl.h>
 

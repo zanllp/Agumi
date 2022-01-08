@@ -61,7 +61,7 @@ namespace agumi
                 {
                     auto type = typestr_2enum[target.ToString()];
                     auto iter = vm.class_define.find(type);
-                    ASS_T(iter != vm.class_define.end())
+                    ASSERT_T(iter != vm.class_define.end())
                     for (auto &&i : define_obj.ObjC().SrcC())
                     {
                         auto name = i.first;
@@ -93,7 +93,7 @@ namespace agumi
                 {
                     auto type = typestr_2enum[target.ToString()];
                     auto iter = vm.class_define.find(type);
-                    ASS_T(iter != vm.class_define.end())
+                    ASSERT_T(iter != vm.class_define.end())
                     iter->second.member_func[name] =  [=, &vm](Value &_this, Vector<Value> args) -> Value
                     {
                         args.insert(args.begin(), _this);
@@ -203,12 +203,10 @@ namespace agumi
         vm.DefineGlobalFunc("typeof", VM_FN(return args.GetOrDefault(0).TypeString()));
         vm.DefineGlobalFunc("path_calc", VM_FN(return PathCalc(args.Map<String>([](Value arg)
                                                                                 { return arg.ToString(); }))));
-        auto assert_bind = VM_FN(
-            if (!args.GetOrDefault(0).ToBool()) {
-                String msg = args.GetOrDefault(1).NotUndef() ? args.GetOrDefault(1).ToString() : "assert error";
-                THROW_VM_STACK_MSG(msg)
-            } return nullptr;);
-        vm.DefineGlobalFunc("assert", assert_bind);
+        auto raise_native_exception_bind = VM_FN(
+                THROW_VM_STACK_MSG(args.GetOrDefault(0).ToString())
+            return nullptr;);
+        vm.DefineGlobalFunc("raise_native_exception", raise_native_exception_bind);
         auto parse_agumi_script_bind = VM_FN(
             auto script = args.GetOrDefault(0).ToString();
             auto tfv = GeneralTokenizer::Agumi(script, args.GetOrDefault(1).ToString());

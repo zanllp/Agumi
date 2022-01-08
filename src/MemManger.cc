@@ -13,6 +13,10 @@ namespace agumi
 
     Vector<const ObjectMap *> MemAllocCollect::obj_quene = {};
     Vector<const ArrayVec *> MemAllocCollect::vec_quene = {};
+    size_t MemAllocCollect::size()
+    {
+        return obj_quene.size() + vec_quene.size();
+    }
     MemManger *MemManger::mem = nullptr;
     MemManger &MemManger::Get()
     {
@@ -107,6 +111,6 @@ namespace agumi
         can_reach_obj.clear();
         can_reach_arr.clear();
         p.Pause();
-        P("GC完成 回收 对象数量：{} 数组数量：{} 消耗时间：{}ms", src_obj - MemAllocCollect::obj_quene.size(),vec_obj - MemAllocCollect::vec_quene.size(), p.ToMs() )
+        P("GC完成 回收对象：{}数组：{} 消耗时间：{}ms 剩余:{}", src_obj - MemAllocCollect::obj_quene.size(), vec_obj - MemAllocCollect::vec_quene.size(), p.ToMs(), MemAllocCollect::size())
     }
 }
