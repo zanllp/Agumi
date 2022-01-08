@@ -53,7 +53,7 @@ namespace agumi
         Array &Arr();
         const Array &ArrC() const;
         String ToString() const;
-        bool NotUndef();
+        bool NotUndef() const;
         bool In(const String &key) const;
         bool In(size_t idx) const;
         bool DeepCompare(const Value &r) const;

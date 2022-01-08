@@ -15,6 +15,12 @@ namespace agumi
      */
     struct RequiredEvent : BaseEvent
     {
+        RequiredEvent() = default;
+        RequiredEvent(String name, Value v = Value::null)
+        {
+            event_name = name;
+            val = v;
+        }
     };
 
     struct CrossThreadEvent : BaseEvent
@@ -30,7 +36,8 @@ namespace agumi
     struct ServerRecvEvent : BaseEvent
     {
         int fd;
-        double tid_unsafe; // 仅用于比较，map
+        int connection_id;
+        double tid_unsafe; // 仅用于比较，map，发布消息
     };
 
     struct ChannelPayload  : BaseEvent
@@ -43,6 +50,7 @@ namespace agumi
     {
         using ChannelPayloadArr = Vector<ChannelPayload>;
         std::function<bool(ServerRecvEvent)> on_recv;
+        std::function<void(int, double)> on_init;
         std::function<ChannelPayloadArr(double)> on_channel_message;
     };
     
