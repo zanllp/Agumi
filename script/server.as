@@ -10,10 +10,27 @@ define_member_function(ServerConnection, {
     close: (this) => close_server_connection(this)
 })
 
-const server = make_server(12345,  conn => {
-    // full_log(conn.buf)
-    conn.send(resp_tpl).close()
+const Server = make_ability('Server')
+
+define_member_function(Server, {
+    close: this => close_server(this)
 })
 
+make_server({
+    port: 12345,
+    onInit: server => {
+        log(f('服务器启动等待连接 端口:{}', server.port))
+    },
+    onAccept: (conn) => {
+        log('建立连接')
+        conn.onMessage = (conn) => {
+            log(conn.buf)
+            conn.send(resp_tpl).close()
+        }
+    },
+    onClose: () => {
+
+    }
+})
 //include('script/server.as', true) 
 //include('script/index.as', true) 

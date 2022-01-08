@@ -29,7 +29,7 @@ String FormatError(String err, String stack_trace)
 
 void TestMemMange()
 {
-    auto &mem = MemManger::Get();
+    auto& mem = MemManger::Get();
     mem.gc_root["c"] = Array();
     mem.gc_root["c"].Arr().Src().resize(10);
     mem.gc_root["c"][1] = 1;
@@ -49,7 +49,7 @@ void TestMemMange()
     auto o1 = mem.gc_root["cao"];
     o1["emmmm"] = 12345;
     ASSERT2(mem.gc_root["cao"]["emmmm"].Number() == (double)12345, "object的引用修改异常")
-    auto &olv = o1["emmmm"].Number();
+    auto& olv = o1["emmmm"].Number();
     olv = 2333.1;
     ASSERT2(mem.gc_root["cao"]["emmmm"].Number() == 2333.1, "object的引用修改异常")
     Value obj = Object();
@@ -68,11 +68,10 @@ void TestMemMange()
 void TestGcPref(int count = 100 * 1000)
 {
     vector<int> ms_vec;
-    auto &mem = MemManger::Get();
+    auto& mem = MemManger::Get();
     Profile p;
     p.Start();
-    auto c = [&]
-    {
+    auto c = [&] {
         auto arr = Array();
         mem.gc_root["ccc"] = arr;
         for (int i = count - 1; i >= 0; i--)
@@ -96,7 +95,7 @@ void TestGcPref(int count = 100 * 1000)
 
 void TestJsonNextPref(int count = 1000)
 {
-    auto &mem = MemManger::Get();
+    auto& mem = MemManger::Get();
     mem.GC();
     int start_arr_size = MemAllocCollect::vec_quene.size();
     int start_obj_size = MemAllocCollect::obj_quene.size();
@@ -108,20 +107,19 @@ void TestJsonNextPref(int count = 1000)
     }
     p.Pause();
     cout << String::Format("JsonNext all:{}ms count:{} per:{}ms", p.ToMs(), count, p.ToMs(count)) << endl
-         << String::Format("新增 数组数量:{} 对象数量:{}", MemAllocCollect::vec_quene.size() - start_arr_size, MemAllocCollect::obj_quene.size() - start_obj_size) << endl;
+         << String::Format("新增 数组数量:{} 对象数量:{}", MemAllocCollect::vec_quene.size() - start_arr_size,
+                           MemAllocCollect::obj_quene.size() - start_obj_size)
+         << endl;
     ;
 }
 
 void TestJson()
 {
-    auto &mem = MemManger::Get();
+    auto& mem = MemManger::Get();
     ASSERT(mem.gc_root["__23333"].ToString(), "null")
     ASSERT(JSON_PARSE(" 123.123 ").Number(), 123.123)
     ASSERT(JSON_PARSE(" [1,2,3,4,2]")[4].ToString(), "2")
-    ASSERT(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i)
-                                                           { return i.ToString(); })
-            .Join(),
-        "1,2,3,4,2")
+    ASSERT(JSON_PARSE(" [1,2,3,4,2]").Arr().Src().Map<String>([](Value i) { return i.ToString(); }).Join(), "1,2,3,4,2")
     ASSERT(JSON_PARSE(" true").Bool(), true)
     ASSERT(JSON_PARSE("false").Bool(), false)
     ASSERT(JSON_PARSE(R"( "hello world" )").ToString(), "hello world")
@@ -261,12 +259,12 @@ void TestString()
     ASSERT(String::FromCodePoint("0x1f9d9"), "🧙")
 }
 
-Value VmRunScript(VM &vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
+Value VmRunScript(VM& vm, String src, bool ast_c = false, bool tok_c = false, String file = GeneralTokenizer::ReplFileName())
 {
     auto tfv = GeneralTokenizer::Agumi(src, PathCalc(vm.working_dir, file));
     if (tok_c)
     {
-        for (auto &&i : tfv)
+        for (auto&& i : tfv)
         {
             if (i.IsIdentifier())
             {
@@ -317,7 +315,7 @@ void TestPath()
     ASSERT(PathCalc("/home/cc"), "/home/cc");
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
@@ -387,7 +385,7 @@ int main(int argc, char **argv)
                 {
 #endif
                 }
-                catch (const std::exception &e)
+                catch (const std::exception& e)
                 {
                     std::cerr << FormatError(e.what(), vm.StackTrace());
                     vm.ctx_stack.resize(1); // 抛异常时只保留顶层的变量
@@ -413,7 +411,7 @@ int main(int argc, char **argv)
                 VmRunScript(vm, LoadFile(exec.ToString()), false, false, exec.ToString());
             }
 #ifndef LET_IT_CRASH
-            catch (const std::exception &e)
+            catch (const std::exception& e)
             {
                 std::cerr << FormatError(e.what(), vm.StackTrace());
             }
