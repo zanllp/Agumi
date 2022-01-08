@@ -1,6 +1,6 @@
 #pragma once
-#include "../stdafx.h"
 #include "../Event.h"
+#include "../stdafx.h"
 
 namespace sion
 {
@@ -20,6 +20,7 @@ void error(const char* msg, int socket = -1)
     throw std::runtime_error("");
 }
 
+std::atomic<long> MakeServer_connection_incr_id = 0;
 /*
  * 先随便写写能跑就行，后面再换成epoll/kqueue/iocp
  */
@@ -41,11 +42,11 @@ int MakeServer(int portno, agumi::ServerHandler handler)
     listen(sockfd, 50);
     clilen = sizeof(cli_addr);
     handler.on_init(portno, unsafe_tid);
-    int id = 0;
     while (true)
     {
         int newsockfd = accept(sockfd, (sockaddr*)&cli_addr, &clilen);
-        id++;
+        MakeServer_connection_incr_id += 1;
+        double connection_id = MakeServer_connection_incr_id.load();
         auto message = handler.on_channel_message(unsafe_tid);
         for (auto&& i : message)
         {
@@ -101,7 +102,7 @@ int MakeServer(int portno, agumi::ServerHandler handler)
                 recv_e.val = buf;
                 recv_e.fd = newsockfd;
                 recv_e.tid_unsafe = unsafe_tid;
-                recv_e.connection_id = id;
+                recv_e.connection_id = connection_id;
                 handler.on_recv(recv_e);
             }
         };

@@ -21,7 +21,7 @@
 #include <memory>
 #include "utf8.h"
 #include <fcntl.h>
-
+#include <atomic>
 #include <filesystem>
 #include <sys/socket.h>
 
