@@ -139,10 +139,6 @@ namespace agumi
         return *this;
     }
 
-    Value &Value::operator[](String key)
-    {
-        return Obj()[key];
-    }
 
     String Value::TypeString() const
     {
@@ -150,34 +146,38 @@ namespace agumi
         return type_emun2str[static_cast<int>(t)];
     }
 
+    Value &Value::operator[](String key)
+    {
+        CheckType(ValueType::object);
+        return Obj()[key];
+    }
+
     Object &Value::Obj()
     {
-        if (type != ValueType::object)
-        {
-            THROW_MSG("get object了一个不是Object的Value实例");
-        }
+        CheckType(ValueType::object);
         return *(Object *)data_ptr;
     }
 
     const Object &Value::ObjC() const
     {
-        if (type != ValueType::object)
-        {
-            THROW_MSG("get object了一个不是Object的Value实例");
-        }
+        CheckType(ValueType::object);
         return *(Object *)data_ptr;
     }
 
     Value &Value::operator[](int key)
     {
+        CheckType(ValueType::array);
         return Arr()[key];
     }
     Array &Value::Arr()
     {
-        if (type != ValueType::array)
-        {
-            THROW_MSG("get array了一个不是array的Value实例");
-        }
+        CheckType(ValueType::array);
+        return *(Array *)data_ptr;
+    }
+
+    const Array &Value::ArrC() const
+    {
+        CheckType(ValueType::array);
         return *(Array *)data_ptr;
     }
 
@@ -190,6 +190,7 @@ namespace agumi
 
         return this->ObjC().In(key);
     }
+    
     bool Value::In(size_t idx) const
     {
         if (type != ValueType::array)
@@ -199,14 +200,6 @@ namespace agumi
         return this->ArrC().In(idx);
     }
 
-    const Array &Value::ArrC() const
-    {
-        if (type != ValueType::array)
-        {
-            THROW_MSG("get array了一个不是array的Value实例");
-        }
-        return *(Array *)data_ptr;
-    }
     bool Value::NotUndef()
     {
         return type != ValueType::null;
