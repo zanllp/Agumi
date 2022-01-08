@@ -7,14 +7,14 @@ const create_closure = str => {
     }
 }
 const closure_fn = create_closure('hello')
-ass(closure_fn('22')(1), 'hello 1 22 1')
-ass(closure_fn('33')(2), 'hello 1 33 2')
+assert(closure_fn('22')(1), 'hello 1 22 1')
+assert(closure_fn('33')(2), 'hello 1 33 2')
 
 const create_obj = () => {
     { hello: 'world' }
 }
 
-ass(create_obj().hello, 'world')
+assert(create_obj().hello, 'world')
  
 const while = (s,e,fn) => {
     const foo_r = () => {
@@ -37,8 +37,8 @@ const foo = () => {
 const foo_r = foo()
 foo_r[0].cc = [11,2,3]
 foo_r[1]()
-ass(foo_r[0].cc, [1,2,3])
+assert(foo_r[0].cc, [1,2,3])
 
 const multi_chain_test = [0, () => { { f: 'HELLO WORLD' } }]
 
-ass(multi_chain_test[1]().f, 'HELLO WORLD')
+assert(multi_chain_test[1]().f, 'HELLO WORLD')

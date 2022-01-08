@@ -186,8 +186,8 @@ namespace agumi
                 mem[ability_gc_key] = Array();
             }
             mem[ability_gc_key].Arr().Src().push_back(obj);
-            
         }
+
         Value StartTimer(Value fn, int interval_ms, bool once)
         {
             static int id = 0;
@@ -204,14 +204,15 @@ namespace agumi
                 if (tp.CanCall())
                 {
                     tp.UpdateCallTime();
-                    auto alloc_size = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
-                    if (enable_gc && (last_gc + gc_step < alloc_size))
+                    if (enable_gc)
                     {
-                        MemManger::Get().GC();
-                        last_gc = MemAllocCollect::vec_quene.size() + MemAllocCollect::obj_quene.size();
+                        if (last_gc + gc_step < MemAllocCollect::size())
+                        {
+                            MemManger::Get().GC();
+                            last_gc = MemAllocCollect::size();
+                        }
                     }
-                    
-                    // P("call arr：{} obj:{} {}", MemAllocCollect::vec_quene.size(), MemAllocCollect::obj_quene.size() , fn.ToString())
+                    // P("call {}", fn.ToString())
                     FuncCall(fn);
                     if (once)
                     {
@@ -222,7 +223,9 @@ namespace agumi
                     {
                         AddTask2Queue(tp.func, false);
                     }
-                } else {
+                } 
+                else
+                {
                     if (tp.CanImmediatlyPoll())
                     {
                         // P("poll")
@@ -235,7 +238,7 @@ namespace agumi
                         std::this_thread::sleep_for(TimerPackage::sleep_time);
                     }
                     AddTask2Queue(tp.func, false);
-                } });
+                }});
             tp.SetInterval(interval_ms);
             tp.UpdateCallTime();
             tp.UpdatePollTime();
@@ -320,7 +323,7 @@ namespace agumi
                 auto iter = clos->find(key);
                 if (iter != clos->end() && iter->second.stack_offset != 0)
                 {
-                    ASS_T(iter->second.initialed)
+                    ASSERT_T(iter->second.initialed)
                     return {iter->second.val};
                 }
             }
@@ -818,7 +821,7 @@ namespace agumi
                             }
                         }
                     default:
-                        ASS_T(key_str.size() > 0)
+                        ASSERT_T(key_str.size() > 0)
                         par = ResolveLocalClassFuncCall(i.stat, t, key_str, par);
                         break;
                     }

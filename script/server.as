@@ -1,6 +1,6 @@
 const ServerConnection = make_ability('ServerConnection')
 const resp_tpl = fs.read(path_calc(env().curr_dir(),'resp.http'))
-set_gc({ step:10000, enable: true })
+set_gc({ step:100000, enable: true })
 
 define_member_function(ServerConnection, {
     send: (this, data) => {

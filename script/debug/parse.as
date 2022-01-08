@@ -1,7 +1,7 @@
 include('../lib/index')
 
 const path = path_calc(env().working_dir, env().process_arg.target)
-ass_t(fs.exist(path))
+assert_t(fs.exist(path))
 const as = fs.read(path)
 const tfv = generate_agumi_script_token(as, path)
 const ast = parse_agumi_script(as, path)

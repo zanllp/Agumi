@@ -11,6 +11,7 @@ namespace agumi
     public:
         static Vector<const ObjectMap *> obj_quene;
         static Vector<const ArrayVec *> vec_quene;
+        static size_t size() ;
     };
 
     class MemManger

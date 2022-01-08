@@ -1,7 +1,7 @@
 
-const throw = (msg) => assert(false, msg)
-const ass = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
-const ass_t = (a) => ass(a, true)
+const throw = raise_native_exception
+const assert = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
+const assert_t = (a) => assert(a, true)
 
 
 const types = ['number','boolean','array','object','function','string']
