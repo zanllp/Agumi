@@ -6,13 +6,13 @@ define_member_function('array', {
         res
     },
     range: (this, start, count) => {
-        let res = []
+        let r = []
         this.select((v,i, stop) => {
-            if_exec(i < (start + count), () => {
-                res.push(v)
-            }, start)
-        })
-        res
+            if_exec(or(i < (start + count), count == -1), () => {
+                r.push(v)
+            })
+        },start)
+        r
     },
     join: (this, spec) => {
         let res = f(this[0])

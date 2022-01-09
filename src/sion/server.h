@@ -80,10 +80,10 @@ int MakeServer(int portno, agumi::ServerHandler handler)
                         return;
                     }
                 }
-
-                char buf[256];
-                bzero(buf, 256);
-                int n = read(newsockfd, buf, 255);
+                const auto size = 1024; 
+                char buf[size];
+                bzero(buf, size);
+                int n = read(newsockfd, buf, size -1);
                 if (n < 0)
                 {
                     if (errno == EAGAIN || errno == EINPROGRESS)

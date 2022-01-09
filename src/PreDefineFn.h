@@ -304,14 +304,20 @@ void AddPreDefine(VM& vm)
     string_def.member_func["substr"] = [](Value& _this, Vector<Value> args) -> Value {
         auto start = args.GetOrDefault(0);
         auto count = args.GetOrDefault(1);
-        return _this.StrC().USubStr(start.GetOr<double>(0, ValueType::number), count.GetOr<double>(-1, ValueType::number));
+        return _this.StrC().USubStr(start.GetOr(0.0, ValueType::number), count.GetOr(-1.0, ValueType::number));
     };
     string_def.member_func["split"] = [](Value& _this, Vector<Value> args) -> Value {
-        auto r = _this.StrC().Split(args.GetOr(0, "").ToString(), args.GetOrDefault(1).GetOr<double>(-1, ValueType::number),
+        auto r = _this.StrC().Split(args.GetOr(0, "").ToString(), args.GetOrDefault(1).GetOr(-1.0, ValueType::number),
                                     args.GetOr(2, false).ToBool(), true);
         Array res;
         res.Src().insert(res.Src().begin(), r.begin(), r.end());
         return res;
+    };
+    string_def.member_func["byte_find"] = [](Value& _this, Vector<Value> args) -> Value {
+        return int(_this.StrC().find(args.GetOrDefault(0).ToString(), args.GetOrDefault(1).GetOr(0.0, ValueType::number)));
+    };
+    string_def.member_func["trim"] = [](Value& _this, Vector<Value> args) -> Value {
+        return _this.StrC().Trim();
     };
     vm.class_define[ValueType::string] = string_def;
 
@@ -341,7 +347,7 @@ void AddPreDefine(VM& vm)
         Array arr;
         auto v = args.GetOrDefault(0);
         auto start_raw = args.GetOrDefault(1);
-        if (start_raw.NotUndef() || start_raw.Type() == ValueType::number)
+        if (start_raw.NotUndef() && start_raw.Type() != ValueType::number)
         {
             THROW_VM_STACK_MSG("array::select 的第2个参数必须为number类型，当前为{}", start_raw.TypeString())
         }
@@ -427,6 +433,10 @@ void AddPreDefine(VM& vm)
             mem.gc_log = conf["log"].ToBool();
         }
         return nullptr;
+    });
+    
+    vm.DefineGlobalFunc("or", [&](Vector<Value> args) -> Value {
+        return args.GetOrDefault(0).ToBool() || args.GetOrDefault(1).ToBool();
     });
     vm.DefineGlobalFunc("gc", [&](Vector<Value> args) -> Value {
         MemManger::Get().GC();
