@@ -23,7 +23,11 @@ namespace agumi
         MemManger();
         ~MemManger();
         Value gc_root;
-        bool first;
+        bool first ;
+        size_t last_gc = 10000;
+        size_t gc_step = 10000;
+        bool gc_log = true;
+        bool enable_gc = false;
         std::set<const ObjectMap *> can_reach_obj;
         std::set<const ArrayVec *> can_reach_arr;
         void ReachObjectNode(Object start);
