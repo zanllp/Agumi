@@ -413,13 +413,18 @@ void AddPreDefine(VM& vm)
 
     vm.DefineGlobalFunc("set_gc", [&](Vector<Value> args) -> Value {
         auto conf = args.GetOrDefault(0);
+        auto& mem = MemManger::Get();
         if (conf.In("enable"))
         {
-            vm.enable_gc = conf["enable"].ToBool();
+            mem.enable_gc = conf["enable"].ToBool();
         }
         if (conf.In("step"))
         {
-            vm.gc_step = conf["step"].Number();
+            mem.gc_step = conf["step"].Number();
+        }
+        if (conf.In("log"))
+        {
+            mem.gc_log = conf["log"].ToBool();
         }
         return nullptr;
     });

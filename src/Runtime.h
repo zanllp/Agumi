@@ -107,8 +107,6 @@ class VM
         MemManger::Get().gc_root[String::Format("vm:{}", id)] = CurrCtx().var;
     }
     int id = 0;
-    bool enable_gc = false;
-
     static int incr_id;
     String working_dir = '.';
     Vector<Context> ctx_stack;
@@ -130,8 +128,6 @@ class VM
     const String next_stack_key = "#next-stack-key";
     std::map<int, TimerPackage> timer_map;
     std::map<ValueType, LocalClassDefine> class_define;
-    int last_gc = 1000;
-    int gc_step = 1000;
     Context& CurrCtx() { return ctx_stack.back(); }
     Value& CurrScope() { return CurrCtx().var; }
     std::optional<std::reference_wrapper<Value>> GetValue(String key, Vector<Context>& ctx_stack_, int& i)
@@ -171,15 +167,16 @@ class VM
                 return false;
             }
             auto& tp = timer_map[curr_id];
+            auto& mem = MemManger::Get();
             if (tp.CanCall())
             {
                 tp.UpdateCallTime();
-                if (enable_gc)
+                if (mem.enable_gc)
                 {
-                    if (last_gc + gc_step < MemAllocCollect::size())
+                    if (mem.last_gc + mem.gc_step < MemAllocCollect::size())
                     {
-                        MemManger::Get().GC();
-                        last_gc = MemAllocCollect::size();
+                        mem.GC();
+                        mem.last_gc = MemAllocCollect::size();
                     }
                 }
                 // P("call {}", fn.ToString())
