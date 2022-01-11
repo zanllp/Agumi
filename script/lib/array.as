@@ -15,21 +15,22 @@ define_member_function('array', {
         r
     },
     join: (this, spec) => {
-        let res = f(this[0])
-        this.select((v,i) => {
-            res = res + f(spec) + f(v)
+        // 设置值和闭包还是有问题
+        let res = { v: to_str(this[0]) }
+        this.select((v) => {
+            res.v = ((res.v) + to_str(spec) + to_str(v))
         }, 1)
-        res
+        res.v
     },
     find_index: (this, target) => {
-        let res = -1
+        let res = {v:-1}
         this.select((v,i, stop) => {
             if_exec(v == target , () => {
-                res=i
+                res.v=i
                 stop()
             })
         })
-        res
+        res.v
     },
     count: this => this.length(),
     empty: this => (this.count()) == 0,

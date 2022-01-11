@@ -83,6 +83,7 @@ Value MakeServerBind(VM& vm, Vector<Value> args)
     auto messageCb = vm.DefineFunc([&, onAccept](Vector<Value> args) {
         auto conn = args.GetOrDefault(0);
         int connection_id = conn["connection_id"].Number();
+        int is_first_message = false;
         if (Server::connection.find(connection_id) == Server::connection.end())
         {
             if (onAccept.NotUndef())
@@ -90,12 +91,18 @@ Value MakeServerBind(VM& vm, Vector<Value> args)
                 vm.FuncCall(vm.GlobalVal("use_ability"), conn, vm.GlobalVal("ServerConnection"));
                 vm.FuncCall(onAccept, conn);
                 Server::connection[connection_id] = conn;
+                is_first_message = true;
             }
         }
 
         auto conn_iter = Server::connection.find(connection_id);
         if (conn_iter->second.In("onMessage"))
         {
+            if (!is_first_message)
+            {
+                conn_iter->second["buf"] = conn["buf"];
+                conn_iter->second["message_id"] = conn["message_id"];
+            }
             vm.FuncCall(conn_iter->second["onMessage"], conn_iter->second);
         }
 
@@ -108,7 +115,8 @@ Value MakeServerBind(VM& vm, Vector<Value> args)
             cte.val = Object({{"name", e.event_name},
                               {"buf", e.val},
                               {"#tid_unsafe", e.tid_unsafe},
-                              {"connection_id", e.connection_id}});
+                              {"connection_id", e.connection_id},
+                              {"message_id", e.message_id}});
             cte.event_name = e.event_name;
             CrossThreadCallBack ctcb;
             ctcb.cb = messageCb;

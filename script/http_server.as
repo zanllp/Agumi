@@ -15,7 +15,14 @@ const parse_http_message = (msg) => {
     const lines = msg.split(cr)
     const res = {
         header: [],
-        profile: {}
+        profile: {},
+        is_end: false
+    }
+    const get_content_length = () => {
+        const headers = res.header
+        const key = 'content-length'
+        const idx = headers.select(v => v.k.byte_to_lowercase()).find_index(key)
+        (idx!=-1) ? headers[idx].v : ''
     }
     const resolve_profile = (v) => {
         res.profile = parse_http_message_profile(v)
@@ -41,24 +48,20 @@ const parse_http_message = (msg) => {
     })
     assert_t(data_end > -1)
     res.data = lines.range(data_end + 1, -1).join(cr)
+    res.is_end = get_content_length() == to_str(res.data.length())
     res
 }
 
-const make_http_server = (port) => {
+const make_http_server = (port, cb) => {
     make_server({
         port,
-        onInit: server => {
-            log(f('服务器启动等待连接 端口:{}', server.port))
-        },
+        onInit: cb.onInit,
         onAccept: (conn) => {
             const buf = []
             conn.onMessage = (conn) => {
-                log('connect',  conn.buf.length())
                 buf.push(conn.buf)
-                conn.send(resp_tpl).close()
-                const msg = buf.join('')
-                log(1111, s(parse_http_message(msg).keys()))
-                full_log(parse_http_message(msg))
+                const msg = parse_http_message(buf.join(''))
+                (msg.is_end) ? cb.onMessage(msg, conn) : null
             }
         },
         onClose: () => {
@@ -66,6 +69,16 @@ const make_http_server = (port) => {
         }
     })
 }
-make_http_server(12345)
+
+make_http_server(12345, {
+    onInit: server => {
+        log(f('服务器启动等待连接 端口:{}', server.port))
+    },
+    onMessage: (msg, conn) => {
+        log(msg.data)
+        conn.send(resp_tpl).close()
+    }
+})
+
 //include('script/http_server.as', true) 
 //include('script/index.as', true) 

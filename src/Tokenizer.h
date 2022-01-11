@@ -114,6 +114,8 @@ namespace agumi
         more_than_equal_,
         // <=
         less_than_equal_,
+        and_and_,
+        or_or_,
         // =>
         arrow_,
         // .
@@ -134,7 +136,9 @@ namespace agumi
         mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_,
         more_than_, more_than_equal_, less_than_,
         less_than_equal_,
-        add_equal_, sub_equal_};
+        add_equal_, sub_equal_,
+        and_and_,
+        or_or_};
     // 多字符的运算符
     Vector<KW> multi_char_operator{
         eqeq_,
@@ -148,6 +152,8 @@ namespace agumi
         add_add_,
         sub_equal_,
         sub_sub_,
+        and_and_,
+        or_or_
     };
     class Token : public ViewEnd
     {
@@ -664,7 +670,7 @@ namespace agumi
     };
 
     Vector<String> GeneralTokenizer::multi_token_set;
-    const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%";
+    const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%&|";
     const String GeneralTokenizer::empty_set = " \n\t";
     const String GeneralTokenizer::single_char_set = ";,:.?";
     const String GeneralTokenizer::const_str_set = R"("'`)";
@@ -683,6 +689,8 @@ namespace agumi
         m[true_] = "true";
         m[fasle_] = "false";
         m[parenthesis_start_] = "(";
+        m[and_and_] = "&&";
+        m[or_or_] = "||";
         m[parenthesis_end_] = ")";
         m[brackets_start_] = "[";
         m[brackets_end_] = "]";

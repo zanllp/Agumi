@@ -313,6 +313,9 @@ void AddPreDefine(VM& vm)
         res.Src().insert(res.Src().begin(), r.begin(), r.end());
         return res;
     };
+    string_def.member_func["byte_to_lowercase"] = [](Value& _this, Vector<Value> args) -> Value {
+        return  _this.StrC().ToLowerCase();
+    };
     string_def.member_func["byte_find"] = [](Value& _this, Vector<Value> args) -> Value {
         return int(_this.StrC().find(args.GetOrDefault(0).ToString(), args.GetOrDefault(1).GetOr(0.0, ValueType::number)));
     };
@@ -435,6 +438,9 @@ void AddPreDefine(VM& vm)
         return nullptr;
     });
     
+    vm.DefineGlobalFunc("to_str", [&](Vector<Value> args) -> Value {
+        return args.GetOrDefault(0).ToString();
+    });
     vm.DefineGlobalFunc("or", [&](Vector<Value> args) -> Value {
         return args.GetOrDefault(0).ToBool() || args.GetOrDefault(1).ToBool();
     });
