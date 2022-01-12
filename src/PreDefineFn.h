@@ -288,7 +288,7 @@ void AddPreDefine(VM& vm)
     };
     vm.DefineGlobalFunc("lens", lens_bind);
     vm.ctx_stack[0].var["utf8"] =
-        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) { return String::FromCodePoint(args.GetOr(0, "").ToString()); })},
+        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) { return String::FromCodePoint(args.GetOr(0, "").ToString(), args.GetOr(1, 16).Number()); })},
                 {"decode", vm.DefineFunc([&](Vector<Value> args) { return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString()); })}});
     // 定义本地类成员函数
     LocalClassDefine string_def;
@@ -438,6 +438,11 @@ void AddPreDefine(VM& vm)
         return nullptr;
     });
     
+
+    vm.DefineGlobalFunc("delete", [&](Vector<Value> args) -> Value {
+        args.GetOrDefault(0).Obj().Src().erase(args.GetOrDefault(1).ToString());
+        return  args.GetOrDefault(0);
+    });
     vm.DefineGlobalFunc("to_str", [&](Vector<Value> args) -> Value {
         return args.GetOrDefault(0).ToString();
     });
@@ -449,7 +454,7 @@ void AddPreDefine(VM& vm)
         return nullptr;
     });
     vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value {
-        return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0, ValueType::number), args.GetOrDefault(2).ToBool());
+        return vm.StartTimer(args.GetOrDefault(0), args.GetOr(1, 1000.0).Number(), args.GetOrDefault(2).ToBool());
     });
 
     vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value {

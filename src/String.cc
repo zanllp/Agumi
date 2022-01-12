@@ -236,10 +236,10 @@ bool String::IncludeSym(const String& syms, char sym)
     return false;
 }
 
-String String::FromCodePoint(String hex_str)
+String String::FromCodePoint(String hex_str, int base)
 {
     char str[5] = {0};
-    auto hex = stoi(hex_str, nullptr, 16);
+    auto hex = stoi(hex_str, nullptr, base);
     utf8catcodepoint(str, hex, 5);
     return String(str);
 }
