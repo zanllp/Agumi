@@ -1,4 +1,4 @@
-
+include('lib/server/base')
 
 set_gc({ step:100000, enable: true, log: true })
 

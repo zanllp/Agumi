@@ -1,4 +1,4 @@
-POST http://127.0.0.1:12345 HTTP/1.1
+POST http://127.0.0.1:9999/socker/gc?key=ee&cc=11 HTTP/1.1
 Host: api.ioflow.link
 Connection: keep-alive
 Content-Length: 71
