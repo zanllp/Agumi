@@ -2,6 +2,9 @@ const resp_tpl = fs.read(path_calc(env().curr_dir(),'resp.http'))
 const cr = utf8.from_code_point('0xd') // \r
 const lf = utf8.from_code_point('0xa') // \n
 const crlf = cr + lf
+const http_status_map_file = fs.read(path_calc(env().curr_dir(), 'http_status_map.csv'))
+const http_status_map = {} 
+http_status_map.from_entires(http_status_map_file.split(lf).select(line => line.split(',').select(v => v.trim())))
 
 const parse_http_message_profile = (line) => {
     const profile = line.split(' ').select(item => item.trim())
@@ -84,7 +87,10 @@ define_member_function(HttpResponse, {
         this
     },
     set_status: (this, status) => {
+        const status_str = status.to_string()
+        assert_t(http_status_map.has(status_str))
         this.status = status
+        this.status_desc = http_status_map[status_str]
         this
     },
     end: (this) => {
@@ -92,7 +98,7 @@ define_member_function(HttpResponse, {
     },
     build_resp: (this) => {
         const line = []
-        line.push([this.http_version(), this.status, this.status_str].join(' '))
+        line.push([this.http_version(), this.status, this.status_desc].join(' '))
         this.header.set('Content-Length', this.data.byte_len()).set('Connection', 'close')
         this.header.all().select(h => line.push(f(`{}: {}`, h.k, h.v)))
         line.push('')
@@ -113,7 +119,7 @@ const make_http_server = (port, cb) => {
                 conn,
                 data: '',
                 status: 200,
-                status_str: 'OK'
+                status_desc: 'OK'
             }
             use_ability(resp, HttpResponse)
             conn.onMessage = (conn) => {
@@ -133,8 +139,7 @@ make_http_server(12345, {
         log(f('服务器启动等待连接 端口:{}', server.port))
     },
     onMessage: (req, resp) => {
-        log(req.header.get('cookie'))
-        req.header.set('Server', 'Agumi').set('Content-Type', 'application/json')
+        resp.header.set('Server', 'Agumi').set('Content-Type', 'application/json')
         const data = '{"account":"m32@zasdcfs.cnew","password":"dsfcwcweq1q","remember":true}'
         resp.set_status(200).set_data(data).end()
     }

@@ -10,5 +10,11 @@ define_member_function('object', {
     },
     keys: (this) => {
         this.entires().select(item => item.k)
+    },
+    from_entires: (this, entires) => {
+        entires.select(kv => {
+            this[kv[0]] = kv[1]
+        })
+        this
     }
 })
