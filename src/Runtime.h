@@ -472,6 +472,7 @@ class VM
         case StatementType::arrayInit:
         case StatementType::objectInit:
         case StatementType::nullLiteral:
+        case StatementType::blockStatment:
             return ResolveExecutable(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
@@ -834,8 +835,21 @@ class VM
             return ResolveObjectInit(stat);
         case StatementType::nullLiteral:
             return nullptr;
+        case StatementType::blockStatment:
+            return ResolveBlock(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
+    }
+    Value ResolveBlock(StatPtr stat)
+    {
+        Value v;
+        SRC_REF(block, BlockStatment, stat);
+        for (auto &&i : block.stats)
+        {
+            v = ResolveExecutable(i);
+        }
+        
+        return v;
     }
 
     Value ResolveFuncDeclear(StatPtr stat)

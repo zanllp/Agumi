@@ -20,13 +20,16 @@ enum class StatementType
     assigmentStatement,
     indexStatement,
     arrayInit,
-    objectInit
+    objectInit,
+    blockStatment
 };
 
 class Statement
 {
   public:
     virtual StatementType Type() { return StatementType::statement; }
+    virtual bool Is(StatementType type) { return Type() == type; }
+    virtual bool IsEmpty() { return Is(StatementType::statement); }
     Token start;
     virtual bool IsLiteral()
     {
@@ -413,6 +416,25 @@ class AssigmentStatement : public Statement
         r["target"] = target->ToJson();
         r["value"] = value->ToJson();
         r["type"] = "assigmentStatement";
+        return r;
+    }
+};
+
+class BlockStatment : public Statement
+{
+  public:
+    Vector<StatPtr> stats;
+    StatementType Type() { return StatementType::blockStatment; }
+    Value ToJson()
+    {
+        auto r = Object();
+        r["blocks"] = Array();
+        for (auto&& i : stats)
+        {
+            r["blocks"].Arr().Src().push_back(i->ToJson());
+        }
+
+        r["type"] = "blockStatment";
         return r;
     }
 };
@@ -865,6 +887,10 @@ class Compiler
             }
             return {stat, next_end_iter};
         }
+        if (iter->Is(at_))
+        {
+            return ResolveBlock(iter);
+        }
 
         if (iter->Is(brackets_start_))
         {
@@ -902,13 +928,32 @@ class Compiler
     }
 
     // 块
-    Vector<StatPtr> ResolveBlock(TokenFlowView tfv)
+    StatPtrWithEnd ResolveBlock(TokenFlowView tfv)
     {
-        Vector<StatPtr> res;
+        auto iter = tfv.BeginIter();
+        iter->Expect(at_);
+        iter++;
+        iter->Expect(curly_brackets_start_);
+        auto end = CalcEndBrackets(iter);
+        auto stat = std::make_shared<BlockStatment>();
+        iter++;
         while (true)
         {
+            if (iter == end)
+            {
+                break;
+            }
+
+            auto [r_stat, r_iter] = Dispatch(iter);
+            iter = r_iter;
+            if (r_stat->IsEmpty())
+            {
+                continue;
+            }
+            
+            stat->stats.push_back(r_stat);
         }
-        return res;
+        return {stat, end + 1};
     }
 
     WithEnd<IfStatment> ResolveIfStatment(TokenFlowView tfv)
