@@ -37,6 +37,7 @@ namespace agumi
     {
         int fd;
         int connection_id;
+        int message_id;
         double tid_unsafe; // 仅用于比较，map，发布消息
     };
 

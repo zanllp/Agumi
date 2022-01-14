@@ -48,7 +48,7 @@ void TestMemMange()
     ASSERT_2UL(mem.gc_root["hl"].Obj().Ptr(), mem.gc_root["cao"].Obj().Ptr())
     auto o1 = mem.gc_root["cao"];
     o1["emmmm"] = 12345;
-    ASSERT2(mem.gc_root["cao"]["emmmm"].Number() == (double)12345, "object的引用修改异常")
+    ASSERT2(mem.gc_root["cao"]["emmmm"].Number() == 12345.0, "object的引用修改异常")
     auto& olv = o1["emmmm"].Number();
     olv = 2333.1;
     ASSERT2(mem.gc_root["cao"]["emmmm"].Number() == 2333.1, "object的引用修改异常")
@@ -57,7 +57,7 @@ void TestMemMange()
     ASSERT_2UL(o1["test-obj"].Type(), ValueType::object);
     o1["test-obj"] = nullptr;
     mem.GC();
-    ASSERT(mem.gc_root["c"][6]["emmm"][2].Number(), (double)3)
+    ASSERT(mem.gc_root["c"][6]["emmm"][2].Number(), 3.0)
     ASSERT_T(!MemAllocCollect::obj_quene.Includes(obj.Obj().Ptr()))
     ASSERT_T(MemAllocCollect::obj_quene.Includes(mem.gc_root["cao"].Obj().Ptr()))
     Value v1 = Array();

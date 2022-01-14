@@ -724,7 +724,7 @@ class VM
                     {
                         par[key.ToString()] = set_value.value();
                     }
-                    par = par[key.ToString()];
+                    par = par.In(key.ToString()) ?  par[key.ToString()] : nullptr;
                     continue;
                 }
                 else if (kt == ValueType::number)
@@ -734,7 +734,7 @@ class VM
                     {
                         par[idx] = set_value.value();
                     }
-                    par = par[idx];
+                    par = par.In(idx) ? par[idx] : nullptr;
                     continue;
                 }
                 THROW_STACK_MSG("仅允许数字和字符串类型作为索引，当前:{}", key.TypeString())

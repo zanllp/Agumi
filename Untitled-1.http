@@ -1,0 +1,21 @@
+POST http://127.0.0.1:9999/socker/gc?key=ee&cc=11 HTTP/1.1
+Host: api.ioflow.link
+Connection: keep-alive
+Content-Length: 71
+Pragma: no-cache
+Cache-Control: no-cache
+sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Microsoft Edge";v="96"
+content-type: application/json
+x-csrf-token: aSsrjc8_8YgaaYDQwnd4amiL
+sec-ch-ua-mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.62
+sec-ch-ua-platform: "Windows"
+Accept: */*
+Sec-Fetch-Site: same-site
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Accept-Encoding: gzip, deflate, br
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
+Cookie: csrfToken=aSsrjc8_812131YgaaYqwqaxaDQwnd4amiL; io=6UaP_SHuydGB3APEAAA4
+
+{"account":"m32@zasdcfs.cnew","password":"dsfcwcweq1q","remember":true}

@@ -8,7 +8,7 @@ define_member_function(kv_store, {
     exist: (this, key) => {
         const l = fs.exist(f(this.base_file_tpl, key))
         const r = this.get_item(key)
-        to_bool(and_op(l, r))
+        to_bool(and(l, r))
     },
     set_item: (this, key, value) => {
         const file_name = f(this.base_file_tpl, key)

@@ -63,7 +63,7 @@ int MakeServer(int portno, agumi::ServerHandler handler)
         setNonBlock(newsockfd);
         auto msg_handler = [=] {
             auto unsafe_tid = agumi::get_thread_id();
-
+            int message_incr_id  = 0;
             while (true)
             {
                 auto message = handler.on_channel_message(unsafe_tid);
@@ -80,10 +80,10 @@ int MakeServer(int portno, agumi::ServerHandler handler)
                         return;
                     }
                 }
-
-                char buf[256];
-                bzero(buf, 256);
-                int n = read(newsockfd, buf, 255);
+                const auto size = 256; 
+                char buf[size];
+                bzero(buf, size);
+                int n = read(newsockfd, buf, size -1);
                 if (n < 0)
                 {
                     if (errno == EAGAIN || errno == EINPROGRESS)
@@ -102,6 +102,7 @@ int MakeServer(int portno, agumi::ServerHandler handler)
                 recv_e.val = buf;
                 recv_e.fd = newsockfd;
                 recv_e.tid_unsafe = unsafe_tid;
+                recv_e.message_id = ++message_incr_id;
                 recv_e.connection_id = connection_id;
                 handler.on_recv(recv_e);
             }

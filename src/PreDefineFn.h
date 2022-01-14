@@ -288,7 +288,7 @@ void AddPreDefine(VM& vm)
     };
     vm.DefineGlobalFunc("lens", lens_bind);
     vm.ctx_stack[0].var["utf8"] =
-        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) { return String::FromCodePoint(args.GetOr(0, "").ToString()); })},
+        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) { return String::FromCodePoint(args.GetOr(0, "").ToString(), args.GetOr(1, 16).Number()); })},
                 {"decode", vm.DefineFunc([&](Vector<Value> args) { return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString()); })}});
     // 定义本地类成员函数
     LocalClassDefine string_def;
@@ -304,14 +304,23 @@ void AddPreDefine(VM& vm)
     string_def.member_func["substr"] = [](Value& _this, Vector<Value> args) -> Value {
         auto start = args.GetOrDefault(0);
         auto count = args.GetOrDefault(1);
-        return _this.StrC().USubStr(start.GetOr<double>(0, ValueType::number), count.GetOr<double>(-1, ValueType::number));
+        return _this.StrC().USubStr(start.GetOr(0.0, ValueType::number), count.GetOr(-1.0, ValueType::number));
     };
     string_def.member_func["split"] = [](Value& _this, Vector<Value> args) -> Value {
-        auto r = _this.StrC().Split(args.GetOr(0, "").ToString(), args.GetOrDefault(1).GetOr<double>(-1, ValueType::number),
+        auto r = _this.StrC().Split(args.GetOr(0, "").ToString(), args.GetOrDefault(1).GetOr(-1.0, ValueType::number),
                                     args.GetOr(2, false).ToBool(), true);
         Array res;
         res.Src().insert(res.Src().begin(), r.begin(), r.end());
         return res;
+    };
+    string_def.member_func["byte_to_lowercase"] = [](Value& _this, Vector<Value> args) -> Value {
+        return  _this.StrC().ToLowerCase();
+    };
+    string_def.member_func["byte_find"] = [](Value& _this, Vector<Value> args) -> Value {
+        return int(_this.StrC().find(args.GetOrDefault(0).ToString(), args.GetOrDefault(1).GetOr(0.0, ValueType::number)));
+    };
+    string_def.member_func["trim"] = [](Value& _this, Vector<Value> args) -> Value {
+        return _this.StrC().Trim();
     };
     vm.class_define[ValueType::string] = string_def;
 
@@ -341,7 +350,7 @@ void AddPreDefine(VM& vm)
         Array arr;
         auto v = args.GetOrDefault(0);
         auto start_raw = args.GetOrDefault(1);
-        if (start_raw.NotUndef() || start_raw.Type() == ValueType::number)
+        if (start_raw.NotUndef() && start_raw.Type() != ValueType::number)
         {
             THROW_VM_STACK_MSG("array::select 的第2个参数必须为number类型，当前为{}", start_raw.TypeString())
         }
@@ -428,12 +437,24 @@ void AddPreDefine(VM& vm)
         }
         return nullptr;
     });
+    
+
+    vm.DefineGlobalFunc("delete", [&](Vector<Value> args) -> Value {
+        args.GetOrDefault(0).Obj().Src().erase(args.GetOrDefault(1).ToString());
+        return  args.GetOrDefault(0);
+    });
+    vm.DefineGlobalFunc("to_str", [&](Vector<Value> args) -> Value {
+        return args.GetOrDefault(0).ToString();
+    });
+    vm.DefineGlobalFunc("or", [&](Vector<Value> args) -> Value {
+        return args.GetOrDefault(0).ToBool() || args.GetOrDefault(1).ToBool();
+    });
     vm.DefineGlobalFunc("gc", [&](Vector<Value> args) -> Value {
         MemManger::Get().GC();
         return nullptr;
     });
     vm.DefineGlobalFunc("start_timer", [&](Vector<Value> args) -> Value {
-        return vm.StartTimer(args.GetOrDefault(0), args.GetOrDefault(1).GetOr(1000.0, ValueType::number), args.GetOrDefault(2).ToBool());
+        return vm.StartTimer(args.GetOrDefault(0), args.GetOr(1, 1000.0).Number(), args.GetOrDefault(2).ToBool());
     });
 
     vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value {
