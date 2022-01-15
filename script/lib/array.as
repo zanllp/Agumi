@@ -8,10 +8,10 @@ define_member_function('array', {
     range: (this, start, count) => {
         let r = []
         this.select((v,i, stop) => {
-            if_exec(or(i < (start + count), count == -1), () => {
-                r.push(v)
-            })
-        },start)
+            or(i < (start + count), count == -1) ? @{
+                 r.push(v)
+            } : null
+        }, start)
         r
     },
     join: (this, spec) => {
@@ -25,10 +25,10 @@ define_member_function('array', {
     find_index: (this, target) => {
         let res = {v:-1}
         this.select((v,i, stop) => {
-            if_exec(v == target , () => {
+            (v == target) ? @{
                 res.v=i
                 stop()
-            })
+            } : null
         })
         res.v
     },

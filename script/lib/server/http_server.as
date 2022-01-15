@@ -9,18 +9,16 @@ http_status_map.from_entires(http_status_map_file.split(lf).select(line => line.
 
 
 
-const parse_url_params = (url ,idx, res) => {
-    res.path = url.substr(0, idx)
-    res.params.from_entires(url.substr(idx + 1).split('&').select(kv => kv.split('=')))
-}
 
 const parse_url = (url) => {
     const res = { path: '', params: {} }
     const query_idx = url.byte_find('?')
-    const set_path = () => {
+    (query_idx == -1) ? @{
         res.path = url
+    } : @{
+        res.path = url.substr(0, query_idx)
+        res.params.from_entires(url.substr(query_idx + 1).split('&').select(kv => kv.split('=')))
     }
-    (query_idx == -1) ? set_path() : parse_url_params(url, query_idx, res) 
     res
 }
 
@@ -89,29 +87,25 @@ const parse_http_message = (http_raw_msg) => {
     const mark_end = (i, stop) => {
         stop()
         req.data = lines.range(i + 1, -1).join(crlf)
-        const has_data_end = () => {
-            req.is_end = (req.header.get('content-length')) == to_str(req.data.length())
-        }
-        const no_data_end = () => {
-            req.is_end = true
-        }
-        (req.header.has('content-length')) ? has_data_end() : no_data_end()
+        req.is_end = (req.header.has('content-length')) ? @{
+           (req.header.get('content-length')) == to_str(req.data.length())
+        } : true
 
     }
     lines.select((v,i, stop) => {
-        const len = v.length()
         const is_first = i == 0
-        const is_header = not((v.byte_find(':')) == -1)
-        is_first ? resolve_profile(v) : null
-        and(not(is_first), is_header) ? add_header(v) : null
-        and(not(is_first), not(is_header)) ? mark_end(i, stop) : null 
+        is_first ? 
+            resolve_profile(v) : 
+            not(v.includes(':')) ? 
+                add_header(v) : 
+                mark_end(i, stop)
     })
     req
 }
 
 
 const HttpResponse = make_ability('HttpResponse')
-
+ 
 define_member_function(HttpResponse, {
     set_data: (this, data) => {
         this.data = data
@@ -165,3 +159,5 @@ const make_http_server = (port, cb) => {
         }
     })
 }
+
+ 
