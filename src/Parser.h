@@ -635,22 +635,35 @@ class Compiler
         return {stat, iter};
     }
 
+    TokenIter GetNextNotEmptyToken(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        while (iter->IsEmpty())
+        {
+            ASSERT_T(!iter->IsEnd())
+            iter++;
+        }
+        return iter;
+    }
+
     StatPtrWithEnd ResolveExpr(StatPtr pos1_stat, TokenFlowView tfv)
     {
         auto iter = tfv.BeginIter();
-        auto op_iter = iter;
-        if (op_iter->Is(question_mask_)) // x ? y : z 三元
+        auto probably_question_mask = GetNextNotEmptyToken(iter);
+        if (probably_question_mask->Is(question_mask_)) // x ? y : z 三元
         {
-            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(op_iter + 1);
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(probably_question_mask + 1);
             auto stat = std::make_shared<ConditionExpression>();
             stat->start = *iter;
             stat->cond = pos1_stat;
             stat->left = pos2_stat;
-            pos2_end_iter->Expect(colon_);
-            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatmentUntilNotEmpty(pos2_end_iter + 1);
+            auto colon_iter = GetNextNotEmptyToken(pos2_end_iter);
+            colon_iter->Expect(colon_);
+            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatmentUntilNotEmpty(colon_iter + 1);
             stat->right = pos3_stat;
             return {stat, pos3_end_iter};
         }
+        auto op_iter = iter;
         auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         // x(+|-|*|/|++|+=|===。。。)y 二元
         auto stat = std::make_shared<BinaryExpression>();
@@ -1029,7 +1042,7 @@ class Compiler
     {
         // 判断如果后面跟随着一个运算符继续向下折叠
         auto next_iter = iter + 1;
-        if (IsExpr(next_iter))
+        if (IsExpr(next_iter) || GetNextNotEmptyToken(next_iter)->Is(question_mask_))
         {
             return ResolveExpr(left_stat, next_iter);
         }

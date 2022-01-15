@@ -94,11 +94,11 @@ const parse_http_message = (http_raw_msg) => {
     }
     lines.select((v,i, stop) => {
         const is_first = i == 0
-        is_first ? 
-            resolve_profile(v) : 
-            not(v.includes(':')) ? 
-                add_header(v) : 
-                mark_end(i, stop)
+        is_first 
+            ? resolve_profile(v) 
+            : not(v.includes(':')) 
+                ? add_header(v) 
+                : mark_end(i, stop)
     })
     req
 }
