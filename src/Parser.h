@@ -639,18 +639,19 @@ class Compiler
     {
         auto iter = tfv.BeginIter();
         auto op_iter = iter;
-        auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         if (op_iter->Is(question_mask_)) // x ? y : z 三元
         {
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(op_iter + 1);
             auto stat = std::make_shared<ConditionExpression>();
             stat->start = *iter;
             stat->cond = pos1_stat;
             stat->left = pos2_stat;
             pos2_end_iter->Expect(colon_);
-            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatment(pos2_end_iter + 1);
+            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatmentUntilNotEmpty(pos2_end_iter + 1);
             stat->right = pos3_stat;
             return {stat, pos3_end_iter};
         }
+        auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         // x(+|-|*|/|++|+=|===。。。)y 二元
         auto stat = std::make_shared<BinaryExpression>();
         stat->start = *iter;
@@ -865,6 +866,18 @@ class Compiler
         return {obj, iter};
     }
 
+    StatPtrWithEnd ResolveExecutableStatmentUntilNotEmpty(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        auto res = ResolveExecutableStatment(iter);
+        while (std::get<0>(res)->IsEmpty())
+        {
+            iter = std::get<1>(res);
+            res = ResolveExecutableStatment(iter);
+        }
+        return res;
+    }
+
     /**
      * 一行，或者括号
      *@return [句子，末尾迭代器)
@@ -950,7 +963,7 @@ class Compiler
             {
                 continue;
             }
-            
+
             stat->stats.push_back(r_stat);
         }
         return {stat, end + 1};
@@ -1088,12 +1101,12 @@ class Compiler
         auto iter = tfv.BeginIter();
         auto accept = [&](StatPtrWithEnd res) {
             auto [stat, end] = res;
-            if (stat->Type() == StatementType::statement)
+            iter = end;
+            if (stat->IsEmpty())
             {
                 return;
             }
             p.body.push_back(stat);
-            iter = end;
         };
         while (!tfv.IsEnd(iter))
         {
