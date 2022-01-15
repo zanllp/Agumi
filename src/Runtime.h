@@ -460,20 +460,32 @@ class VM
             return ResolveVariableDeclaration(stat);
         case StatementType::assigmentStatement:
             return ResolveAssigmentStat(stat);
-        case StatementType::functionCall:
         case StatementType::binaryExpression:
+            return ResolveBinaryExpression(stat);
         case StatementType::identifier:
+            return ResolveIdentifier(stat);
         case StatementType::conditionExpression:
+            return ResolveConditionExpression(stat);
         case StatementType::boolLiteralInit:
+            return ResolveBoolLiteralInit(stat);
         case StatementType::numberLiteralInit:
+            return ResolveNumberLiteralInit(stat);
         case StatementType::stringLiteralInit:
+            return ResolveStringLiteralInit(stat);
         case StatementType::functionDeclaration:
+            return ResolveFuncDeclear(stat);
+        case StatementType::functionCall:
+            return ResolveFuncCall(stat);
         case StatementType::indexStatement:
+            return ResolveObjectIndex(stat);
         case StatementType::arrayInit:
+            return ResolveArrayInit(stat);
         case StatementType::objectInit:
+            return ResolveObjectInit(stat);
         case StatementType::nullLiteral:
+            return nullptr;
         case StatementType::blockStatment:
-            return ResolveExecutable(stat);
+            return ResolveBlock(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
     }
@@ -481,7 +493,7 @@ class VM
     {
         SRC_REF(fn_call, FunctionCall, stat)
         auto is_use_optional = fn_loc_optional.Type() == ValueType::function;
-        auto fn_loc = is_use_optional ? fn_loc_optional : ResolveExecutable(fn_call.id);
+        auto fn_loc = is_use_optional ? fn_loc_optional : Dispatch(fn_call.id);
         if (fn_loc.Type() != ValueType::function)
         {
             auto msg = String::Format("'{}' is not a function", fn_loc.ToString());
@@ -501,7 +513,7 @@ class VM
             Vector<Value> args;
             for (size_t i = 0; i < fn_call.arguments.size(); i++)
             {
-                auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
+                auto incoming_val = Dispatch(fn_call.arguments[i]);
                 args.push_back(incoming_val);
             }
             v = fn.native_fn(args);
@@ -518,7 +530,7 @@ class VM
             args.insert(args.begin(), extra_args.begin(), extra_args.end());
             for (auto&& i : fn_call.arguments)
             {
-                args.push_back(ResolveExecutable(i));
+                args.push_back(Dispatch(i));
             }
 
             for (size_t i = 0; i < src_args.size(); i++)
@@ -551,7 +563,7 @@ class VM
         Vector<Value> args;
         for (size_t i = 0; i < fn_call.arguments.size(); i++)
         {
-            auto incoming_val = ResolveExecutable(fn_call.arguments[i]);
+            auto incoming_val = Dispatch(fn_call.arguments[i]);
             args.push_back(incoming_val);
         }
         try
@@ -577,24 +589,24 @@ class VM
             {
                 THROW_STACK_MSG("Missing initializer in const declaration")
             }
-            auto val = i->initialed ? ResolveExecutable(i->init) : nullptr;
+            auto val = i->initialed ? Dispatch(i->init) : nullptr;
             return CurrScope()[key] = val;
         }
     }
     Value ResolveConditionExpression(StatPtr stat)
     {
         SRC_REF(expr, ConditionExpression, stat);
-        auto cond = ResolveExecutable(expr.cond).ToBool();
+        auto cond = Dispatch(expr.cond).ToBool();
         if (cond)
         {
-            return ResolveExecutable(expr.left);
+            return Dispatch(expr.left);
         }
-        return ResolveExecutable(expr.right);
+        return Dispatch(expr.right);
     }
     Value ResolveAssigmentStat(StatPtr stat)
     {
         SRC_REF(assig, AssigmentStatement, stat);
-        auto val = ResolveExecutable(assig.value);
+        auto val = Dispatch(assig.value);
         if (assig.target->Type() == StatementType::identifier)
         {
             SRC_REF(id, Identifier, assig.target)
@@ -625,8 +637,8 @@ class VM
     Value ResolveBinaryExpression(StatPtr stat)
     {
         SRC_REF(expr, BinaryExpression, stat);
-        auto left = ResolveExecutable(expr.left);
-        auto right = ResolveExecutable(expr.right);
+        auto left = Dispatch(expr.left);
+        auto right = Dispatch(expr.right);
         auto type = left.Type();
         auto type_r = right.Type();
 #define ERR_ResolveBinaryExpression THROW_STACK_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
@@ -679,7 +691,7 @@ class VM
             bool is_set = is_last && is_set_val;
             if (index == 0)
             {
-                par = ResolveExecutable(i.stat);
+                par = Dispatch(i.stat);
                 continue;
             }
             if (i.type == IndexType::property)
@@ -717,7 +729,7 @@ class VM
             }
             else if (i.type == IndexType::index)
             {
-                auto key = ResolveExecutable(i.stat);
+                auto key = Dispatch(i.stat);
                 auto kt = key.Type();
                 if (kt == ValueType::string)
                 {
@@ -725,7 +737,7 @@ class VM
                     {
                         par[key.ToString()] = set_value.value();
                     }
-                    par = par.In(key.ToString()) ?  par[key.ToString()] : nullptr;
+                    par = par.In(key.ToString()) ? par[key.ToString()] : nullptr;
                     continue;
                 }
                 else if (kt == ValueType::number)
@@ -790,7 +802,7 @@ class VM
         Array arr_src;
         for (auto& i : arr.src)
         {
-            arr_src.Src().push_back(ResolveExecutable(i));
+            arr_src.Src().push_back(Dispatch(i));
         }
         return arr_src;
     }
@@ -801,54 +813,20 @@ class VM
         Object obj_src;
         for (auto& i : obj.src)
         {
-            obj_src[i.first] = ResolveExecutable(i.second);
+            obj_src[i.first] = Dispatch(i.second);
         }
         return obj_src;
     }
 
-    Value ResolveExecutable(StatPtr stat)
-    {
-        CurrCtx().start = &stat->start;
-        switch (stat->Type())
-        {
-        case StatementType::binaryExpression:
-            return ResolveBinaryExpression(stat);
-        case StatementType::identifier:
-            return ResolveIdentifier(stat);
-        case StatementType::conditionExpression:
-            return ResolveConditionExpression(stat);
-        case StatementType::boolLiteralInit:
-            return ResolveBoolLiteralInit(stat);
-        case StatementType::numberLiteralInit:
-            return ResolveNumberLiteralInit(stat);
-        case StatementType::stringLiteralInit:
-            return ResolveStringLiteralInit(stat);
-        case StatementType::functionDeclaration:
-            return ResolveFuncDeclear(stat);
-        case StatementType::functionCall:
-            return ResolveFuncCall(stat);
-        case StatementType::indexStatement:
-            return ResolveObjectIndex(stat);
-        case StatementType::arrayInit:
-            return ResolveArrayInit(stat);
-        case StatementType::objectInit:
-            return ResolveObjectInit(stat);
-        case StatementType::nullLiteral:
-            return nullptr;
-        case StatementType::blockStatment:
-            return ResolveBlock(stat);
-        }
-        THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
-    }
     Value ResolveBlock(StatPtr stat)
     {
         Value v;
         SRC_REF(block, BlockStatment, stat);
         Context block_ctx;
         PushContext(block_ctx);
-        for (auto &&i : block.stats)
+        for (auto&& i : block.stats)
         {
-            v = ResolveExecutable(i);
+            v = Dispatch(i);
         }
         PopContext();
         return v;
@@ -898,12 +876,12 @@ class VM
                 Visitor(stat.target, closure);
                 return;
             }
-            case StatementType::blockStatment: 
+            case StatementType::blockStatment:
             {
                 SRC_REF(stat, BlockStatment, s)
                 Context ctx;
                 virtual_ctx_stack.push_back(ctx);
-                for (auto &&i : stat.stats)
+                for (auto&& i : stat.stats)
                 {
                     Visitor(i, closure);
                 }
