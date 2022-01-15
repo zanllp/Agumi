@@ -20,13 +20,16 @@ enum class StatementType
     assigmentStatement,
     indexStatement,
     arrayInit,
-    objectInit
+    objectInit,
+    blockStatment
 };
 
 class Statement
 {
   public:
     virtual StatementType Type() { return StatementType::statement; }
+    virtual bool Is(StatementType type) { return Type() == type; }
+    virtual bool IsEmpty() { return Is(StatementType::statement); }
     Token start;
     virtual bool IsLiteral()
     {
@@ -417,6 +420,25 @@ class AssigmentStatement : public Statement
     }
 };
 
+class BlockStatment : public Statement
+{
+  public:
+    Vector<StatPtr> stats;
+    StatementType Type() { return StatementType::blockStatment; }
+    Value ToJson()
+    {
+        auto r = Object();
+        r["blocks"] = Array();
+        for (auto&& i : stats)
+        {
+            r["blocks"].Arr().Src().push_back(i->ToJson());
+        }
+
+        r["type"] = "blockStatment";
+        return r;
+    }
+};
+
 class IfStatment : public Statement
 {
   public:
@@ -617,18 +639,19 @@ class Compiler
     {
         auto iter = tfv.BeginIter();
         auto op_iter = iter;
-        auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         if (op_iter->Is(question_mask_)) // x ? y : z 三元
         {
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(op_iter + 1);
             auto stat = std::make_shared<ConditionExpression>();
             stat->start = *iter;
             stat->cond = pos1_stat;
             stat->left = pos2_stat;
             pos2_end_iter->Expect(colon_);
-            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatment(pos2_end_iter + 1);
+            auto [pos3_stat, pos3_end_iter] = ResolveExecutableStatmentUntilNotEmpty(pos2_end_iter + 1);
             stat->right = pos3_stat;
             return {stat, pos3_end_iter};
         }
+        auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         // x(+|-|*|/|++|+=|===。。。)y 二元
         auto stat = std::make_shared<BinaryExpression>();
         stat->start = *iter;
@@ -843,6 +866,18 @@ class Compiler
         return {obj, iter};
     }
 
+    StatPtrWithEnd ResolveExecutableStatmentUntilNotEmpty(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        auto res = ResolveExecutableStatment(iter);
+        while (std::get<0>(res)->IsEmpty())
+        {
+            iter = std::get<1>(res);
+            res = ResolveExecutableStatment(iter);
+        }
+        return res;
+    }
+
     /**
      * 一行，或者括号
      *@return [句子，末尾迭代器)
@@ -864,6 +899,10 @@ class Compiler
                 return ResolveExpr(stat, next_end_iter);
             }
             return {stat, next_end_iter};
+        }
+        if (iter->Is(at_))
+        {
+            return ResolveBlock(iter);
         }
 
         if (iter->Is(brackets_start_))
@@ -902,13 +941,32 @@ class Compiler
     }
 
     // 块
-    Vector<StatPtr> ResolveBlock(TokenFlowView tfv)
+    StatPtrWithEnd ResolveBlock(TokenFlowView tfv)
     {
-        Vector<StatPtr> res;
+        auto iter = tfv.BeginIter();
+        iter->Expect(at_);
+        iter++;
+        iter->Expect(curly_brackets_start_);
+        auto end = CalcEndBrackets(iter);
+        auto stat = std::make_shared<BlockStatment>();
+        iter++;
         while (true)
         {
+            if (iter == end)
+            {
+                break;
+            }
+
+            auto [r_stat, r_iter] = Dispatch(iter);
+            iter = r_iter;
+            if (r_stat->IsEmpty())
+            {
+                continue;
+            }
+
+            stat->stats.push_back(r_stat);
         }
-        return res;
+        return {stat, end + 1};
     }
 
     WithEnd<IfStatment> ResolveIfStatment(TokenFlowView tfv)
@@ -1043,12 +1101,12 @@ class Compiler
         auto iter = tfv.BeginIter();
         auto accept = [&](StatPtrWithEnd res) {
             auto [stat, end] = res;
-            if (stat->Type() == StatementType::statement)
+            iter = end;
+            if (stat->IsEmpty())
             {
                 return;
             }
             p.body.push_back(stat);
-            iter = end;
         };
         while (!tfv.IsEnd(iter))
         {

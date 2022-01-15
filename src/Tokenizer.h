@@ -128,6 +128,8 @@ namespace agumi
         sub_equal_,
         // --
         sub_sub_,
+        // @
+        at_
 
     };
     // 表达式支持的运算符
@@ -672,7 +674,7 @@ namespace agumi
     Vector<String> GeneralTokenizer::multi_token_set;
     const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%&|";
     const String GeneralTokenizer::empty_set = " \n\t";
-    const String GeneralTokenizer::single_char_set = ";,:.?";
+    const String GeneralTokenizer::single_char_set = ";,:.?@";
     const String GeneralTokenizer::const_str_set = R"("'`)";
     int GeneralTokenizer::uniq_id = 0;
     void Token::Init()
@@ -722,6 +724,7 @@ namespace agumi
         m[add_equal_] = "+=";
         m[sub_sub_] = "--";
         m[sub_equal_] = "-=";
+        m[at_] = "@";
         for (int i = m.size() - 1; i >= 0; i--)
         {
             if (m[i] != "")
