@@ -844,11 +844,13 @@ class VM
     {
         Value v;
         SRC_REF(block, BlockStatment, stat);
+        Context block_ctx;
+        PushContext(block_ctx);
         for (auto &&i : block.stats)
         {
             v = ResolveExecutable(i);
         }
-        
+        PopContext();
         return v;
     }
 
@@ -894,6 +896,18 @@ class VM
                 SRC_REF(stat, AssigmentStatement, s)
                 Visitor(stat.value, closure);
                 Visitor(stat.target, closure);
+                return;
+            }
+            case StatementType::blockStatment: 
+            {
+                SRC_REF(stat, BlockStatment, s)
+                Context ctx;
+                virtual_ctx_stack.push_back(ctx);
+                for (auto &&i : stat.stats)
+                {
+                    Visitor(i, closure);
+                }
+                virtual_ctx_stack.pop_back();
                 return;
             }
             case StatementType::functionDeclaration:
