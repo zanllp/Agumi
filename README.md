@@ -53,12 +53,13 @@ fib(10)
 #### tcp
  [使用参考](./script/tcp_server.as)
 #### http
- [具体实现](./script/lib/http_server.as)
+ [具体实现](./script/lib/server/http_server.as)
  
  一个例子 简单的文件读取
  [源码点这](./script/http_server.as)
 ```bash
 # 启动服务器
+
 agumi -exec=script/http_server.as
 # 浏览器打开 http://127.0.0.1:9999/?path=lib/server/http_status_map.csv ，查看效果
 ```
