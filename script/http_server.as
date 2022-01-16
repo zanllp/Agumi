@@ -4,7 +4,7 @@ const error_404 = (resp) => {
     resp.set_status(404).set_data('<h1>404</h1>').end()
 }
 
-const close_200 = (resp, path) => {
+const ok_200 = (resp, path) => {
     resp.set_status(200).set_data(fs.read(path)).end()
 }
 
@@ -18,7 +18,7 @@ make_http_server(9999, {
         const path_req = req.params.path
         const has_path = () => {
             const path = path_calc(env().curr_dir(), path_req)
-            (fs.exist(path)) ? close_200(resp, path) : error_404(resp)
+            (fs.exist(path)) ? ok_200(resp, path) : error_404(resp)
         }
         path_req ? has_path() : error_404(resp)
     }
