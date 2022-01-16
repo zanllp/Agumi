@@ -1,4 +1,4 @@
-include('lib/server/base')
+include('lib/server/tcp_server')
 
 set_gc({ step:100000, enable: true, log: true })
 
@@ -12,7 +12,7 @@ make_server({
         log('建立连接')
         conn.onMessage = (conn) => {
             log('接收到数据',conn.buf)
-            conn.send(resp_tpl).close()
+            conn.send('echo: ' + conn.buf).close()
         }
     },
     onClose: () => {

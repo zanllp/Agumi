@@ -1,7 +1,7 @@
 # Agumi
 [![test](https://github.com/zanllp/agumi/actions/workflows/test.yml/badge.svg)](https://github.com/zanllp/agumi/actions/workflows/test.yml)
 
-可作为c++的内嵌语言或一门单独的语言使用
+可作为c++的内嵌语言或单独的语言使用。包含闭包，垃圾回收，函数是一等公民，事件循环等特性，针对网络请求及服务器也提供了异步接口。
 ## 编译
 可选的ssl支持
 ### 启用ssl支持
@@ -43,11 +43,23 @@ fib(10)
 运行测试
 ## 几个测试和例子
 ### 闭包
-闭包测试和使用[点这里](./script/closure.as)
+闭包测试和使用[点这里](./script/test/closure.as)
 ### promise
-使用纯agumi实现的简陋的promise[点这里](./script/promise.as)
+使用纯agumi实现的简陋的promise[点这里](./script/lib/promise.as)
 ### 键值存储
 [点这里](./script/kv.as)
+### tcp & http 服务器
+两个服务器都是异步非阻塞的，tcp是调用的本地c++的实现，http是基于tcp使用纯agumi写的，当然依旧存在一些问题
+#### tcp
+ [使用参考](script/tcp_server.as)
+#### http
+ [实现参考](script/lib/http_server.as)
+#### 使用参考 - 一个简单的文件读取
+ [源码点这](script/http_server.as)
+```bash
+agumi -exec=script/http_server.as
+```
+浏览器打开 http://127.0.0.1:9999/?path=lib/server/http_status_map.csv ，查看效果
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ### 例子：使用运算符重载实现函数式语言pipe的功能
