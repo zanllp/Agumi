@@ -47,7 +47,7 @@ fib(10)
 ### promise
 使用纯agumi实现的简陋的promise[点这里](./script/lib/promise.as)
 ### 键值存储
-[点这里](./script/kv.as)
+[点这里](./script/lib/kv.as)
 ### tcp & http 服务器
 两个服务器都是异步非阻塞的，tcp是调用的本地c++的实现，http是基于tcp使用纯agumi写的，当然依旧存在一些问题
 #### tcp
