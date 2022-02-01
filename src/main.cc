@@ -3,9 +3,10 @@
 #include "MemManger.h"
 #include "JsonParse.h"
 #include "util.h"
-#include "sion.h"
+#include "sion/sion.h"
 #include "Runtime.h"
 #include "PreDefineFn.h"
+#include "sion/SionGlobal.h"
 
 using namespace std;
 using namespace agumi;
@@ -321,6 +322,7 @@ int main(int argc, char** argv)
     P("{}let it Crash{}", color_green_s, color_e)
 #endif
     Token::Init();
+    SionGlobal::async_thread_pool.SetThrowIfHasErrMsg(true).Start();
     auto arg = CreateVecFromStartParams(argc, argv);
     auto working_dir = filesystem::current_path().generic_string(); // 文件地址获取文件夹地址
     auto test_relative_path = getenv("WORKING_DIR_RELATIVE_PATH");

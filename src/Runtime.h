@@ -1,6 +1,7 @@
 #pragma once
 #include "Event.h"
 #include "Parser.h"
+#include "sion/SionGlobal.h"
 
 // msg, {__VA_ARGS__}
 namespace agumi
@@ -118,6 +119,7 @@ class VM
     std::queue<RequiredEvent> event_required_queue;
     std::queue<CrossThreadCallBack> event_cross_thread_queue;
     std::map<double, Vector<ChannelPayload>> sub_thread_channel;
+    std::map<uint32_t, Value> fetch_async_pkg_cb;
     std::map<String, std::function<void(RequiredEvent)>> required_event_customers;
     int required_event_timer_id = -1;
     Vector<String> included_files;
@@ -446,6 +448,22 @@ class VM
         {
             auto& ctx = ctx_stack[i];
             res += String::Format("\tat {} -- {} \n", i, ctx.start->ToPosStr());
+        }
+        return res;
+    }
+
+    Value SionResp2AgumiValue(sion::Response resp)
+    {
+        auto res = Object();
+        res["data"] = resp.StrBody();
+        res["code"] = resp.Code();
+        res["headers"] = Array();
+        for (auto& i : resp.Header().Data())
+        {
+            auto obj = Object();
+            obj["k"] = i.first;
+            obj["v"] = i.second;
+            res["headers"].Arr().Src().push_back(obj);
         }
         return res;
     }
@@ -836,7 +854,8 @@ class VM
     {
         SRC_REF(fn_stat, FunctionDeclaration, stat);
         static std::map<String, ClosureMemory> closure_mem;
-        auto generate_func_id = [&](String fn_pos_id) {
+        auto generate_func_id = [&](String fn_pos_id)
+        {
             static std::map<String, int> func_assig_id_set;
             auto iter = func_assig_id_set.find(fn_pos_id);
             String tpl = "{ offset:{}, pos:{} }";
@@ -849,8 +868,10 @@ class VM
         };
 
         Vector<Context> virtual_ctx_stack;
-        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure) {
-            auto save_value_to_closure = [&](String kw) {
+        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure)
+        {
+            auto save_value_to_closure = [&](String kw)
+            {
                 int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                 int idx_mut = virtual_ctx_stack_idx;
                 auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
@@ -1017,7 +1038,8 @@ class VM
         {
             const int curr_ctx_idx = ctx_stack.size() - 1;
             auto closure_curr = closure_mem[func_pos_id];
-            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep) {
+            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep)
+            {
                 for (auto& i : mem.map)
                 {
                     auto& clos = i.second;
