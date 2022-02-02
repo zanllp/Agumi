@@ -452,21 +452,6 @@ class VM
         return res;
     }
 
-    Value SionResp2AgumiValue(sion::Response resp)
-    {
-        auto res = Object();
-        res["data"] = resp.StrBody();
-        res["code"] = resp.Code();
-        res["headers"] = Array();
-        for (auto& i : resp.Header().Data())
-        {
-            auto obj = Object();
-            obj["k"] = i.first;
-            obj["v"] = i.second;
-            res["headers"].Arr().Src().push_back(obj);
-        }
-        return res;
-    }
 
   private:
     Value Dispatch(StatPtr stat)

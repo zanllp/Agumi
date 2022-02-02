@@ -180,7 +180,7 @@ void AddPreDefine(VM& vm)
         res["data"] = resp.StrBody();
         res["code"] = resp.Code();
         res["headers"] = Array();
-        for (auto& i : resp.Header().Data())
+        for (auto& i : resp.GetHeader().Data())
         {
             auto obj = Object();
             obj["k"] = i.first;
@@ -502,7 +502,7 @@ void AddPreDefine(VM& vm)
             res["data"] = resp.StrBody();
             res["code"] = resp.Code();
             res["headers"] = Array();
-            for (auto& i : resp.Header().Data())
+            for (auto& i : resp.GetHeader().Data())
             {
                 auto obj = Object();
                 obj["k"] = i.first;
