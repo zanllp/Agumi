@@ -348,7 +348,6 @@ class Response
     Response(std::vector<char> source) noexcept
     {
         source_ = source;
-
         ParseHeader();
         ParseBody();
     }
@@ -741,7 +740,7 @@ enum AsyncResponseReceiveMode
 struct AsyncResponse
 {
     Response resp;
-    uint32_t id;
+    uint id;
     String err_msg;
 };
 
@@ -749,7 +748,7 @@ struct AsyncPackage
 {
     Request request;
     std::function<void(AsyncResponse)> callback;
-    uint32_t id;
+    uint id;
     AsyncResponseReceiveMode received_mode;
 };
 
@@ -794,7 +793,7 @@ class Async
         return *this;
     }
 
-    auto GetTargetResp(uint32_t id)
+    auto GetTargetResp(uint id)
     {
         auto& queue = waiting_handle_response_;
         for (size_t i = 0; i < queue.size(); i++)
@@ -814,7 +813,7 @@ class Async
         assert(false);
     }
 
-    auto Await(uint32_t id, uint32_t timeout_ms = 0)
+    auto Await(uint id, uint timeout_ms = 0)
     {
         std::unique_lock<std::mutex> lk(waiting_resp_queue_mutex_);
         auto& queue = waiting_handle_response_;
@@ -838,7 +837,7 @@ class Async
             waiting_resp_cv_.wait_for(lk, std::chrono::milliseconds(timeout_ms), check);
             if (!check())
             {
-                Throw<AsyncAwaitTimeout>("await timeout");
+                throw AsyncAwaitTimeout("await timeout");
             }
         }
         else
@@ -883,15 +882,13 @@ class Async
         return id;
     }
 
-    auto Run(std::function<Request()> fn, std::function<void(AsyncResponse)> cb)
+    void Run(std::function<Request()> fn, std::function<void(AsyncResponse)> cb)
     {
-        auto id = ++incr_id;
         {
             std::lock_guard<std::mutex> lock(m_);
             queue_.push(AsyncPackage{.callback = cb, .request = fn(), .received_mode = AsyncResponseReceiveMode::callback});
         }
         cv_.notify_one();
-        return id;
     }
 
     auto GetAvailableResponse()
@@ -945,7 +942,15 @@ class Async
             }
             else if (pkg.received_mode == AsyncResponseReceiveMode::callback)
             {
-                pkg.callback(resp_pkg);
+               try
+               {
+                    pkg.callback(resp_pkg);
+               }
+               catch(const std::exception& e)
+               {
+                   std::cerr << e.what() << '\n';
+               }
+
             }
         }
         {
