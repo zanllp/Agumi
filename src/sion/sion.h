@@ -49,6 +49,12 @@ class Error : public std::exception
     const char* what() const noexcept { return msg.c_str(); }
 };
 
+class AsyncAwaitTimeout : public Error
+{
+  public:
+    AsyncAwaitTimeout(std::string msg) : Error(msg) {}
+};
+
 class String : public string
 {
   public:
@@ -520,30 +526,23 @@ class Request
     Response Send() { return Send(url_); }
 #ifndef SION_DISABLE_SSL
   private:
-    SSL* ssl = nullptr;
-    SSL_CTX* ssl_ctx = nullptr;
     Response SendBySSL(Socket socket)
     {
-        if (ssl == nullptr || ssl_ctx == nullptr)
-        {
-            SSL_library_init();
-            auto method = TLS_method();
-            ssl_ctx = SSL_CTX_new(method);
-            ssl = SSL_new(ssl_ctx);
-        }
+        SSL_library_init();
+        auto method = TLS_method();
+        auto ssl_ctx = SSL_CTX_new(method);
+        auto ssl = SSL_new(ssl_ctx);
+        check(ssl != nullptr && ssl_ctx != nullptr, "openssl初始化异常");
         SSL_set_fd(ssl, socket);
         SSL_connect(ssl);
         SSL_write(ssl, source_.c_str(), source_.length());
-        return ReadResponse(socket, ssl);
-    }
-    void StopSSL()
-    {
+        auto resp = ReadResponse(socket, ssl);
         SSL_shutdown(ssl);
         SSL_free(ssl);
         SSL_CTX_free(ssl_ctx);
-        ssl = nullptr;
-        ssl_ctx = nullptr;
+        return resp;
     }
+
 #endif
   public:
     Response Send(String url)
@@ -738,19 +737,20 @@ enum AsyncResponseReceiveMode
     queue,
     future
 };
+
+struct AsyncResponse
+{
+    Response resp;
+    uint32_t id;
+    String err_msg;
+};
+
 struct AsyncPackage
 {
     Request request;
-    std::function<void(Response)> callback;
-    unsigned int id;
+    std::function<void(AsyncResponse)> callback;
+    uint32_t id;
     AsyncResponseReceiveMode received_mode;
-};
-
-struct AsyncResponsePackage
-{
-    Response resp;
-    unsigned int id;
-    String err_msg;
 };
 
 class Async
@@ -767,7 +767,7 @@ class Async
     std::atomic_uint incr_id = 0;
     bool is_block_ = false;
     std::mutex waiting_resp_queue_mutex_;
-    std::vector<AsyncResponsePackage> waiting_handle_response_;
+    std::vector<AsyncResponse> waiting_handle_response_;
 
   public:
     ~Async()
@@ -794,7 +794,7 @@ class Async
         return *this;
     }
 
-    auto GetTargetResp(unsigned int id)
+    auto GetTargetResp(uint32_t id)
     {
         auto& queue = waiting_handle_response_;
         for (size_t i = 0; i < queue.size(); i++)
@@ -814,7 +814,7 @@ class Async
         assert(false);
     }
 
-    auto Await(unsigned int id)
+    auto Await(uint32_t id, uint32_t timeout_ms = 0)
     {
         std::unique_lock<std::mutex> lk(waiting_resp_queue_mutex_);
         auto& queue = waiting_handle_response_;
@@ -833,7 +833,18 @@ class Async
         {
             return GetTargetResp(id);
         }
-        waiting_resp_cv_.wait(lk, check);
+        if (timeout_ms != 0)
+        {
+            waiting_resp_cv_.wait_for(lk, std::chrono::milliseconds(timeout_ms), check);
+            if (!check())
+            {
+                Throw<AsyncAwaitTimeout>("await timeout");
+            }
+        }
+        else
+        {
+            waiting_resp_cv_.wait(lk, check);
+        }
         return GetTargetResp(id);
     }
 
@@ -872,7 +883,7 @@ class Async
         return id;
     }
 
-    auto Run(std::function<Request()> fn, std::function<void(Response)> cb)
+    auto Run(std::function<Request()> fn, std::function<void(AsyncResponse)> cb)
     {
         auto id = ++incr_id;
         {
@@ -925,15 +936,16 @@ class Async
             {
                 break;
             }
+            AsyncResponse resp_pkg{.id = pkg.id, .resp = resp, .err_msg = err_msg};
             if (pkg.received_mode == AsyncResponseReceiveMode::queue)
             {
                 std::lock_guard<std::mutex> m(waiting_resp_queue_mutex_);
-                waiting_handle_response_.push_back(AsyncResponsePackage{.id = pkg.id, .resp = resp, .err_msg = err_msg});
+                waiting_handle_response_.push_back(resp_pkg);
                 waiting_resp_cv_.notify_all();
             }
             else if (pkg.received_mode == AsyncResponseReceiveMode::callback)
             {
-                pkg.callback(resp);
+                pkg.callback(resp_pkg);
             }
         }
         {

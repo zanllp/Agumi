@@ -496,7 +496,8 @@ void AddPreDefine(VM& vm)
                 }
             }
           return req;
-        }, [&, event_name](sion::Response resp) {
+        }, [&, event_name](sion::AsyncResponse async_resp) {
+            auto resp = async_resp.resp;
             auto res = Object();
             res["data"] = resp.StrBody();
             res["code"] = resp.Code();
