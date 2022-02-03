@@ -5,7 +5,8 @@
 #include "Runtime.h"
 #include "ServerBind.h"
 #include "Value.h"
-#include "sion.h"
+#include "sion/sion.h"
+#include "sion/SionGlobal.h"
 
 #define JSON_PARSE(e) JsonNext().JsonParse(e)
 #define CLONE(v) JSON_PARSE(Json::Stringify(v))
@@ -176,10 +177,10 @@ void AddPreDefine(VM& vm)
 
         auto resp = req.Send();
         auto res = Object();
-        res["data"] = resp.Body();
+        res["data"] = resp.StrBody();
         res["code"] = resp.Code();
         res["headers"] = Array();
-        for (auto& i : resp.HeaderSrc().data)
+        for (auto& i : resp.GetHeader().Data())
         {
             auto obj = Object();
             obj["k"] = i.first;
@@ -437,7 +438,7 @@ void AddPreDefine(VM& vm)
         }
         return nullptr;
     });
-    
+
 
     vm.DefineGlobalFunc("delete", [&](Vector<Value> args) -> Value {
         args.GetOrDefault(0).Obj().Src().erase(args.GetOrDefault(1).ToString());
@@ -473,8 +474,8 @@ void AddPreDefine(VM& vm)
         static int id = 0;
         String event_name = String::Format("fetch_async:{}", ++id);
         vm.AddRequiredEventCustomer(event_name, [&, cb](RequiredEvent e) { vm.FuncCall(cb, e.val); });
-        std::thread t([&, event_name, url, params_i] {
-            auto req = sion::Request().SetUrl(url);
+        SionGlobal::async_thread_pool.Run([&, url, params_i] {
+          auto req = sion::Request().SetUrl(url);
             auto p_i = params_i;
             auto method_i = p_i["method"];
             auto headers_i = p_i["headers"];
@@ -494,12 +495,14 @@ void AddPreDefine(VM& vm)
                     req.SetHeader(i.first, i.second.ToString());
                 }
             }
-            auto resp = req.Send();
+          return req;
+        }, [&, event_name](sion::AsyncResponse async_resp) {
+            auto resp = async_resp.resp;
             auto res = Object();
-            res["data"] = resp.Body();
+            res["data"] = resp.StrBody();
             res["code"] = resp.Code();
             res["headers"] = Array();
-            for (auto& i : resp.HeaderSrc().data)
+            for (auto& i : resp.GetHeader().Data())
             {
                 auto obj = Object();
                 obj["k"] = i.first;
@@ -508,7 +511,8 @@ void AddPreDefine(VM& vm)
             }
             vm.Push2RequiredEventPendingQueue(RequiredEvent(event_name, res));
         });
-        t.detach();
+        // vm.fetch_async_pkg_cb[id] = cb;
+
         return nullptr;
     });
 

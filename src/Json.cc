@@ -119,9 +119,10 @@ String Json::SameLevelCompisition(std::vector<String>& src_vec, int indent_step,
     std::stringstream res;
     res << std::get<0>(start_end_symbol) << cr_if_not_zero_indent;
     int vec_size = src_vec.size();
+    const String space = " ";
     for (size_t i = 0; i < vec_size; i++)
     {
-        res << (zero_indent ? "" : String(" ").Repeat(indent));
+        res << (zero_indent ? "" : space.Repeat(indent));
         res << src_vec[i];
         if (i != src_vec.size() - 1)
         {
@@ -129,7 +130,7 @@ String Json::SameLevelCompisition(std::vector<String>& src_vec, int indent_step,
         }
         res << cr_if_not_zero_indent;
     }
-    res << ((zero_indent || is_empty) ? "" : String(" ").Repeat(indent - indent_step));
+    res << ((zero_indent || is_empty) ? "" : space.Repeat(indent - indent_step));
     res << std::get<1>(start_end_symbol);
     return res.str();
 }
