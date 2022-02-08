@@ -452,7 +452,6 @@ class VM
         return res;
     }
 
-
   private:
     Value Dispatch(StatPtr stat)
     {
@@ -660,6 +659,12 @@ class VM
         auto target_op_def = target_type_def->second.find(op);
         if (target_op_def == target_type_def->second.end())
         {
+            if (op == not_eq_ && (target_type_def->second.find(eqeq_) != target_type_def->second.end()))
+            {
+                auto res = target_type_def->second[eqeq_](left, right);
+                return !res.ToBool();
+            }
+
             ERR_ResolveBinaryExpression
         }
         return target_op_def->second(left, right);
@@ -839,8 +844,7 @@ class VM
     {
         SRC_REF(fn_stat, FunctionDeclaration, stat);
         static std::map<String, ClosureMemory> closure_mem;
-        auto generate_func_id = [&](String fn_pos_id)
-        {
+        auto generate_func_id = [&](String fn_pos_id) {
             static std::map<String, int> func_assig_id_set;
             auto iter = func_assig_id_set.find(fn_pos_id);
             String tpl = "{ offset:{}, pos:{} }";
@@ -853,10 +857,8 @@ class VM
         };
 
         Vector<Context> virtual_ctx_stack;
-        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure)
-        {
-            auto save_value_to_closure = [&](String kw)
-            {
+        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure) {
+            auto save_value_to_closure = [&](String kw) {
                 int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                 int idx_mut = virtual_ctx_stack_idx;
                 auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
@@ -1023,8 +1025,7 @@ class VM
         {
             const int curr_ctx_idx = ctx_stack.size() - 1;
             auto closure_curr = closure_mem[func_pos_id];
-            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep)
-            {
+            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep) {
                 for (auto& i : mem.map)
                 {
                     auto& clos = i.second;

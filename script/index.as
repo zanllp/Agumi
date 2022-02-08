@@ -3,7 +3,7 @@
 const socket_push = (data) => {
     make_promise(resolve => {
         const resp = fetch_async('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
-            data: json.stringify(data),
+            data: json.stringify(data, 0),
             method: 'post',
             headers: { 'Content-Type': 'application/json' }
         }, resolve)
@@ -11,7 +11,7 @@ const socket_push = (data) => {
 }
 
 start_timer(() => {
-    socket_push("hell world").then(resp => {
+    socket_push([]).then(resp => {
         log(resp.data)
     })
 }, 1000)

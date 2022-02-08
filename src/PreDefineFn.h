@@ -328,7 +328,6 @@ void AddPreDefine(VM& vm)
     LocalClassDefine array_def;
     std::map<KW, std::function<Value(Value&, Value&)>> array_op_def;
     array_op_def[eqeq_] = BIN_OPERATOR(l.Arr().Ptr() == r.Arr().Ptr());
-    array_op_def[not_eq_] = BIN_OPERATOR(l.Arr().Ptr() != r.Arr().Ptr());
     array_def.binary_operator_overload[ValueType::array] = array_op_def;
     array_def.member_func["length"] = [](Value& _this, Vector<Value> args) -> Value { return double(_this.ArrC().SrcC().size()); };
     array_def.member_func["resize"] = [](Value& _this, Vector<Value> args) -> Value {
@@ -383,9 +382,6 @@ void AddPreDefine(VM& vm)
     std::map<KW, std::function<Value(Value&, Value&)>> num_op_def;
 #define BIN_OP_NUM(tk, op) num_op_def[tk] = BIN_OPERATOR(l.NumberC() op r.NumberC())
     BIN_OP_NUM(eqeq_, ==);
-    BIN_OP_NUM(eqeqeq_, ==);
-    BIN_OP_NUM(not_eq_, !=);
-    BIN_OP_NUM(not_eqeq_, !=);
     BIN_OP_NUM(more_than_, >);
     BIN_OP_NUM(more_than_equal_, >=);
     BIN_OP_NUM(less_than_, <);
