@@ -11,6 +11,14 @@ const make_promise_internal = (resolve) => {
 }
 
 const make_promise = cb => make_promise_internal(resolve => micro(() => cb(resolve)))
+
+const fetch_as_promsie = (url, params) => {
+    make_promise(resolve => {
+       fetch_async(url, params, resolve)
+    })
+}
+
+
 /*
 const call_api_promise = (path) => {
     make_promise(resolve => {
@@ -18,7 +26,7 @@ const call_api_promise = (path) => {
         const resp = fetch(url)
         resolve({ resp, url })
     })
-} 
+}
 
 const p = call_api_promise('/message').then(v => v.resp.data)
 p.then(_ => log('twice callback'))
