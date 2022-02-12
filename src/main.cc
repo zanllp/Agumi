@@ -1,12 +1,14 @@
 
 #include "Json.h"
-#include "MemManger.h"
 #include "JsonParse.h"
-#include "util.h"
-#include "sion/sion.h"
-#include "Runtime.h"
+#include "MemManger.h"
 #include "PreDefineFn.h"
+#include "ResouceControl.h"
+#include "Runtime.h"
 #include "sion/SionGlobal.h"
+#include "sion/sion.h"
+#include "util.h"
+#include <csignal>
 
 using namespace std;
 using namespace agumi;
@@ -315,9 +317,23 @@ void TestPath()
     ASSERT(PathCalc("/home/cc", "dd/ff", "../cd"), "/home/cc/dd/cd");
     ASSERT(PathCalc("/home/cc"), "/home/cc");
 }
+void SignalHandler(int signal)
+{
+    if (signal == SIGABRT)
+    {
+        std::exit(1);
+    }
+    else if (signal == SIGINT)
+    {
+        P("中断")
+        std::abort();
+    }
+}
 
 int main(int argc, char** argv)
 {
+    std::signal(SIGABRT, SignalHandler);
+    std::signal(SIGINT, SignalHandler);
 #ifdef LET_IT_CRASH
     P("{}let it Crash{}", color_green_s, color_e)
 #endif

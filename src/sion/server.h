@@ -1,5 +1,6 @@
 #pragma once
 #include "../Event.h"
+#include "../ResouceControl.h"
 #include "../stdafx.h"
 
 namespace sion
@@ -15,22 +16,21 @@ void setNonBlock(int fd)
 
 void error(const char* msg, int socket = -1)
 {
-    ::close(socket);
+    agumi::resource_control.FreeSocket(socket);
     perror(msg);
     throw std::runtime_error("");
 }
 
 std::atomic<long> MakeServer_connection_incr_id = 0;
 /*
- * 先随便写写能跑就行，后面再换成epoll/kqueue/iocp
+ * 先随便写写能跑就行，后面再换成epollueue/iocp
  */
 int MakeServer(int portno, agumi::ServerHandler handler)
 {
     auto unsafe_tid = agumi::get_thread_id();
-    int sockfd;
     socklen_t clilen;
     sockaddr_in serv_addr, cli_addr;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = agumi::resource_control.CreateSocket();
     if (sockfd < 0)
         error("ERROR opening socket");
     bzero((char*)&serv_addr, sizeof(serv_addr));
@@ -45,6 +45,9 @@ int MakeServer(int portno, agumi::ServerHandler handler)
     while (true)
     {
         int newsockfd = accept(sockfd, (sockaddr*)&cli_addr, &clilen);
+        agumi::resource_control.RecordSocket(newsockfd);
+        char ip_str[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, (sockaddr*)&cli_addr.sin_addr, ip_str, INET_ADDRSTRLEN);
         MakeServer_connection_incr_id += 1;
         double connection_id = MakeServer_connection_incr_id.load();
         auto message = handler.on_channel_message(unsafe_tid);
@@ -52,8 +55,8 @@ int MakeServer(int portno, agumi::ServerHandler handler)
         {
             if (i.event_name == "close")
             {
-                close(newsockfd);
-                close(sockfd);
+                agumi::resource_control.FreeSocket(newsockfd);
+                agumi::resource_control.FreeSocket(sockfd);
                 return -1;
             }
         }
@@ -63,7 +66,7 @@ int MakeServer(int portno, agumi::ServerHandler handler)
         setNonBlock(newsockfd);
         auto msg_handler = [=] {
             auto unsafe_tid = agumi::get_thread_id();
-            int message_incr_id  = 0;
+            int message_incr_id = 0;
             while (true)
             {
                 auto message = handler.on_channel_message(unsafe_tid);
@@ -76,14 +79,14 @@ int MakeServer(int portno, agumi::ServerHandler handler)
                     }
                     else if (i.event_name == "close_connection")
                     {
-                        ::close(newsockfd);
+                        agumi::resource_control.FreeSocket(newsockfd);
                         return;
                     }
                 }
-                const auto size = 256; 
+                const auto size = 256;
                 char buf[size];
                 bzero(buf, size);
-                int n = read(newsockfd, buf, size -1);
+                int n = read(newsockfd, buf, size - 1);
                 if (n < 0)
                 {
                     if (errno == EAGAIN || errno == EINPROGRESS)
