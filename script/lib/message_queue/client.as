@@ -7,10 +7,11 @@ const create_message_queue_client = (port) => {
     })
   }
   const shift = () => {
-    fetch_as_promsie(f('http://127.0.0.1:{}/shift', port, 2), {
+    const p = fetch_as_promsie(f('http://127.0.0.1:{}/shift', port), {
       headers: { 'Content-Type': 'application/json' },
       method: 'get'
     })
+    p.then(resp => json.parse(resp.data))
   }
   { push, port, shift }
 }
