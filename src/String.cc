@@ -91,7 +91,8 @@ Vector<String> String::Split(String flag, int num, bool skipEmpty, bool utf8) co
     }
 
     std::vector<String> dataSet;
-    auto PushData = [&](String line) {
+    auto PushData = [&](String line)
+    {
         if (line.length() != 0 || !skipEmpty)
         {
             dataSet.push_back(line);
@@ -207,6 +208,8 @@ String String::Repeat(int num) const
     return res.str();
 }
 
+bool String::Includes(String sub) const { return find(sub) != std::string::npos; }
+
 String String::Format(String str, std::vector<String> args)
 {
     std::stringstream res;
@@ -275,7 +278,7 @@ String String::FromUtf8EncodeStr(String str)
     return res.Join("");
 }
 
-bool String::StartWith(String sub) { return this->find(sub) == 0; }
+bool String::StartWith(String sub) const { return this->find(sub) == 0; }
 
 bool String::Test(String reg) const
 {

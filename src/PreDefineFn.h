@@ -1,6 +1,6 @@
 #pragma once
 #include "Array.h"
-#include "Json.h"
+#include "JsonStringify.h"
 #include "Object.h"
 #include "Runtime.h"
 #include "ServerBind.h"
@@ -8,8 +8,8 @@
 #include "sion/SionGlobal.h"
 #include "sion/sion.h"
 
-#define JSON_PARSE(e) JsonNext().JsonParse(e)
-#define CLONE(v) JSON_PARSE(Json::Stringify(v))
+#define JSON_PARSE(e) JsonParse::Call(e)
+#define CLONE(v) JSON_PARSE(JsonStringify::Call(v))
 #define BIN_OPERATOR(body) [](Value& l, Value& r) { return body; };
 #define VM_FN(body) [&](Vector<Value> args) -> Value { body; }
 
@@ -166,7 +166,7 @@ void AddPreDefine(VM& vm)
     auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
     vm.DefineGlobalFunc("print_call_stack", VM_FN(std::cout << vm.StackTrace() << std::endl; return nullptr;));
     auto json_stringify =
-        VM_FN(auto indent = args.GetOrDefault(1); return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
+        VM_FN(auto indent = args.GetOrDefault(1); return JsonStringify::Call(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
     auto json_module = Object({{"parse", vm.DefineFunc(json_parse)}, {"stringify", vm.DefineFunc(json_stringify)}});
     vm.ctx_stack[0].var["json"] = json_module;
     auto fetch_bind = [&](Vector<Value> args) -> Value {
@@ -483,7 +483,7 @@ void AddPreDefine(VM& vm)
     vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value {
         auto url = args.GetOrDefault(0).ToString();
         auto cb = args.GetOrDefault(2);
-        auto params_i = CLONE(args.GetOrDefault(1));
+        auto params_i = args.GetOrDefault(1);
         if (params_i.Type() != ValueType::object)
         {
             THROW_VM_STACK_MSG("params必须为object类型，当前为{}", params_i.TypeString())

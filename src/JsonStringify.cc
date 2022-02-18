@@ -1,16 +1,18 @@
-#include "Json.h"
-#include "Value.h"
+#include "JsonStringify.h"
 #include "Object.h"
+#include "Value.h"
 #include "util.h"
 namespace agumi
 {
-bool Json::error_if_circle_ref = false;
-String Json::StringifyInternalArray(const Array& next, std::set<const ObjectMap*>& json_obj_rec, std::set<const ArrayVec*>& json_arr_rec,
-                                    int indent_step, int indent, bool escape)
+bool JsonStringify::error_if_circle_ref = false;
+bool isPtrExist(std::set<long>& ptr_rec, const agumi::ObjectMap* ptr) { return ptr_rec.find(long(ptr)) != ptr_rec.end(); }
+bool isPtrExist(std::set<long>& ptr_rec, const agumi::ArrayVec* ptr) { return ptr_rec.find(long(ptr)) != ptr_rec.end(); }
+String JsonStringify::StringifyInternalArray(const Array& next, std::set<long> ptr_rec, int indent_step, int indent, bool escape)
 {
-    json_arr_rec.insert(next.Ptr());
+    ptr_rec.insert(long(next.Ptr()));
     Vector<String> res_vec;
-    auto handle_circle_ref = [&] {
+    auto handle_circle_ref = [&]
+    {
         if (error_if_circle_ref)
         {
             THROW_MSG("循环引用");
@@ -23,9 +25,9 @@ String Json::StringifyInternalArray(const Array& next, std::set<const ObjectMap*
         auto type = i.Type();
         if (type == ValueType::object)
         {
-            if (json_obj_rec.find(i.ObjC().Ptr()) == json_obj_rec.end())
+            if (!isPtrExist(ptr_rec, i.ObjC().Ptr()))
             {
-                auto next_v = Json::StringifyInternal(i.ObjC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                auto next_v = JsonStringify::StringifyInternal(i.ObjC(), ptr_rec, indent_step, next_indent, escape);
                 res_vec.push_back(next_v);
             }
             else
@@ -35,9 +37,9 @@ String Json::StringifyInternalArray(const Array& next, std::set<const ObjectMap*
         }
         else if (type == ValueType::array)
         {
-            if (json_arr_rec.find(i.ArrC().Ptr()) == json_arr_rec.end())
+            if (!isPtrExist(ptr_rec, i.ArrC().Ptr()))
             {
-                auto next_v = Json::StringifyInternalArray(i.ArrC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                auto next_v = JsonStringify::StringifyInternalArray(i.ArrC(), ptr_rec, indent_step, next_indent, escape);
                 res_vec.push_back(next_v);
             }
             else
@@ -55,12 +57,12 @@ String Json::StringifyInternalArray(const Array& next, std::set<const ObjectMap*
     }
     return SameLevelCompisition(res_vec, indent_step, next_indent, {"[", "]"});
 }
-String Json::StringifyInternal(const Object& next, std::set<const ObjectMap*>& json_obj_rec, std::set<const ArrayVec*>& json_arr_rec,
-                               int indent_step, int indent, bool escape)
+String JsonStringify::StringifyInternal(const Object& next, std::set<long> ptr_rec, int indent_step, int indent, bool escape)
 {
-    json_obj_rec.insert(next.Ptr());
+    ptr_rec.insert(long(next.Ptr()));
     std::vector<String> res_vec;
-    auto handle_circle_ref = [&](String key) {
+    auto handle_circle_ref = [&](String key)
+    {
         if (error_if_circle_ref)
         {
             THROW_MSG("key:{} 循环引用", key);
@@ -74,9 +76,9 @@ String Json::StringifyInternal(const Object& next, std::set<const ObjectMap*>& j
         auto type = i.second.Type();
         if (type == ValueType::object)
         {
-            if (json_obj_rec.find(i.second.ObjC().Ptr()) == json_obj_rec.end())
+            if (!isPtrExist(ptr_rec, i.second.ObjC().Ptr()))
             {
-                auto next_v = Json::StringifyInternal(i.second.ObjC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                auto next_v = JsonStringify::StringifyInternal(i.second.ObjC(), ptr_rec, indent_step, next_indent, escape);
                 auto str = String::Format("\"{}\": {}", key, next_v);
                 res_vec.push_back(str);
             }
@@ -87,9 +89,9 @@ String Json::StringifyInternal(const Object& next, std::set<const ObjectMap*>& j
         }
         else if (type == ValueType::array)
         {
-            if (json_arr_rec.find(i.second.ArrC().Ptr()) == json_arr_rec.end())
+            if (!isPtrExist(ptr_rec, i.second.ArrC().Ptr()))
             {
-                auto next_v = Json::StringifyInternalArray(i.second.ArrC(), json_obj_rec, json_arr_rec, indent_step, next_indent, escape);
+                auto next_v = JsonStringify::StringifyInternalArray(i.second.ArrC(), ptr_rec, indent_step, next_indent, escape);
                 auto str = String::Format("\"{}\": {}", key, next_v);
                 res_vec.push_back(str);
             }
@@ -111,7 +113,7 @@ String Json::StringifyInternal(const Object& next, std::set<const ObjectMap*>& j
     return SameLevelCompisition(res_vec, indent_step, next_indent, {"{", "}"});
 }
 
-String Json::SameLevelCompisition(std::vector<String>& src_vec, int indent_step, int indent, std::tuple<String, String> start_end_symbol)
+String JsonStringify::SameLevelCompisition(std::vector<String>& src_vec, int indent_step, int indent, std::tuple<String, String> start_end_symbol)
 {
     bool zero_indent = indent_step == 0;
     bool is_empty = src_vec.size() == 0;
@@ -135,16 +137,15 @@ String Json::SameLevelCompisition(std::vector<String>& src_vec, int indent_step,
     return res.str();
 }
 
-String Json::Stringify(const Value& v, int indent, bool escape)
+String JsonStringify::Call(const Value& v, int indent, bool escape)
 {
-    std::set<const ObjectMap*> json_obj_rec;
-    std::set<const ArrayVec*> json_arr_rec;
+    std::set<long> ptr_rec;
     switch (v.Type())
     {
     case ValueType::object:
-        return Json::StringifyInternal(v.ObjC(), json_obj_rec, json_arr_rec, indent, 0, escape);
+        return JsonStringify::StringifyInternal(v.ObjC(), ptr_rec, indent, 0, escape);
     case ValueType::array:
-        return Json::StringifyInternalArray(v.ArrC(), json_obj_rec, json_arr_rec, indent, 0, escape);
+        return JsonStringify::StringifyInternalArray(v.ArrC(), ptr_rec, indent, 0, escape);
     case ValueType::string:
     case ValueType::function:
         return String::Format("\"{}\"", v.ToString());

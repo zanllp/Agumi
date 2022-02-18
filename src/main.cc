@@ -1,5 +1,5 @@
 
-#include "Json.h"
+#include "JsonStringify.h"
 #include "JsonParse.h"
 #include "MemManger.h"
 #include "PreDefineFn.h"
@@ -96,7 +96,7 @@ void TestGcPref(int count = 100 * 1000)
     cout << String::Format("保持count:{} gc:{}ms, count:{}->0 gc:{}ms", count, ms_vec[0], count, ms_vec[1]) << endl;
 }
 
-void TestJsonNextPref(int count = 1000)
+void TestJsonParsePref(int count = 1000)
 {
     auto& mem = MemManger::Get();
     mem.GC();
@@ -106,10 +106,10 @@ void TestJsonNextPref(int count = 1000)
     p.Start();
     for (int i = count - 1; i >= 0; i--)
     {
-        JsonNext().JsonParse(json);
+        JsonParse::Call(json);
     }
     p.Pause();
-    cout << String::Format("JsonNext all:{}ms count:{} per:{}ms", p.ToMs(), count, p.ToMs(count)) << endl
+    cout << String::Format("JsonParse all:{}ms count:{} per:{}ms", p.ToMs(), count, p.ToMs(count)) << endl
          << String::Format("新增 数组数量:{} 对象数量:{}", MemAllocCollect::vec_quene.size() - start_arr_size,
                            MemAllocCollect::obj_quene.size() - start_obj_size)
          << endl;
@@ -159,7 +159,7 @@ void TestJson()
     "shit": null,
     "eeee": true
 })");
-    // cout << Json::Stringify(parse_obj) << endl;
+    // cout << JsonStringify::Call(parse_obj) << endl;
     ASSERT(parse_obj["dddd"][0].Number(), 123.233)
     ASSERT(parse_obj["dddd"][2][0].Number(), double(1234))
     ASSERT(parse_obj["dddd"].Arr().Src().back().ToString(), "32]{{22")
@@ -171,11 +171,20 @@ void TestJson()
     ASSERT_2UL(parse_obj["emmm"].Type(), ValueType::null)
     ASSERT_T(mem.gc_root.DeepCompare(mem.gc_root))
     // 测试json序列化再解析有没有变化，因为字典序会变所以不能直接比字符串，因为会有环形引用所不能用gc根
-    auto str = Json::Stringify(mem.gc_root);
+    auto str = JsonStringify::Call(mem.gc_root);
     auto jsv = JSON_PARSE(str);
-    auto str_2nd = Json::Stringify(jsv);
+    auto str_2nd = JsonStringify::Call(jsv);
     auto jsv_2nd = JSON_PARSE(str_2nd);
     ASSERT(jsv, jsv_2nd)
+    {
+        Object a;
+        Array b;
+        b.Src().push_back(a);
+        b.Src().push_back(a);
+        ASSERT_T(!JsonStringify::Call(b).Includes("circle ref"))
+        b.Src().push_back(b);
+        ASSERT_T(JsonStringify::Call(b).Includes("circle ref"))
+    }
     mem.GC();
 }
 
@@ -278,7 +287,7 @@ Value VmRunScript(VM& vm, String src, bool ast_c = false, bool tok_c = false, St
     auto ast = Compiler().ConstructAST(tfv);
     if (ast_c)
     {
-        cout << Json::Stringify(ast.ToJson()) << endl;
+        cout << JsonStringify::Call(ast.ToJson()) << endl;
     }
     return vm.Run(ast);
 }
@@ -288,7 +297,7 @@ void TestScriptExec(String working_dir)
     VM vm;
     vm.working_dir = working_dir;
     AddPreDefine(vm);
-#define RUN2STR(x) Json::Stringify(VmRunScript(vm, x), 0)
+#define RUN2STR(x) JsonStringify::Call(VmRunScript(vm, x), 0)
     VmRunScript(vm, "const fib = a => (a>1) ? (fib(a-1) + fib(a-2)) : a");
     ASSERT(RUN2STR("fib(10)"), "55")
     ASSERT(RUN2STR("'hello world'.byte_len()"), "11")
@@ -397,7 +406,7 @@ int main(int argc, char** argv)
 
                 auto ast = Compiler().ConstructAST(tfv);
                 auto res = vm.Run(ast);
-                cout << color_blue_s << "output:" << color_e << "\t" << Json::Stringify(res) << endl;
+                cout << color_blue_s << "output:" << color_e << "\t" << JsonStringify::Call(res) << endl;
 #ifdef LET_IT_CRASH
                 try
                 {
@@ -443,10 +452,10 @@ int main(int argc, char** argv)
             "hello\"": "world,\"\"\"\"&&&&"
         }
     )";
-            auto v = JsonNext().JsonParse(e);
-            cout << Json::Stringify(v) << endl;
-            cout << Json::Stringify(v, 2, false) << endl;
-            TestJsonNextPref();
+            auto v = JsonParse::Call(e);
+            cout << JsonStringify::Call(v) << endl;
+            cout << JsonStringify::Call(v, 2, false) << endl;
+            TestJsonParsePref();
             TestString();
             TestVec();
             TestToken();
