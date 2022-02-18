@@ -1,12 +1,12 @@
 #pragma once
 #include "Array.h"
-#include "Json.h"
+#include "JsonStringify.h"
 #include "Object.h"
 #include "Runtime.h"
 #include "Value.h"
 #include "sion/server.h"
 
-#define CLONE(v) JSON_PARSE(Json::Stringify(v))
+#define CLONE(v) JSON_PARSE(JsonStringify::Call(v))
 
 #define VM_FN_BIND(fn) std::bind(fn, std::ref(vm), std::placeholders::_1)
 

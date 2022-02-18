@@ -1,20 +1,48 @@
 #pragma once
 #include "Array.h"
-#include "Json.h"
+#include "JsonStringify.h"
 #include "Object.h"
 #include "Runtime.h"
 #include "ServerBind.h"
 #include "Value.h"
-#include "sion/sion.h"
 #include "sion/SionGlobal.h"
+#include "sion/sion.h"
 
-#define JSON_PARSE(e) JsonNext().JsonParse(e)
-#define CLONE(v) JSON_PARSE(Json::Stringify(v))
+#define JSON_PARSE(e) JsonParse::Call(e)
+#define CLONE(v) JSON_PARSE(JsonStringify::Call(v))
 #define BIN_OPERATOR(body) [](Value& l, Value& r) { return body; };
 #define VM_FN(body) [&](Vector<Value> args) -> Value { body; }
 
 namespace agumi
 {
+
+Value DefineOperator(VM& vm, Vector<Value> args)
+{
+    auto l_cls_str = args.GetOrDefault(0).Str();
+    ASSERT_T(typestr_2enum.find(l_cls_str) != typestr_2enum.end())
+    auto l_cls = typestr_2enum[l_cls_str];
+    auto r_cls_str = args.GetOrDefault(1).Str();
+    ASSERT_T(typestr_2enum.find(r_cls_str) != typestr_2enum.end())
+    auto r_cls = typestr_2enum[r_cls_str];
+    auto op = Token::Str2kw(args.GetOrDefault(2).Str());
+    auto cb = args.GetOrDefault(3);
+    auto local_class = vm.class_define.find(l_cls);
+    if (local_class == vm.class_define.end())
+    {
+        vm.class_define[l_cls] = LocalClassDefine();
+        local_class = vm.class_define.find(l_cls);
+    }
+    auto& bin_op = local_class->second.binary_operator_overload;
+    auto r_cls_op_def = bin_op.find(r_cls);
+    if (r_cls_op_def == bin_op.end())
+    {
+        bin_op[r_cls] = std::map<KW, std::function<Value(Value&, Value&)>>();
+        r_cls_op_def = bin_op.find(r_cls);
+    }
+    r_cls_op_def->second[op] = [&, cb](Value& l, Value& r) { return vm.FuncCall(cb, l, r); };
+    return nullptr;
+}
+
 void AddPreDefine(VM& vm)
 {
     auto o1 = Object({{"d", "hello world"}});
@@ -138,7 +166,7 @@ void AddPreDefine(VM& vm)
     auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
     vm.DefineGlobalFunc("print_call_stack", VM_FN(std::cout << vm.StackTrace() << std::endl; return nullptr;));
     auto json_stringify =
-        VM_FN(auto indent = args.GetOrDefault(1); return Json::Stringify(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
+        VM_FN(auto indent = args.GetOrDefault(1); return JsonStringify::Call(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
     auto json_module = Object({{"parse", vm.DefineFunc(json_parse)}, {"stringify", vm.DefineFunc(json_stringify)}});
     vm.ctx_stack[0].var["json"] = json_module;
     auto fetch_bind = [&](Vector<Value> args) -> Value {
@@ -289,7 +317,9 @@ void AddPreDefine(VM& vm)
     };
     vm.DefineGlobalFunc("lens", lens_bind);
     vm.ctx_stack[0].var["utf8"] =
-        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) { return String::FromCodePoint(args.GetOr(0, "").ToString(), args.GetOr(1, 16).Number()); })},
+        Object({{"from_code_point", vm.DefineFunc([&](Vector<Value> args) {
+                     return String::FromCodePoint(args.GetOr(0, "").ToString(), args.GetOr(1, 16).Number());
+                 })},
                 {"decode", vm.DefineFunc([&](Vector<Value> args) { return String::FromUtf8EncodeStr(args.GetOr(0, "").ToString()); })}});
     // 定义本地类成员函数
     LocalClassDefine string_def;
@@ -314,15 +344,11 @@ void AddPreDefine(VM& vm)
         res.Src().insert(res.Src().begin(), r.begin(), r.end());
         return res;
     };
-    string_def.member_func["byte_to_lowercase"] = [](Value& _this, Vector<Value> args) -> Value {
-        return  _this.StrC().ToLowerCase();
-    };
+    string_def.member_func["byte_to_lowercase"] = [](Value& _this, Vector<Value> args) -> Value { return _this.StrC().ToLowerCase(); };
     string_def.member_func["byte_find"] = [](Value& _this, Vector<Value> args) -> Value {
         return int(_this.StrC().find(args.GetOrDefault(0).ToString(), args.GetOrDefault(1).GetOr(0.0, ValueType::number)));
     };
-    string_def.member_func["trim"] = [](Value& _this, Vector<Value> args) -> Value {
-        return _this.StrC().Trim();
-    };
+    string_def.member_func["trim"] = [](Value& _this, Vector<Value> args) -> Value { return _this.StrC().Trim(); };
     vm.class_define[ValueType::string] = string_def;
 
     LocalClassDefine array_def;
@@ -435,17 +461,12 @@ void AddPreDefine(VM& vm)
         return nullptr;
     });
 
-
     vm.DefineGlobalFunc("delete", [&](Vector<Value> args) -> Value {
         args.GetOrDefault(0).Obj().Src().erase(args.GetOrDefault(1).ToString());
-        return  args.GetOrDefault(0);
+        return args.GetOrDefault(0);
     });
-    vm.DefineGlobalFunc("to_str", [&](Vector<Value> args) -> Value {
-        return args.GetOrDefault(0).ToString();
-    });
-    vm.DefineGlobalFunc("or", [&](Vector<Value> args) -> Value {
-        return args.GetOrDefault(0).ToBool() || args.GetOrDefault(1).ToBool();
-    });
+    vm.DefineGlobalFunc("to_str", [&](Vector<Value> args) -> Value { return args.GetOrDefault(0).ToString(); });
+    vm.DefineGlobalFunc("or", [&](Vector<Value> args) -> Value { return args.GetOrDefault(0).ToBool() || args.GetOrDefault(1).ToBool(); });
     vm.DefineGlobalFunc("gc", [&](Vector<Value> args) -> Value {
         MemManger::Get().GC();
         return nullptr;
@@ -462,7 +483,7 @@ void AddPreDefine(VM& vm)
     vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value {
         auto url = args.GetOrDefault(0).ToString();
         auto cb = args.GetOrDefault(2);
-        auto params_i = CLONE(args.GetOrDefault(1));
+        auto params_i = args.GetOrDefault(1);
         if (params_i.Type() != ValueType::object)
         {
             THROW_VM_STACK_MSG("params必须为object类型，当前为{}", params_i.TypeString())
@@ -470,43 +491,45 @@ void AddPreDefine(VM& vm)
         static int id = 0;
         String event_name = String::Format("fetch_async:{}", ++id);
         vm.AddRequiredEventCustomer(event_name, [&, cb](RequiredEvent e) { vm.FuncCall(cb, e.val); });
-        SionGlobal::async_thread_pool.Run([&, url, params_i] {
-          auto req = sion::Request().SetUrl(url);
-            auto p_i = params_i;
-            auto method_i = p_i["method"];
-            auto headers_i = p_i["headers"];
-            auto data_i = p_i["data"];
-            if (method_i.NotUndef())
-            {
-                req.SetHttpMethod(method_i.ToString().ToUpperCase());
-            }
-            if (data_i.NotUndef())
-            {
-                req.SetBody(data_i.ToString());
-            }
-            if (headers_i.NotUndef() && headers_i.Type() == ValueType::object)
-            {
-                for (auto& i : headers_i.ObjC().SrcC())
+        SionGlobal::async_thread_pool.Run(
+            [&, url, params_i] {
+                auto req = sion::Request().SetUrl(url);
+                auto p_i = params_i;
+                auto method_i = p_i["method"];
+                auto headers_i = p_i["headers"];
+                auto data_i = p_i["data"];
+                if (method_i.NotUndef())
                 {
-                    req.SetHeader(i.first, i.second.ToString());
+                    req.SetHttpMethod(method_i.ToString().ToUpperCase());
                 }
-            }
-          return req;
-        }, [&, event_name](sion::AsyncResponse async_resp) {
-            auto resp = async_resp.resp;
-            auto res = Object();
-            res["data"] = resp.StrBody();
-            res["code"] = resp.Code();
-            res["headers"] = Array();
-            for (auto& i : resp.GetHeader().Data())
-            {
-                auto obj = Object();
-                obj["k"] = i.first;
-                obj["v"] = i.second;
-                res["headers"].Arr().Src().push_back(obj);
-            }
-            vm.Push2RequiredEventPendingQueue(RequiredEvent(event_name, res));
-        });
+                if (data_i.NotUndef())
+                {
+                    req.SetBody(data_i.ToString());
+                }
+                if (headers_i.NotUndef() && headers_i.Type() == ValueType::object)
+                {
+                    for (auto& i : headers_i.ObjC().SrcC())
+                    {
+                        req.SetHeader(i.first, i.second.ToString());
+                    }
+                }
+                return req;
+            },
+            [&, event_name](sion::AsyncResponse async_resp) {
+                auto resp = async_resp.resp;
+                auto res = Object();
+                res["data"] = resp.StrBody();
+                res["code"] = resp.Code();
+                res["headers"] = Array();
+                for (auto& i : resp.GetHeader().Data())
+                {
+                    auto obj = Object();
+                    obj["k"] = i.first;
+                    obj["v"] = i.second;
+                    res["headers"].Arr().Src().push_back(obj);
+                }
+                vm.Push2RequiredEventPendingQueue(RequiredEvent(event_name, res));
+            });
         // vm.fetch_async_pkg_cb[id] = cb;
 
         return nullptr;
@@ -515,6 +538,7 @@ void AddPreDefine(VM& vm)
     vm.class_define[ValueType::object] = LocalClassDefine();
     vm.class_define[ValueType::boolean] = LocalClassDefine();
     ServerBind(vm);
+    vm.DefineGlobalFunc("define_operator", VM_FN_BIND(DefineOperator));
     auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
     P("lib path: {}", libPath)
     vm.FuncCall(vm.GlobalVal("include"), {libPath, true});

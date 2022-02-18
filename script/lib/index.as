@@ -1,4 +1,5 @@
 include('./stdafx')
+include('./operator_def')
 include('./common')
 include('./object')
 include('./string')

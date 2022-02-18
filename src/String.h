@@ -58,7 +58,9 @@ namespace agumi
         // count 替换次数，默认1，大于0时替换到足够次数或找不到旧字符串为止，小于0时替换到结束
         String &Replace(String oldStr, String newStr, int count = 1, int start = 0, int step = 1);
 
-        bool StartWith(String sub);
+        bool StartWith(String sub) const;
+
+        bool Includes(String sub) const;
 
         static String Format(String str, std::vector<String> args);
 

@@ -1,17 +1,15 @@
 
-
 const socket_push = (data) => {
-    make_promise(resolve => {
-        const resp = fetch_async('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
-            data: json.stringify(data, 0),
-            method: 'post',
-            headers: { 'Content-Type': 'application/json' }
-        }, resolve)
-    })
+  fetch_as_promsie('https://api.ioflow.link/socket/push?descriptor=IwPYC8kUSeUHDEdT', {
+    data: json.stringify(data, 0),
+    method: 'post',
+    headers: { 'Content-Type': 'application/json' }
+  })
 }
 
-start_timer(() => {
-    socket_push([]).then(resp => {
-        log(resp.data)
-    })
-}, 1000)
+const get_message_queue_accept_port = () => {
+  const conf_file = fs.read(path_calc(env().curr_dir(), 'conf.json'))
+  json.parse(conf_file).MessageQueueAccpetPort
+}
+
+const port = get_message_queue_accept_port()

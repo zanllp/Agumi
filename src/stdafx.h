@@ -50,8 +50,8 @@ namespace agumi
         "function"};
 
     static std::map<std::string, ValueType> typestr_2enum {
-        {"string", ValueType::string}, 
-        {"number", ValueType::number}, 
+        {"string", ValueType::string},
+        {"number", ValueType::number},
         {"null", ValueType::null},
         { "boolean", ValueType::boolean },
         {"object", ValueType::object},
