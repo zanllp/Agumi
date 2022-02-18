@@ -16,7 +16,7 @@ define_member_function('array', {
     },
     join: (this, spec) => {
         // 设置值和闭包还是有问题
-        let res = { v: to_str(this[0]) }
+        const res = { v: (this.empty()) ? '' : to_str(this[0]) }
         this.select((v) => {
             res.v = ((res.v) + to_str(spec) + to_str(v))
         }, 1)

@@ -6,7 +6,7 @@ const error_404 = (resp) => {
 }
 
 const ok_200 = (resp, path) => {
-    resp.set_status(200).set_data(fs.read(path)).end()
+    resp.set_status(200).set_data(f('<pre>{}</pre>', fs.read(path))).end()
 }
 
 const global_store = {
@@ -24,7 +24,7 @@ start_timer(() => {
     })
 }, 1000)
 
-make_http_server(8898, {
+make_http_server(8899, {
     onInit: server => {
         log(f('服务器启动等待连接 端口:{}', server.port))
     },
@@ -39,5 +39,5 @@ make_http_server(8898, {
     }
 })
 
-//include('script/http_server.as', true) 
-//include('script/index.as', true) 
+//include('script/http_server.as', true)
+//include('script/index.as', true)
