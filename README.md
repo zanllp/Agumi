@@ -1,7 +1,7 @@
 # Agumi
 [![test](https://github.com/zanllp/agumi/actions/workflows/test.yml/badge.svg)](https://github.com/zanllp/agumi/actions/workflows/test.yml)
 
-可作为c++的内嵌语言或单独的语言使用。包含闭包，垃圾回收，函数是一等公民，事件循环等特性，针对网络请求及服务器也提供了异步接口。
+可作为c++的内嵌语言或单独的语言使用。包含闭包，垃圾回收，函数是一等公民，事件循环，自定义运算符重载等特性，针对网络请求及服务器也提供了异步接口。
 ## 编译
 可选的ssl支持
 ### 启用ssl支持
