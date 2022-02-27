@@ -165,8 +165,8 @@ void AddPreDefine(VM& vm)
                 {"read", vm.DefineFunc(VM_FN(return LoadFile(PathCalc(vm.working_dir, args.GetOrDefault(0).ToString()))))}});
     auto json_parse = VM_FN(return JSON_PARSE(args.GetOrDefault(0).ToString()));
     vm.DefineGlobalFunc("print_call_stack", VM_FN(std::cout << vm.StackTrace() << std::endl; return nullptr;));
-    auto json_stringify =
-        VM_FN(auto indent = args.GetOrDefault(1); return JsonStringify::Call(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
+    auto json_stringify = VM_FN(auto indent = args.GetOrDefault(1);
+                                return JsonStringify::Call(args.GetOrDefault(0), indent.NotUndef() ? indent.Number() : 4););
     auto json_module = Object({{"parse", vm.DefineFunc(json_parse)}, {"stringify", vm.DefineFunc(json_stringify)}});
     vm.ctx_stack[0].var["json"] = json_module;
     auto fetch_bind = [&](Vector<Value> args) -> Value {
@@ -421,16 +421,6 @@ void AddPreDefine(VM& vm)
     num_op_def[add_equal_] = BIN_OPERATOR(l.Number() += r.NumberC());
     num_def.binary_operator_overload[ValueType::number] = num_op_def;
     vm.class_define[ValueType::number] = num_def;
-
-    LocalClassDefine fn_def;
-    std::map<KW, std::function<Value(Value&, Value&)>> fn_op_def;
-    fn_op_def[add_] = [&](Value& l, Value& r) {
-        auto new_fn = [=, &vm](Vector<Value> args) -> Value { return vm.FuncCall(r, vm.FuncCall(l, args)); };
-        return vm.DefineFunc(new_fn);
-    };
-    fn_def.binary_operator_overload[ValueType::function] = fn_op_def;
-    vm.class_define[ValueType::function] = fn_def;
-
     vm.DefineGlobalFunc("object_entries", [](Vector<Value> args) -> Value {
         Array arr;
         for (auto& i : args.GetOrDefault(0).ObjC().SrcC())
@@ -479,7 +469,8 @@ void AddPreDefine(VM& vm)
         vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1, ValueType::number));
         return nullptr;
     });
-
+    vm.DefineGlobalFunc("apply",
+                        [&](Vector<Value> args) -> Value { return vm.FuncCall(args.GetOrDefault(0), args.GetOrDefault(1).ArrC().SrcC()); });
     vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value {
         auto url = args.GetOrDefault(0).ToString();
         auto cb = args.GetOrDefault(2);

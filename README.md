@@ -66,20 +66,14 @@ agumi -exec=script/http_server.as
 ## 内置函数 / 如何与c++ bind / 基础类型运算符重载
 参考[pre define func](./src/PreDefineFn.h)
 ### 例子：使用运算符重载实现函数式语言pipe的功能
-```cpp
-LocalClassDefine fn_def;
-std::map<KW, std::function<Value(Value &, Value &)>> fn_op_def;
-fn_op_def[add_] = [&](Value &l, Value &r)
-{
-    auto new_fn = [=, &vm](Vector<Value> args) -> Value
-    {
-        return vm.FuncCall(r, vm.FuncCall(l, args));
-    };
-    return vm.DefineFunc(new_fn);
-};
-fn_def.binary_operator_overload[ValueType::function] = fn_op_def;
-vm.class_define[ValueType::function] = fn_def;
+```js
+['array','number','boolean','object','string', 'null'].select(type => {
+    define_operator(type, 'function', '->', (l, r) => r(l))
+})
+define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
 ```
-![image](https://user-images.githubusercontent.com/25872019/119687653-f5421100-be79-11eb-9441-95174cff6068.png)
+
+<img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
+
 ## 已知问题
 1. 运算符优先级有时会表现异常，后面改用调度场重新写
