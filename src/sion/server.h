@@ -23,7 +23,7 @@ void error(const char* msg, int socket = -1)
 
 std::atomic<long> MakeServer_connection_incr_id = 0;
 /*
- * 先随便写写能跑就行，后面再换成epollueue/iocp
+ * 先随便写写能跑就行，后面再换成epoll kqueue/iocp
  */
 int MakeServer(int portno, agumi::ServerHandler handler)
 {

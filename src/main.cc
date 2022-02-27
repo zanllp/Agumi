@@ -6,7 +6,6 @@
 #include "ResouceControl.h"
 #include "Runtime.h"
 #include "sion/SionGlobal.h"
-#include "sion/sion.h"
 #include "util.h"
 #include <csignal>
 
@@ -326,6 +325,29 @@ void TestPath()
     ASSERT(PathCalc("/home/cc", "dd/ff", "../cd"), "/home/cc/dd/cd");
     ASSERT(PathCalc("/home/cc"), "/home/cc");
 }
+
+void Test(String working_dir)
+{
+
+    string e = R"(
+        {
+            "hello\"": "world,\"\"\"\"&&&&"
+        }
+    )";
+    auto v = JsonParse::Call(e);
+    cout << JsonStringify::Call(v) << endl;
+    cout << JsonStringify::Call(v, 2, false) << endl;
+    TestJsonParsePref();
+    TestString();
+    TestVec();
+    TestToken();
+    TestGcPref();
+    TestMemMange();
+    TestJson();
+    TestPath();
+    TestScriptExec(working_dir);
+    std::cout << "TestPassed;All ok" << std::endl;
+}
 void SignalHandler(int signal)
 {
     if (signal == SIGABRT)
@@ -447,24 +469,7 @@ int main(int argc, char** argv)
         }
         if (test)
         {
-            string e = R"(
-        {
-            "hello\"": "world,\"\"\"\"&&&&"
-        }
-    )";
-            auto v = JsonParse::Call(e);
-            cout << JsonStringify::Call(v) << endl;
-            cout << JsonStringify::Call(v, 2, false) << endl;
-            TestJsonParsePref();
-            TestString();
-            TestVec();
-            TestToken();
-            TestGcPref();
-            TestMemMange();
-            TestJson();
-            TestPath();
-            TestScriptExec(working_dir);
-            std::cout << "TestPassed;All ok" << std::endl;
+            Test(working_dir);
         }
         return 0;
     }

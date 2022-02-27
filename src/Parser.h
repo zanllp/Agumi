@@ -982,62 +982,6 @@ class Compiler
         return {stat, end + 1};
     }
 
-    WithEnd<IfStatment> ResolveIfStatment(TokenFlowView tfv)
-    {
-        auto iter = tfv.BeginIter();
-        IfStatment res;
-        while (true)
-        {
-            auto block_num = res.blocks.size();
-            if (block_num == 0)
-            {
-                iter->Expect(if_);
-                auto parenthesis_start = iter + 1;
-                parenthesis_start->Expect(parenthesis_start_);
-                auto parenthesis_end = CalcEndBrackets(parenthesis_start);
-                auto block_start = parenthesis_end + 1;
-                block_start->Expect(curly_brackets_start_);
-                auto block_end = CalcEndBrackets(block_start);
-                res.blocks.push_back(TokenFlowView(block_start, block_end));
-                iter = block_end + 1;
-                if (iter->IsLineEndToken())
-                {
-                    break;
-                }
-            }
-            else
-            {
-                iter->Expect(else_);
-                auto iter_next = iter + 1;
-                if (iter_next->Is(if_))
-                {
-                    auto parenthesis_start = iter_next + 1;
-                    parenthesis_start->Expect(parenthesis_start_);
-                    auto parenthesis_end = CalcEndBrackets(parenthesis_start);
-                    auto block_start = parenthesis_end + 1;
-                    block_start->Expect(curly_brackets_start_);
-                    auto block_end = CalcEndBrackets(block_start);
-                    res.blocks.push_back(TokenFlowView(block_start, block_end));
-                    iter = block_end + 1;
-                    if (iter->IsLineEndToken())
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    auto block_start = iter_next;
-                    block_start->Expect(curly_brackets_start_);
-                    auto block_end = CalcEndBrackets(block_start);
-                    res.blocks.push_back(TokenFlowView(block_start, block_end));
-                    iter = block_end + 1;
-                    break;
-                }
-            };
-        }
-        return {res, iter};
-    }
-
     StatPtrWithEnd SeekIfExpr(StatPtr left_stat, TokenIter iter)
     {
         // 判断如果后面跟随着一个运算符继续向下折叠

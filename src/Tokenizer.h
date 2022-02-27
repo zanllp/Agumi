@@ -118,6 +118,8 @@ namespace agumi
         or_or_,
         // =>
         arrow_,
+        // ->
+        thin_arrow_,
         // .
         dot_,
         // +=
@@ -140,7 +142,8 @@ namespace agumi
         less_than_equal_,
         add_equal_, sub_equal_,
         and_and_,
-        or_or_};
+        or_or_,
+        thin_arrow_};
     // 多字符的运算符
     Vector<KW> multi_char_operator{
         eqeq_,
@@ -155,7 +158,8 @@ namespace agumi
         sub_equal_,
         sub_sub_,
         and_and_,
-        or_or_
+        or_or_,
+        thin_arrow_
     };
     class Token : public ViewEnd
     {
@@ -725,6 +729,7 @@ namespace agumi
         m[sub_sub_] = "--";
         m[sub_equal_] = "-=";
         m[at_] = "@";
+        m[thin_arrow_] = "->";
         for (int i = m.size() - 1; i >= 0; i--)
         {
             if (m[i] != "")
