@@ -24,6 +24,8 @@
 #include <atomic>
 #include <filesystem>
 #include <sys/socket.h>
+#include "threadpool.h"
+#include "sion/sion.h"
 
 namespace agumi
 {

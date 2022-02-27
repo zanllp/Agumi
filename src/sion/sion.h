@@ -31,15 +31,9 @@ namespace sion
 {
 class Request;
 class Response;
-using std::array;
-using std::map;
-using std::pair;
-using std::string;
-using std::vector;
 
 class Error : public std::exception
 {
-  private:
     std::string msg;
 
   public:
@@ -52,21 +46,27 @@ class Error : public std::exception
 class AsyncAwaitTimeout : public Error
 {
   public:
-    AsyncAwaitTimeout(std::string msg) : Error(msg) {}
+    AsyncAwaitTimeout(std::string msg = "await timeout") : Error(msg) {}
 };
 
-class String : public string
+class PeerConnectionClose : public Error
+{
+  public:
+    PeerConnectionClose(std::string msg = "对方关闭了连接") : Error(msg) {}
+};
+
+class String : public std::string
 {
   public:
     String(){};
     ~String(){};
-    template <class T> String(T&& arg) : string(std::forward<T>(arg)) {}
+    template <class T> String(T&& arg) : std::string(std::forward<T>(arg)) {}
 
-    String(int arg) : string(std::to_string(arg)) {}
+    String(int arg) : std::string(std::to_string(arg)) {}
 
-    String(unsigned long arg) : string(std::to_string(arg)) {}
+    String(unsigned long arg) : std::string(std::to_string(arg)) {}
 
-    String(double arg) : string(std::to_string(arg)) {}
+    String(double arg) : std::string(std::to_string(arg)) {}
 
     String(bool arg) { (*this) = arg ? "true" : "false"; }
 
@@ -80,11 +80,10 @@ class String : public string
     // flag 分割标志,返回的字符串向量会剔除,flag不要用char，会重载不明确
     // num 分割次数，默认-1即分割到结束，例num=1,返回开头到flag,flag到结束size=2的字符串向量
     // skip_empty 跳过空字符串，即不压入length==0的字符串
-    vector<String> Split(String flag, int num = -1, bool skip_empty = true) const
+    std::vector<String> Split(String flag, int num = -1, bool skip_empty = true) const
     {
-        vector<String> data_set;
-        auto push_data = [&](String line)
-        {
+        std::vector<String> data_set;
+        auto push_data = [&](String line) {
             if (line.length() != 0 || !skip_empty)
             {
                 data_set.push_back(line);
@@ -93,7 +92,7 @@ class String : public string
         auto pos = FindAll(flag, num);
         if (pos.size() == 0)
         {
-            return vector<String>({*this});
+            return std::vector<String>({*this});
         }
         for (auto i = 0; i < pos.size() + 1; i++)
         {
@@ -183,9 +182,9 @@ class String : public string
     // 返回搜索到的所有位置
     // flag 定位标志
     // num 搜索数量，默认直到结束
-    vector<int> FindAll(String flag, int num = -1) const
+    std::vector<int> FindAll(String flag, int num = -1) const
     {
-        vector<int> result;
+        std::vector<int> result;
         auto pos = find(flag);
         auto flag_offset = flag.length() == 0 ? 1 : flag.length();
         while (pos != -1 && result.size() != num)
@@ -207,7 +206,7 @@ class String : public string
             return *this;
         }
         auto pos = find(old_str);
-        if (pos == string::npos)
+        if (pos == std::string::npos)
         {
             return *this;
         }
@@ -229,7 +228,7 @@ void check(
     }
 }
 using Socket = int;
-String GetIpByHost(String hostname)
+static String GetIpByHost(String hostname)
 {
     addrinfo hints, *res;
     in_addr addr;
@@ -248,7 +247,7 @@ String GetIpByHost(String hostname)
     return str;
 }
 
-Socket GetSocket()
+static Socket GetSocket()
 {
 #ifdef _WIN32
     // 初始化。,WSA windows异步套接字
@@ -264,14 +263,95 @@ Socket GetSocket()
     return tcp_socket;
 }
 
-class Header
+const String crlf = "\r\n";
+const String crlf_crlf = "\r\n\r\n";
+static void PushStr2Vec(const String& str, std::vector<char>& vec) { vec.insert(vec.end(), str.begin(), str.end()); }
+
+namespace Payload
 {
-    vector<pair<String, String>> data;
+struct Binary
+{
+    std::vector<char> data;
+    String file_name;
+    String type;
+};
+
+class FormData
+{
+    std::vector<std::pair<String, std::vector<char>>> data_;
+    String boundary_;
 
   public:
+    FormData() { boundary_ = "----SionBoundary" + std::to_string(long(this)); }
+    ~FormData() {}
+    void Append(String name, Binary value)
+    {
+        std::vector<char> res;
+        String filename = value.file_name.size() ? "; filename=\"" + value.file_name + "\"" : "";
+        String str = "--" + boundary_ + crlf;
+        str += "Content-Disposition: form-data; name=\"" + name + "\"";
+        str += filename;
+        str += crlf;
+        if (value.type != "")
+        {
+            str += "Content-type: " + value.type;
+            str += crlf;
+        }
+        str += crlf;
+        PushStr2Vec(str, res);
+        res.insert(res.end(), value.data.begin(), value.data.end());
+        PushStr2Vec(crlf, res);
+        data_.push_back({name, res});
+    }
+    void Append(String name, String value)
+    {
+        std::vector<char> res;
+        String str = "--" + boundary_ + crlf;
+        str += "Content-Disposition: form-data; name=\"" + name + "\"" + crlf;
+        str += crlf;
+        str += value;
+        str += crlf;
+        PushStr2Vec(str, res);
+        data_.push_back({name, res});
+    }
+    bool Remove(String key)
+    {
+        for (size_t i = 0; i < data_.size(); i++)
+        {
+            if (data_[i].first == key)
+            {
+                data_.erase(data_.begin() + i);
+                return true;
+            }
+        }
+        return false;
+    }
+    const std::vector<std::pair<String, std::vector<char>>>& Data() const { return data_; }
+    String GetContentType() { return "multipart/form-data; boundary=" + boundary_; }
+    std::vector<char> Serialize()
+    {
+        std::vector<char> res;
+        for (auto& i : data_)
+        {
+            res.insert(res.end(), i.second.begin(), i.second.end());
+        }
+        res.push_back('-');
+        res.push_back('-');
+        PushStr2Vec(boundary_, res);
+        res.push_back('-');
+        res.push_back('-');
+        return res;
+    }
+};
+} // namespace Payload
+
+class Header
+{
+  public:
+    using RawT = typename std::vector<std::pair<sion::String, sion::String>>;
     Header(){};
     ~Header(){};
-    const vector<pair<String, String>>& Data() const { return data; }
+    const RawT& Data() const { return data; }
     bool Remove(String key)
     {
         for (size_t i = 0; i < data.size(); i++)
@@ -290,14 +370,14 @@ class Header
         {
         }
     }
-    Header(const vector<pair<String, String>>& other) noexcept { data = other; }
+    Header(const RawT& other) { data = other; }
     // 添加一个键值对到头中
     void Add(String k, String v) { data.push_back({k, v}); }
     // 获取头的键所对应的所有值
-    vector<String> GetAll(String key) const
+    std::vector<String> GetAll(String key) const
     {
         key = key.ToLowerCase();
-        vector<String> res;
+        std::vector<String> res;
         for (auto& i : data)
         {
             if (i.first == key)
@@ -320,6 +400,9 @@ class Header
         }
         return "";
     }
+
+  private:
+    RawT data;
 };
 
 enum class Method
@@ -339,20 +422,20 @@ class Response
     String protocol_version_;
     String code_;
     String status_;
-    vector<char> body_;      // 响应体
+    std::vector<char> body_; // 响应体
     Header response_header_; // 响应头
   public:
     Response(){};
     ~Response(){};
 
-    Response(std::vector<char> source) noexcept
+    Response(std::vector<char> source)
     {
         source_ = source;
         ParseHeader();
         ParseBody();
     }
 
-    const vector<char>& Body() const { return body_; }
+    const std::vector<char>& Body() const { return body_; }
     const String Code() const { return code_; };
     const String Status() const { return status_; };
     const int ContentLength() const { return content_length_; };
@@ -366,11 +449,10 @@ class Response
 
     bool CanParseHeader()
     {
-        String body_separator = "\r\n\r\n";
         auto buf_str = Sourse2Str();
-        if (resp_body_start_pos_ == -1 && buf_str.find(body_separator) != -1)
+        if (resp_body_start_pos_ == -1 && buf_str.find(crlf_crlf) != -1)
         {
-            resp_body_start_pos_ = buf_str.find(body_separator) + 4;
+            resp_body_start_pos_ = buf_str.find(crlf_crlf) + 4;
         }
         return resp_body_start_pos_ != std::string::npos;
     }
@@ -379,7 +461,7 @@ class Response
     {
         String buf_str = Sourse2Str();
         auto header_str = buf_str.substr(0, resp_body_start_pos_);
-        auto data = String(header_str).Split("\r\n");
+        auto data = String(header_str).Split(crlf);
         if (data.size() == 0)
         {
             return;
@@ -413,11 +495,10 @@ class Response
         {
             return;
         }
-        vector<char> pure_source_char;
+        std::vector<char> pure_source_char;
         // 获取下一个\r\n的位置
         int crlf_pos = 0;
-        auto get_next_crlf = [&](int leap)
-        {
+        auto get_next_crlf = [&](int leap) {
             for (int i = crlf_pos + leap; i < (sc.size() - 1); i++)
             {
                 if (sc[i] == '\r' && sc[i + 1] == '\n')
@@ -432,9 +513,9 @@ class Response
         int right = get_next_crlf(0);
         while (left != -1 && right != -1)
         {
-            auto count = string(sc.begin() + 2 + left, sc.begin() + right); // 每个分块开头写的数量
-            auto count_num = stoi(count, nullptr, 16);                      // 那数量是16进制
-            if (count_num == 0)                                             // 最后一个 0\r\n\r\n，退出
+            auto count = std::string(sc.begin() + 2 + left, sc.begin() + right); // 每个分块开头写的数量
+            auto count_num = stoi(count, nullptr, 16);                           // 那数量是16进制
+            if (count_num == 0)                                                  // 最后一个 0\r\n\r\n，退出
             {
                 break;
             }
@@ -448,23 +529,31 @@ class Response
     }
 };
 
+struct HttpProxy
+{
+    int port;
+    String host;
+};
+
 class Request
 {
-    String source_;
+    std::vector<char> source_;
     String method_;
     String path_;
     String protocol_;
     String ip_;
     String url_;
     String host_;
-    String request_body_;
+    std::vector<char> request_body_;
     String protocol_version_ = "HTTP/1.1";
     Header request_header_;
+    HttpProxy proxy_;
+    bool enable_proxy_ = false;
+    int port_ = 80;
 
   public:
     Request(){};
     ~Request(){};
-    int port_ = 80;
 
     Request& SetHttpMethod(sion::Method method)
     {
@@ -500,11 +589,32 @@ class Request
 
     Request& SetBody(String body)
     {
-        request_body_ = body;
+        request_body_.clear();
+        PushStr2Vec(body, request_body_);
         return *this;
     }
 
-    Request& SetHeader(vector<pair<String, String>> header)
+    Request& SetBody(Payload::Binary body)
+    {
+        request_body_.clear();
+        request_body_.insert(request_body_.begin(), body.data.begin(), body.data.end());
+        if (body.type != "")
+        {
+            request_header_.RemoveAll("Content-Type");
+            request_header_.Add("Content-Type", body.type);
+        }
+        return *this;
+    }
+
+    Request& SetBody(Payload::FormData body)
+    {
+        request_body_ = body.Serialize();
+        request_header_.RemoveAll("Content-Type");
+        request_header_.Add("Content-Type", body.GetContentType());
+        return *this;
+    }
+
+    Request& SetHeader(Header header)
     {
         request_header_ = header;
         return *this;
@@ -513,6 +623,13 @@ class Request
     Request& SetHeader(String k, String v)
     {
         request_header_.Add(k, v);
+        return *this;
+    }
+
+    Request& SetProxy(HttpProxy proxy)
+    {
+        enable_proxy_ = true;
+        proxy_ = proxy;
         return *this;
     }
 
@@ -534,7 +651,7 @@ class Request
         check(ssl != nullptr && ssl_ctx != nullptr, "openssl初始化异常");
         SSL_set_fd(ssl, socket);
         SSL_connect(ssl);
-        SSL_write(ssl, source_.c_str(), source_.length());
+        SSL_write(ssl, source_.data(), source_.size());
         auto resp = ReadResponse(socket, ssl);
         SSL_shutdown(ssl);
         SSL_free(ssl);
@@ -561,6 +678,7 @@ class Request
         protocol_ = m[1];
         port_ = m[3].length() == 0 ? 80 : stoi(m[3]);
 #endif
+        check<std::invalid_argument>(!(protocol_ == "https" && enable_proxy_), "https暂时不支持代理");
         host_ = m[2];
         path_ = m[4].length() == 0 ? "/" : m[4].str();
         Socket socket = GetSocket();
@@ -570,7 +688,7 @@ class Request
             BuildRequestString();
             if (protocol_ == "http")
             {
-                send(socket, source_.c_str(), int(source_.length()), 0);
+                send(socket, source_.data(), source_.size(), 0);
                 return ReadResponse(socket);
             }
 #ifndef SION_DISABLE_SSL
@@ -594,33 +712,42 @@ class Request
     void BuildRequestString()
     {
         request_header_.Add("Host", host_);
-        request_header_.Add("Content-Length", std::to_string(request_body_.length()));
-        source_ = method_ + " " + path_ + " " + protocol_version_ + "\r\n";
+        request_header_.Add("Content-Length", std::to_string(request_body_.size()));
+        auto request_target = enable_proxy_ ? url_ : path_;
+        String source_str = method_ + " " + request_target + " " + protocol_version_ + crlf;
         for (auto& x : request_header_.Data())
         {
-            source_ += x.first + ": " + x.second + "\r\n";
+            source_str += x.first + ": " + x.second + crlf;
         }
-        source_ += "\r\n";
-        source_ += request_body_;
+        source_str += crlf;
+        PushStr2Vec(source_str, source_);
+        source_.insert(source_.end(), request_body_.begin(), request_body_.end());
     }
 
     void Connection(Socket socket, String host)
     {
         in_addr sa;
         ip_ = host.HasLetter() ? GetIpByHost(host) : host;
+        auto target_ip = enable_proxy_ ? (proxy_.host.HasLetter() ? GetIpByHost(proxy_.host) : proxy_.host) : ip_;
 #ifdef _WIN32
-        check<std::invalid_argument>((InetPton(AF_INET, ip_.c_str(), &sa) != -1), "地址转换错误");
+        check<std::invalid_argument>((InetPton(AF_INET, target_ip.c_str(), &sa) != -1), "地址转换错误");
 #else
-        check<std::invalid_argument>((inet_pton(AF_INET, ip_.c_str(), &sa) != -1), "地址转换错误");
+        check<std::invalid_argument>((inet_pton(AF_INET, target_ip.c_str(), &sa) != -1), "地址转换错误");
 #endif
         sockaddr_in saddr;
         saddr.sin_family = AF_INET;
-        saddr.sin_port = htons(port_);
+        saddr.sin_port = htons(enable_proxy_ ? proxy_.port : port_);
         saddr.sin_addr = sa;
         if (::connect(socket, (sockaddr*)&saddr, sizeof(saddr)) != 0)
         {
-            String err = "连接失败:\nHost:" + host_ + "\n";
+            String err = "连接失败:\n";
+            err += "Host:" + host_ + "\n";
             err += "Ip:" + ip_ + "\n";
+            if (enable_proxy_)
+            {
+                err += "Proxy IP:" + target_ip + "\n";
+                err += "Proxy Host:" + proxy_.host + "\n";
+            }
 #ifdef _WIN32
             err += "错误码：" + std::to_string(WSAGetLastError());
 #else
@@ -636,9 +763,8 @@ class Request
 #endif
     {
         const int buf_size = 2048;
-        array<char, buf_size> buf{0};
-        auto Read = [&]()
-        {
+        std::array<char, buf_size> buf{0};
+        auto Read = [&]() {
             buf.fill(0);
             int status = 0;
             if (protocol_ == "http")
@@ -651,7 +777,8 @@ class Request
                 status = SSL_read(ssl, buf.data(), buf_size - 1);
             }
 #endif
-            check(status >= 0, "网络异常,Socket错误码：error:" + String(strerror(errno)));
+            check<PeerConnectionClose>(status != 0);
+            check(status > 0, "网络异常,Socket错误码：" + std::to_string(status));
             return status;
         };
         Response resp;
@@ -672,8 +799,7 @@ class Request
 
         resp.ParseHeader();
         // 检查是否接收完
-        auto check_end = [&]
-        {
+        auto check_end = [&] {
             const auto& body = resp.Body();
             if (resp.is_chunked_)
             {
@@ -683,8 +809,8 @@ class Request
                 }
                 auto chunked_end_offset = body.size() - 4;
                 auto chunked_end_iter = body.begin() + chunked_end_offset;
-                auto chunked_end = string(chunked_end_iter, chunked_end_iter + 4);
-                if (chunked_end != "\r\n\r\n")
+                auto chunked_end = std::string(chunked_end_iter, chunked_end_iter + 4);
+                if (chunked_end != crlf_crlf)
                 {
                     return false;
                 }
@@ -726,7 +852,7 @@ class Request
     }
 };
 
-Response Fetch(String url, Method method = Method::Get, vector<pair<String, String>> header = {}, String body = "")
+static Response Fetch(String url, Method method = Method::Get, Header header = Header(), String body = "")
 {
     return Request().SetUrl(url).SetHttpMethod(method).SetHeader(header).SetBody(body).Send();
 }
@@ -740,7 +866,7 @@ enum AsyncResponseReceiveMode
 struct AsyncResponse
 {
     Response resp;
-    uint id;
+    int id;
     String err_msg;
 };
 
@@ -748,7 +874,7 @@ struct AsyncPackage
 {
     Request request;
     std::function<void(AsyncResponse)> callback;
-    uint id;
+    int id;
     AsyncResponseReceiveMode received_mode;
 };
 
@@ -763,7 +889,7 @@ class Async
     bool running_ = false;
     bool throw_if_has_err_msg = false;
     std::atomic_bool stopped_ = false;
-    std::atomic_uint incr_id = 0;
+    std::atomic_int incr_id = 0;
     bool is_block_ = false;
     std::mutex waiting_resp_queue_mutex_;
     std::vector<AsyncResponse> waiting_handle_response_;
@@ -793,7 +919,7 @@ class Async
         return *this;
     }
 
-    AsyncResponse GetTargetResp(uint id)
+    AsyncResponse GetTargetResp(int id)
     {
         auto& queue = waiting_handle_response_;
         for (size_t i = 0; i < queue.size(); i++)
@@ -813,12 +939,11 @@ class Async
         throw Error("unreachable code");
     }
 
-    AsyncResponse Await(uint id, uint timeout_ms = 0)
+    AsyncResponse Await(int id, int timeout_ms = 0)
     {
         std::unique_lock<std::mutex> lk(waiting_resp_queue_mutex_);
         auto& queue = waiting_handle_response_;
-        auto check = [&]
-        {
+        auto check = [&] {
             for (auto& i : queue)
             {
                 if (i.id == id)
@@ -837,7 +962,7 @@ class Async
             waiting_resp_cv_.wait_for(lk, std::chrono::milliseconds(timeout_ms), check);
             if (!check())
             {
-                throw AsyncAwaitTimeout("await timeout");
+                throw AsyncAwaitTimeout();
             }
         }
         else
@@ -871,7 +996,7 @@ class Async
         }
     }
 
-    uint Run(std::function<Request()> fn)
+    int Run(std::function<Request()> fn)
     {
         auto id = ++incr_id;
         {
@@ -953,15 +1078,14 @@ class Async
             }
             else if (pkg.received_mode == AsyncResponseReceiveMode::callback)
             {
-               try
-               {
+                try
+                {
                     pkg.callback(resp_pkg);
-               }
-               catch(const std::exception& e)
-               {
-                   std::cerr << e.what() << '\n';
-               }
-
+                }
+                catch (const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
             }
         }
         {
