@@ -9,12 +9,57 @@ Value::Value() {}
 Value::Value(const Value& v)
 {
     type = v.type;
-    val = v.val;
+    ValCopy(v);
+}
+
+void Value::ValCopy(const Value& v)
+{
+    switch (type)
+    {
+    case ValueType::number:
+        val.emplace<double>(std::get<double>(v.val));
+        break;
+    case ValueType::function:
+    case ValueType::string:
+        val.emplace<String>(std::get<String>(v.val));
+        break;
+    case ValueType::boolean:
+        val.emplace<bool>(std::get<bool>(v.val));
+        break;
+    case ValueType::object:
+        val.emplace<Object>(std::get<Object>(v.val));
+        break;
+    case ValueType::array:
+        val.emplace<Array>(std::get<Array>(v.val));
+        break;
+    case ValueType::null:
+        break;
+    }
 }
 Value::Value(Value&& v)
-{
-    std::swap(type, v.type);
-    std::swap(val, v.val);
+{  
+    type = v.type;
+    switch (type)
+    {
+    case ValueType::number:
+        val.emplace<double>(std::get<double>(v.val));
+        break;
+    case ValueType::function:
+    case ValueType::string:
+        val.emplace<String>(std::move(std::get<String>(v.val)));
+        break;
+    case ValueType::boolean:
+        val.emplace<bool>(std::get<bool>(v.val));
+        break;
+    case ValueType::object:
+        val.emplace<Object>(std::get<Object>(v.val));
+        break;
+    case ValueType::array:
+        val.emplace<Array>(std::get<Array>(v.val));
+        break;
+    case ValueType::null:
+        break;
+    }
 }
 Value::Value(bool data)
 {
@@ -51,7 +96,7 @@ Value::Value(String data)
 Value::Value(Object obj)
 {
     type = ValueType::object;
-    val = obj;
+    val.emplace<Object>(obj);
 }
 Value::Value(Array arr)
 {
@@ -63,7 +108,7 @@ ValueType Value::Type() const { return type; }
 Value& Value::operator=(const Value& v)
 {
     type = v.type;
-    val = v.val;
+    ValCopy(v);
     return *this;
 }
 

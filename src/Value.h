@@ -72,5 +72,6 @@ class Value
   private:
     ValueType type = ValueType::null;
     std::variant<nullptr_t, bool, double, String, Object, Array> val = nullptr;
+    void ValCopy(const Value& v);
 };
 } // namespace agumi
