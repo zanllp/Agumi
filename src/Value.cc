@@ -1,133 +1,69 @@
-#include "util.h"
-#include "JsonStringify.h"
 #include "Value.h"
+#include "JsonStringify.h"
+#include "util.h"
 namespace agumi
 {
-Value::~Value()
-{
-    if (data_ptr != nullptr)
-    {
-        switch (type)
-        {
-        case ValueType::number:
-            delete (double*)data_ptr;
-            break;
-        case ValueType::function:
-        case ValueType::string:
-            delete (String*)data_ptr;
-            break;
-        case ValueType::boolean:
-            delete (bool*)data_ptr;
-            break;
-        case ValueType::object:
-            delete (Object*)data_ptr;
-            break;
-        case ValueType::array:
-            delete (Array*)data_ptr;
-            break;
-        case ValueType::null:
-            break;
-        }
-    }
-};
+Value::~Value(){};
 
 Value::Value() {}
 Value::Value(const Value& v)
 {
     type = v.type;
-    switch (v.type)
-    {
-    case ValueType::number:
-        data_ptr = new double(*((double*)v.data_ptr));
-        break;
-    case ValueType::function:
-    case ValueType::string:
-        data_ptr = new String(*(String*)(v.data_ptr));
-        break;
-    case ValueType::boolean:
-        data_ptr = new bool(*(bool*)(v.data_ptr));
-        break;
-    case ValueType::object:
-        data_ptr = new Object(*(Object*)(v.data_ptr));
-    case ValueType::array:
-        data_ptr = new Array(*(Array*)(v.data_ptr));
-    case ValueType::null:
-    default:
-        break;
-    }
+    val = v.val;
 }
 Value::Value(Value&& v)
 {
     std::swap(type, v.type);
-    std::swap(data_ptr, v.data_ptr);
+    std::swap(val, v.val);
 }
 Value::Value(bool data)
 {
     type = ValueType::boolean;
-    data_ptr = new bool(data);
+    val = data;
 }
 Value::Value(const char* data)
 {
     type = ValueType::string;
-    data_ptr = new String(data);
+    val = String(data);
 }
 Value::Value(int data)
 {
     type = ValueType::number;
-    data_ptr = new double(data);
+    val = double(data);
 }
 Value::Value(std::nullptr_t null) { type = ValueType::null; }
 Value::Value(double data)
 {
     type = ValueType::number;
-    data_ptr = new double(data);
+    val = data;
 }
 Value::Value(std::string data)
 {
     type = ValueType::string;
-    data_ptr = new String(data);
+    val = String(data);
 }
 Value::Value(String data)
 {
     type = ValueType::string;
-    data_ptr = new String(data);
+    val = data;
 }
 
 Value::Value(Object obj)
 {
     type = ValueType::object;
-    data_ptr = new Object(obj);
+    val = obj;
 }
 Value::Value(Array arr)
 {
     type = ValueType::array;
-    data_ptr = new Array(arr);
+    val = arr;
 }
 ValueType Value::Type() const { return type; }
 
 Value& Value::operator=(const Value& v)
 {
-    switch (v.type)
-    {
-    case ValueType::number:
-        data_ptr = new double(*((double*)v.data_ptr));
-        break;
-    case ValueType::function:
-    case ValueType::string:
-        data_ptr = new String(*(String*)(v.data_ptr));
-        break;
-    case ValueType::boolean:
-        data_ptr = new bool(*(bool*)(v.data_ptr)); // 传值
-        break;
-    case ValueType::object:
-        data_ptr = new Object(*(Object*)(v.data_ptr));
-    case ValueType::array:
-        data_ptr = new Array(*(Array*)(v.data_ptr));
-    case ValueType::null:
-    default:
-        break;
-    }
-    this->type = v.type;
+    type = v.type;
+    val = v.val;
     return *this;
 }
 
@@ -146,13 +82,13 @@ Value& Value::operator[](String key)
 Object& Value::Obj()
 {
     CheckType(ValueType::object);
-    return *(Object*)data_ptr;
+    return std::get<Object>(val);
 }
 
 const Object& Value::ObjC() const
 {
     CheckType(ValueType::object);
-    return *(Object*)data_ptr;
+    return std::get<Object>(val);
 }
 
 Value& Value::operator[](int key)
@@ -163,13 +99,13 @@ Value& Value::operator[](int key)
 Array& Value::Arr()
 {
     CheckType(ValueType::array);
-    return *(Array*)data_ptr;
+    return std::get<Array>(val);
 }
 
 const Array& Value::ArrC() const
 {
     CheckType(ValueType::array);
-    return *(Array*)data_ptr;
+    return std::get<Array>(val);
 }
 
 bool Value::In(const String& key) const
@@ -216,32 +152,32 @@ String Value::ToString() const
 double& Value::Number()
 {
     CheckType(ValueType::number);
-    return *(double*)data_ptr;
+    return std::get<double>(val);
 }
 bool& Value::Bool()
 {
     CheckType(ValueType::boolean);
-    return *(bool*)data_ptr;
+    return std::get<bool>(val);
 }
 String& Value::Str()
 {
     CheckType(ValueType::string);
-    return *(String*)data_ptr;
+    return std::get<String>(val);
 }
 const double& Value::NumberC() const
 {
     CheckType(ValueType::number);
-    return *(double*)data_ptr;
+    return std::get<double>(val);
 }
 const bool& Value::BoolC() const
 {
     CheckType(ValueType::boolean);
-    return *(bool*)data_ptr;
+    return std::get<bool>(val);
 }
 const String& Value::StrC() const
 {
     CheckType(ValueType::string);
-    return *(String*)data_ptr;
+    return std::get<String>(val);
 }
 void Value::CheckType(ValueType t) const
 {
@@ -278,12 +214,9 @@ bool Value::ToBool() const
 bool Value::DeepCompare(const Value& r) const
 {
     const auto& l = *this;
-    if (l.data_ptr == r.data_ptr)
-    {
-        return true;
-    }
     auto type = l.Type();
-    if (type != r.Type())
+    auto r_t = r.type;
+    if (type != r_t)
     {
         return false;
     }
@@ -294,11 +227,15 @@ bool Value::DeepCompare(const Value& r) const
     else if (type == ValueType::object)
     {
 
+        if (l.ObjC().Ptr() == r.ObjC().Ptr())
+        {
+            return true;
+        }
+
         if (l.ObjC().SrcC().size() != r.ObjC().SrcC().size())
         {
             return false;
         }
-
         for (auto& i : l.ObjC().SrcC())
         {
             if (!i.second.DeepCompare(r.ObjC().SrcC().at(i.first)))
@@ -312,6 +249,10 @@ bool Value::DeepCompare(const Value& r) const
 
         auto& larr = l.ArrC().SrcC();
         auto& rarr = r.ArrC().SrcC();
+        if (&larr == &rarr)
+        {
+            return true;
+        }
         if (larr.size() != rarr.size())
         {
             return false;

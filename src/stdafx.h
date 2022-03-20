@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cmath>
 #include <array>
+#include <variant>
 #include <queue>
 #include <thread>
 #include <optional>
@@ -23,7 +24,6 @@
 #include <fcntl.h>
 #include <atomic>
 #include <filesystem>
-#include <sys/socket.h>
 #include "threadpool.h"
 #include "sion/sion.h"
 
