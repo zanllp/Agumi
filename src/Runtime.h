@@ -169,18 +169,9 @@ class VM
                 return false;
             }
             auto& tp = timer_map[curr_id];
-            auto& mem = MemManger::Get();
             if (tp.CanCall())
             {
                 tp.UpdateCallTime();
-                if (mem.enable_gc)
-                {
-                    if (mem.last_gc + mem.gc_step < MemAllocCollect::size())
-                    {
-                        mem.GC();
-                        mem.last_gc = MemAllocCollect::size();
-                    }
-                }
                 // P("call {}", fn.ToString())
                 FuncCall(fn);
                 if (once)
@@ -417,8 +408,17 @@ class VM
 
     void RunQueueTaskUntilEmpty()
     {
+        auto& mem = MemManger::Get();
         while (micro_task_queue.size() + macro_task_queue.size())
         {
+            if (mem.enable_gc)
+            {
+                if (mem.last_gc + mem.gc_step < MemAllocCollect::size())
+                {
+                    mem.GC();
+                    mem.last_gc = MemAllocCollect::size();
+                }
+            }
             {
                 std::lock_guard<std::mutex> m(cross_thread_mutex);
                 while (event_cross_thread_queue.size())

@@ -75,5 +75,10 @@ define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
 
 <img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
 
+# 垃圾回收
+默认不启用gc,如果需要长时间启用agumi，需要gc[参考这个文件来启用](./script/test/gc_stress.as)
+### 效果参考
+<img width="523" alt="image" src="https://user-images.githubusercontent.com/25872019/159162421-1cb64080-a085-4f10-b70e-e5459c60dc56.png">
+
 ## 已知问题
 1. 运算符优先级有时会表现异常，后面改用调度场重新写
