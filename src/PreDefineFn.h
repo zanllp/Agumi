@@ -466,7 +466,7 @@ void AddPreDefine(VM& vm)
     });
 
     vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value {
-        vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1, ValueType::number));
+        vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1.0, ValueType::number));
         return nullptr;
     });
     vm.DefineGlobalFunc("apply",
