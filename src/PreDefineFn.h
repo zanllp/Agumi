@@ -21,17 +21,24 @@ Value DefineOperator(VM& vm, Vector<Value> args)
     auto l_cls_str = args.GetOrDefault(0).Str();
     ASSERT_T(typestr_2enum.find(l_cls_str) != typestr_2enum.end())
     auto l_cls = typestr_2enum[l_cls_str];
-    auto r_cls_str = args.GetOrDefault(1).Str();
-    ASSERT_T(typestr_2enum.find(r_cls_str) != typestr_2enum.end())
-    auto r_cls = typestr_2enum[r_cls_str];
-    auto op = Token::Str2kw(args.GetOrDefault(2).Str());
-    auto cb = args.GetOrDefault(3);
     auto local_class = vm.class_define.find(l_cls);
     if (local_class == vm.class_define.end())
     {
         vm.class_define[l_cls] = LocalClassDefine();
         local_class = vm.class_define.find(l_cls);
     }
+    if (args.size() == 3)
+    {
+        auto fn = args.GetOrDefault(2);
+        auto op = Token::Str2kw(args.GetOrDefault(1).Str());
+        vm.class_define[l_cls].unary_func[op] = fn;
+        return nullptr;
+    }
+    auto r_cls_str = args.GetOrDefault(1).Str();
+    ASSERT_T(typestr_2enum.find(r_cls_str) != typestr_2enum.end())
+    auto r_cls = typestr_2enum[r_cls_str];
+    auto op = Token::Str2kw(args.GetOrDefault(2).Str());
+    auto cb = args.GetOrDefault(3);
     auto& bin_op = local_class->second.binary_operator_overload;
     auto r_cls_op_def = bin_op.find(r_cls);
     if (r_cls_op_def == bin_op.end())

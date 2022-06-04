@@ -17,6 +17,7 @@ enum class StatementType
     ifStatment,
     conditionExpression,
     binaryExpression,
+    unaryExpression,
     assigmentStatement,
     indexStatement,
     arrayInit,
@@ -218,6 +219,25 @@ class BinaryExpression : public Statement
         r["op"] = op.ToJson();
         r["left"] = left->ToJson();
         r["right"] = right->ToJson();
+        r["start"] = start.ToPosStr();
+        return r;
+    }
+};
+class UnaryExpression : public Statement
+{
+
+  public:
+    // 运算符
+    Token op;
+    // 左边
+    StatPtr stat;
+    StatementType Type() { return StatementType::unaryExpression; }
+    Value ToJson()
+    {
+        Value r = Object();
+        r["type"] = "UnaryExpression";
+        r["op"] = op.ToJson();
+        r["left"] = stat->ToJson();
         r["start"] = start.ToPosStr();
         return r;
     }
@@ -649,10 +669,10 @@ class Compiler
     StatPtrWithEnd ResolveExpr(StatPtr pos1_stat, TokenFlowView tfv)
     {
         auto iter = tfv.BeginIter();
-        auto probably_question_mask = GetNextNotEmptyToken(iter);
-        if (probably_question_mask->Is(question_mask_)) // x ? y : z 三元
+        auto probably_question_mask_or_unary = GetNextNotEmptyToken(iter);
+        if (probably_question_mask_or_unary->Is(question_mask_)) // x ? y : z 三元
         {
-            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(probably_question_mask + 1);
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(probably_question_mask_or_unary + 1);
             auto stat = std::make_shared<ConditionExpression>();
             stat->start = *iter;
             stat->cond = pos1_stat;
@@ -663,6 +683,16 @@ class Compiler
             stat->right = pos3_stat;
             return {stat, pos3_end_iter};
         }
+        // 一元运算符
+        if (expr_operator_unary.Includes(probably_question_mask_or_unary->GetKwEnum()))
+        {
+            auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatmentUntilNotEmpty(probably_question_mask_or_unary + 1);
+            auto stat = std::make_shared<UnaryExpression>();
+            stat->op = *probably_question_mask_or_unary;
+            stat->stat = pos2_stat;
+            return {stat, pos2_end_iter};
+        }
+
         auto op_iter = iter;
         auto [pos2_stat, pos2_end_iter] = ResolveExecutableStatment(op_iter + 1);
         // x(+|-|*|/|++|+=|===。。。)y 二元
@@ -934,7 +964,7 @@ class Compiler
             auto left_stat = CreateLiteralNode(*iter);
             return SeekIfExpr(left_stat, iter);
         }
-        else if (iter->IsIdentifier())
+        if (iter->IsIdentifier())
         {
             auto left_stat = std::make_shared<Identifier>(*iter);
             left_stat->start = *iter;
@@ -950,6 +980,11 @@ class Compiler
             StatPtr s = std::make_shared<Statement>();
             return {s, iter + 1};
         }
+        if (expr_operator_unary.Includes(iter->GetKwEnum()))
+        {
+           return ResolveExpr(std::make_shared<Statement>(), iter);
+        }
+
         THROW_TOKEN(*iter)
     }
 

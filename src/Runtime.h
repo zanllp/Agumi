@@ -61,12 +61,13 @@ class LocalClassDefine
   public:
     std::map<String, std::function<Value(Value&, Vector<Value>)>> member_func;
     std::map<ValueType, std::map<KW, std::function<Value(Value&, Value&)>>> binary_operator_overload;
+    std::map<KW, Value> unary_func;
     Value ExecFunc(String key, Value& val, Vector<Value> args)
     {
         auto iter = member_func.find(key);
         if (iter == member_func.end())
         {
-            throw std::range_error(String::Format("{} is not a function", key));
+            throw std::range_error(String::Format("{} is not a member function of {} class", key, val.TypeString()));
         }
         return iter->second(val, args);
     }
@@ -486,6 +487,8 @@ class VM
             return ResolveObjectInit(stat);
         case StatementType::nullLiteral:
             return nullptr;
+        case StatementType::unaryExpression:
+            return ResolveUnaryExpr(stat);
         case StatementType::blockStatment:
             return ResolveBlock(stat);
         }
@@ -595,6 +598,20 @@ class VM
             return CurrScope()[key] = val;
         }
     }
+
+    Value ResolveUnaryExpr(StatPtr stat)
+    {
+        SRC_REF(expr, UnaryExpression, stat);
+        auto val = Dispatch(expr.stat);
+        auto def = class_define[val.Type()];
+        auto fn = def.unary_func.find(expr.op.GetKwEnum());
+        if ((fn == def.unary_func.end()) || (fn->second.Type() != ValueType::function))
+        {
+            THROW_STACK_MSG("Unary operator {} for {} types is undefined", expr.op.kw, val.TypeString())
+        }
+        return FuncCall(fn->second, val);
+    }
+
     Value ResolveConditionExpression(StatPtr stat)
     {
         SRC_REF(expr, ConditionExpression, stat);
@@ -655,7 +672,7 @@ class VM
         {
             ERR_ResolveBinaryExpression
         }
-        auto op = expr.op.ToKwEnum();
+        auto op = expr.op.InitKwEnum();
         auto target_op_def = target_type_def->second.find(op);
         if (target_op_def == target_type_def->second.end())
         {

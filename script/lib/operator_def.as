@@ -1,4 +1,10 @@
+
 define_operator('null', 'null', '==', () => true)
+
+const fp = {
+    is_not: target => v => v != target
+}
+
 ['number','boolean','array','object','function','string'].select(type => {
     define_operator('null', type, '==', () => false)
     define_operator(type, 'null', '==', () => false)
@@ -25,4 +31,18 @@ define_operator('function', 'function', '+', (l,r) => (a) =>  r(l(a)))
 ['array','number','boolean','object','string', 'null'].select(type => {
     define_operator(type, 'function', '->', (l, r) => r(l))
 })
-define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
+const func_pipe_mem = {}
+define_operator('function', 'function', '->', (l,r) => {
+    const key = to_str(l) + to_str(r)
+    (func_pipe_mem.has(key)) ? @{
+        func_pipe_mem[key]
+    } :  @{
+        const res = (a) => r(l(a))
+        func_pipe_mem[key] = res
+        res
+    }
+})
+
+['number','boolean','array','object','function','string', 'null'].select(type => {
+    define_operator(type, '!', v => v ? false : true)
+})

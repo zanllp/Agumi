@@ -1,0 +1,5 @@
+assert(!1, false)
+assert(![], false)
+assert(!"hello", false)
+assert(!"", true)
+assert(!0, true)
