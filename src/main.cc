@@ -413,7 +413,15 @@ int main(int argc, char** argv)
         VM vm;
         vm.process_arg = conf;
         vm.working_dir = working_dir;
-        AddPreDefine(vm);
+        try
+        {
+            AddPreDefine(vm);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << FormatError(e.what(), vm.StackTrace());
+            std::abort();
+        }
         array<char, 1000> buf = {0};
         auto ptr = &buf.at(0);
         cout << color_green_s << "input :" << color_e << "\t";

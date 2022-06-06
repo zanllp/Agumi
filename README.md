@@ -72,6 +72,7 @@ agumi -exec=script/http_server.as
 })
 define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
 ```
+### 实现类似rust .. 的range功能 
 
 <img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
 

@@ -1,10 +1,6 @@
 
 define_member_function('array', {
-    where: (this, predicate) => {
-        const res = []
-        this.select((v,i) => predicate(v,i) ? res.push(v) : null)
-        res
-    },
+    where: array_filter,
     range: (this, start, count) => {
         let r = []
         this.select((v,i, stop) => {
