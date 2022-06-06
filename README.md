@@ -72,9 +72,11 @@ agumi -exec=script/http_server.as
 })
 define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
 ```
+<img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
+
 ### 实现类似rust .. 的range功能 
 
-<img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
+<img alt="image" src="https://user-images.githubusercontent.com/25872019/172177213-758a5a4c-6804-46f7-9c99-d2e88a6c179c.png">
 
 # 垃圾回收
 默认不启用gc,如果需要长时间启用agumi，需要gc[参考这个文件来启用](./script/test/gc_stress.as)
