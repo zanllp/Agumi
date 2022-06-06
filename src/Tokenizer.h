@@ -132,10 +132,13 @@ enum KW
     // --
     sub_sub_,
     // @
-    at_
+    at_,
+    // ~
+    wave_,
+    dot_dot_
 
 };
-// 表达式支持的运算符
+// 表达式支持的二元运算符
 Vector<KW> expr_operator{question_mask_, add_,
                          sub_,           mul_,
                          div_,           mod_,
@@ -145,11 +148,12 @@ Vector<KW> expr_operator{question_mask_, add_,
                          less_than_,     less_than_equal_,
                          add_equal_,     sub_equal_,
                          and_and_,       or_or_,
-                         thin_arrow_};
-Vector<KW> expr_operator_unary{negate_};
+                         dot_dot_,       thin_arrow_};
+// 表达式支持的一元运算符
+Vector<KW> expr_operator_unary{negate_, wave_};
 // 多字符的运算符
-Vector<KW> multi_char_operator{eqeq_,      eqeqeq_,  not_eq_,    not_eqeq_, more_than_equal_, less_than_equal_, arrow_,
-                               add_equal_, add_add_, sub_equal_, sub_sub_,  and_and_,         or_or_,           thin_arrow_};
+Vector<KW> multi_char_operator{eqeq_,    eqeqeq_,    not_eq_,  not_eqeq_, more_than_equal_, less_than_equal_, arrow_,     add_equal_,
+                               add_add_, sub_equal_, sub_sub_, dot_dot_,  and_and_,         or_or_,           thin_arrow_};
 class Token : public ViewEnd
 {
 
@@ -265,10 +269,7 @@ class Token : public ViewEnd
         return kw_enum;
     }
 
-    KW GetKwEnum() const
-    {
-        return kw_enum_inited ? kw_enum : Str2kw(kw, false);
-    }
+    KW GetKwEnum() const { return kw_enum_inited ? kw_enum : Str2kw(kw, false); }
 
     // 去掉两边的’”·
     String toStringContent(bool ignore_check = false) const
@@ -487,7 +488,7 @@ class GeneralTokenizer
         while (ptr_next < len)
         {
             char c_next = src[ptr_next];
-            if (!(('0' <= c_next && c_next <= '9') || c_next == '.'))
+            if (!(('0' <= c_next && c_next <= '9') || (c_next == '.' && src[ptr_next + 1] != '.')))
             {
                 break;
             }
@@ -583,6 +584,7 @@ class GeneralTokenizer
     void SingleChar(char c)
     {
         auto tok = CreateToken(c);
+        tok.InitKwEnum();
         res.push_back(tok);
         ptr++;
         offset++;
@@ -605,9 +607,9 @@ class GeneralTokenizer
 };
 
 Vector<String> GeneralTokenizer::multi_token_set;
-const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%&|";
+const String GeneralTokenizer::operator_set = "!+-*/(){}[]=><%&|.~";
 const String GeneralTokenizer::empty_set = " \n\t";
-const String GeneralTokenizer::single_char_set = ";,:.?@";
+const String GeneralTokenizer::single_char_set = ";,:?@";
 const String GeneralTokenizer::const_str_set = R"("'`)";
 int GeneralTokenizer::uniq_id = 0;
 void Token::Init()
@@ -659,6 +661,8 @@ void Token::Init()
     m[sub_equal_] = "-=";
     m[at_] = "@";
     m[thin_arrow_] = "->";
+    m[wave_] = "~";
+    m[dot_dot_] = "..";
     for (int i = m.size() - 1; i >= 0; i--)
     {
         if (m[i] != "")
