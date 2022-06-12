@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "util.h"
+#include "Value.h"
 #define THROW THROW_MSG("");
 #define THROW_TOKEN(tok) THROW_MSG("未知令牌: {}", (tok).ToDebugStr());
 #define SRC_REF(name, Type, sptr) auto& name = *static_cast<Type*>(sptr.get());
