@@ -2,7 +2,7 @@ const array_filter = (arr, predicate) => {
     const res = []
     arr.select((v,i) => predicate(v,i) ? res.push(v) : null)
     res
-}  
+}
 const types = ['number','boolean','array','object','function','string', 'null']
 
 
@@ -10,8 +10,8 @@ define_operator('null', 'null', '==', () => true)
 
 
 array_filter(types, fp.str.not_null).select(type => {
-    define_operator('null', type, '==', () => false)
-    define_operator(type, 'null', '==', () => false)
+  define_operator('null', type, '==', () => false)
+  define_operator(type, 'null', '==', () => false)
 })
 
 define_operator('string', 'number', '*', (l,r) => {
@@ -57,4 +57,9 @@ define_operator('number', 'number', '..', (l,r) => {
     const res = []
     res.resize(len)
     res.select((_,i) => i + l)
+})
+define_operator('string','~', json.parse)
+
+array_filter(types, fp.str.not_str).select(type => {
+    define_operator(type, '~', json.stringify)
 })

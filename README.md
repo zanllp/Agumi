@@ -54,7 +54,7 @@ fib(10)
  [使用参考](./script/tcp_server.as)
 #### http
  [具体实现](./script/lib/server/http_server.as)
- 
+
  一个例子 简单的文件读取
  [源码点这](./script/http_server.as)
 ```bash
@@ -73,8 +73,9 @@ agumi -exec=script/http_server.as
 define_operator('function', 'function', '->', (l,r) => (a) =>  r(l(a)))
 ```
 <img  alt="image" src="https://user-images.githubusercontent.com/25872019/155872046-edbf1705-3630-48f5-91ae-d91d2a467c34.png">
+<img width="786" alt="image" src="https://user-images.githubusercontent.com/25872019/184139184-821e138d-5093-433a-873a-e23cb351a4d9.png">
 
-### 实现类似rust .. 的range功能 
+### 实现类似rust .. 的range功能
 
 <img alt="image" src="https://user-images.githubusercontent.com/25872019/172177213-758a5a4c-6804-46f7-9c99-d2e88a6c179c.png">
 
