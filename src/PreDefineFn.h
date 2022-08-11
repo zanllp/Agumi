@@ -472,9 +472,16 @@ void AddPreDefine(VM& vm)
         return vm.StartTimer(args.GetOrDefault(0), args.GetOr(1, 1000.0).Number(), args.GetOrDefault(2).ToBool());
     });
 
+    vm.DefineGlobalFunc("time", [&](Vector<Value> args) -> Value {
+        return double(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+    });
+
     vm.DefineGlobalFunc("remove_timer", [&](Vector<Value> args) -> Value {
         vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1.0, ValueType::number));
         return nullptr;
+    });
+    vm.DefineGlobalFunc("sys_call", [&](Vector<Value> args) -> Value {
+        return system(args.GetOrDefault(0).ToString().c_str());
     });
     vm.DefineGlobalFunc("apply",
                         [&](Vector<Value> args) -> Value { return vm.FuncCall(args.GetOrDefault(0), args.GetOrDefault(1).ArrC().SrcC()); });
