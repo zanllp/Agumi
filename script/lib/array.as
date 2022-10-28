@@ -34,6 +34,9 @@ define_member_function('array', {
         rhs.select(v => this.push(v))
         this
     },
+    exist: (this, target) => {
+        (this.find_index(target)) != -1
+    },
     reverse: (this) => {
         const res = []
         const size = this.count()

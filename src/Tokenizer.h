@@ -116,7 +116,11 @@ enum KW
     more_than_equal_,
     // <=
     less_than_equal_,
+    // &&
     and_and_,
+    // |
+    or_,
+    // ||
     or_or_,
     // =>
     arrow_,
@@ -149,7 +153,9 @@ Vector<KW> expr_operator{question_mask_, add_,
                          less_than_,     less_than_equal_,
                          add_equal_,     sub_equal_,
                          and_and_,       or_or_,
-                         dot_dot_,       thin_arrow_};
+                         dot_dot_,       thin_arrow_,
+                         or_
+                        };
 // 表达式支持的一元运算符
 Vector<KW> expr_operator_unary{negate_, wave_};
 // 多字符的运算符
@@ -664,6 +670,7 @@ void Token::Init()
     m[thin_arrow_] = "->";
     m[wave_] = "~";
     m[dot_dot_] = "..";
+    m[or_] = "|";
     for (int i = m.size() - 1; i >= 0; i--)
     {
         if (m[i] != "")

@@ -7,3 +7,6 @@ include('./string')
 include('./array')
 include('./kv')
 include('./promise')
+
+const shell = sys_call
+const global = mem()

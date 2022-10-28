@@ -523,15 +523,19 @@ void AddPreDefine(VM& vm)
             [&, event_name](sion::AsyncResponse async_resp) {
                 auto resp = async_resp.resp;
                 auto res = Object();
-                res["data"] = resp.StrBody();
-                res["code"] = resp.Code();
-                res["headers"] = Array();
-                for (auto& i : resp.GetHeader().Data())
-                {
-                    auto obj = Object();
-                    obj["k"] = i.first;
-                    obj["v"] = i.second;
-                    res["headers"].Arr().Src().push_back(obj);
+                if(async_resp.err_msg.length()) {
+                    res["err_msg"] = async_resp.err_msg;
+                } else {
+                    res["data"] = resp.StrBody();
+                    res["code"] = resp.Code();
+                    res["headers"] = Array();
+                    for (auto& i : resp.GetHeader().Data())
+                    {
+                      auto obj = Object();
+                      obj["k"] = i.first;
+                      obj["v"] = i.second;
+                      res["headers"].Arr().Src().push_back(obj);
+                    }
                 }
                 vm.Push2RequiredEventPendingQueue(RequiredEvent(event_name, res));
             });
