@@ -4,7 +4,7 @@ const cr = utf8.from_code_point('0xd') // \r
 const lf = utf8.from_code_point('0xa') // \n
 const crlf = cr + lf
 const http_status_map_file = fs.read(path_calc(env().curr_dir(), 'http_status_map.csv'))
-const http_status_map = {} 
+const http_status_map = {}
 http_status_map.from_entires(http_status_map_file.split(lf).select(line => line.split(',').select(v => v.trim())))
 
 
@@ -58,7 +58,7 @@ const create_http_header =  make_factory('HttpHeader', () => ({ _raw_data: [] })
     all: this => this._raw_data
 })
 
- 
+
 const parse_http_message = (http_raw_msg) => {
     const lines = http_raw_msg.split(crlf)
     const req = {
@@ -70,7 +70,7 @@ const parse_http_message = (http_raw_msg) => {
         data: '',
         is_end: false
     }
-    
+
     const resolve_profile = (v) => {
         const profile = parse_http_message_profile(v)
         const url_parsed = parse_url(profile.path)
@@ -93,18 +93,18 @@ const parse_http_message = (http_raw_msg) => {
     }
     lines.select((v,i, stop) => {
         const is_first = i == 0
-        is_first 
-            ? resolve_profile(v) 
-            : not(v.includes(':')) 
+        is_first
+            ? resolve_profile(v)
+            : not(v.includes(':'))
                 ? mark_end(i, stop)
-                : add_header(v) 
+                : add_header(v)
     })
     req
 }
 
 
 const HttpResponse = make_ability('HttpResponse')
- 
+
 define_member_function(HttpResponse, {
     set_data: (this, data) => {
         this.data = data
@@ -135,8 +135,8 @@ define_member_function(HttpResponse, {
 const make_http_server = (port, cb) => {
     make_server({
         port,
-        onInit: cb.onInit,
-        onAccept: (conn) => {
+        on_init: cb.on_init,
+        on_accpet: (conn) => {
             const buf = []
             const resp = {
                 header: create_http_header(),
@@ -146,17 +146,16 @@ const make_http_server = (port, cb) => {
                 status_desc: 'OK'
             }
             use_ability(resp, HttpResponse)
-            conn.onMessage = (conn) => {
+            conn.on_message = (conn) => {
                 buf.push(conn.buf)
                 const buf_join = buf.join('')
                 const req = parse_http_message(buf_join)
-                (req.is_end) ? cb.onMessage(req, resp, buf_join) : null
+                (req.is_end) ? cb.on_message(req, resp, buf_join) : null
             }
         },
-        onClose: () => {
+        on_close: () => {
 
         }
     })
 }
 
- 

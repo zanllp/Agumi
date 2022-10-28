@@ -149,5 +149,5 @@ int main(int argc, char** argv)
         {
             agumi::Test(working_dir);
         }
-        return 0;
+        return 1;
     }

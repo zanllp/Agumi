@@ -29,6 +29,13 @@ define_member_function(Promise, {
 })
 
 
+const fetch_as_promsie = (url, params) => {
+  make_promise((resolve, err) => {
+     fetch_async(url, params, resolve)
+  })
+}
+
+
 @{
   const global = mem()
   const _sync_fetch = fetch
@@ -41,12 +48,6 @@ const dd = () => make_promise(cb => cb('1'),null).then(() => log(2)).then(() => 
 micro(dd)
 const ddc = () => make_promise(cb => macro(() => cb('xxxx')),null).then((x) => log(x, 21)).then(() => log(31))
 micro(ddc)
-const fetch_as_promsie = (url, params) => {
-  make_promise((resolve, err) => {
-     fetch_async(url, params, resolve)
-  })
-}
-
 const dc = () => fetch('https://github.com/orgs/xiachufang/dashboard',{ method: 'get' } ).then(data => {
   full_log(data)
   fs.write('dashboard.html', data.data)

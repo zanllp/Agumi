@@ -25,10 +25,11 @@ start_timer(() => {
 }, 1000)
 
 make_http_server(8899, {
-    onInit: server => {
+    on_init: server => {
         log(f('服务器启动等待连接 端口:{}', server.port))
+        shell(f('open http://127.0.0.1:{}?path=http_server.as', server.port))
     },
-    onMessage: (req, resp) => {
+    on_message: (req, resp) => {
         resp.header.set('Server', 'Agumi').set('Content-Type', 'text/html; charset=utf-8')
         const path_req = req.params.path
         const has_path = () => {

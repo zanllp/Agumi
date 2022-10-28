@@ -25,10 +25,10 @@ const start_message_queue = (port) => {
     queue: []
   }
   make_http_server(port, {
-    onInit: server => {
+    on_init: server => {
         log(f('消息队列启动 端口:{}', server.port))
     },
-    onMessage: (req, resp, buf) => {
+    on_message: (req, resp, buf) => {
       resp.header.set('Server', 'Agumi').set('Content-Type', 'application/json; charset=utf-8')
       message_queue_server_handler(req, resp, store)
     }
