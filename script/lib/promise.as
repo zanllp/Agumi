@@ -49,7 +49,7 @@ micro(dd)
 const ddc = () => make_promise(cb => macro(() => cb('xxxx')),null).then((x) => log(x, 21)).then(() => log(31))
 micro(ddc)
 const dc = () => fetch('https://github.com/orgs/xiachufang/dashboard',{ method: 'get' } ).then(data => {
-  full_log(data)
+  log(json.stringify(data))
   fs.write('dashboard.html', data.data)
 })
 micro(dc)
@@ -62,4 +62,5 @@ const call_api_promise = (path) => {
 const p = call_api_promise('/message').then(v => v.data)
 p.then(_ => log('twice callback'))
 p.then(v => log(v, 23333))
+
 */

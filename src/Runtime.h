@@ -101,6 +101,9 @@ class TimerPackage
 
 class VM
 {
+  private:
+    bool curr_scope_return = false;
+
   public:
     VM()
     {
@@ -491,6 +494,8 @@ class VM
             return ResolveUnaryExpr(stat);
         case StatementType::blockStatment:
             return ResolveBlock(stat);
+        case StatementType::returnSatement:
+            return ResolveReturn(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
     }
@@ -550,6 +555,11 @@ class VM
             for (auto& stat : fn.src->body)
             {
                 v = Dispatch(stat);
+                if (curr_scope_return)
+                {
+                    curr_scope_return = false;
+                    return v;
+                }
             }
             PopContext();
         }
@@ -652,6 +662,12 @@ class VM
             THROW_STACK_MSG("{} is not defined", id.tok.kw)
         }
         return v->get();
+    }
+    Value ResolveReturn(StatPtr stat)
+    {
+        SRC_REF(ret, ReturnStatment, stat);
+        curr_scope_return = true;
+        return ret.Type() == StatementType::statement ? nullptr : Dispatch(ret.expr);
     }
     Value ResolveBinaryExpression(StatPtr stat)
     {

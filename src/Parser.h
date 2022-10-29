@@ -22,7 +22,8 @@ enum class StatementType
     indexStatement,
     arrayInit,
     objectInit,
-    blockStatment
+    blockStatment,
+    returnSatement
 };
 
 class Statement
@@ -459,12 +460,18 @@ class BlockStatment : public Statement
     }
 };
 
-class IfStatment : public Statement
+class ReturnStatment : public Statement
 {
   public:
-    // [if,elif,elif,else]
-    Vector<TokenFlowView> blocks;
-    StatementType Type() { return StatementType::ifStatment; }
+    StatPtr expr;
+    StatementType Type() { return StatementType::returnSatement; }
+    Value ToJson()
+    {
+        auto r = Object();
+        r["expr"] = expr->ToJson();
+        r["type"] = "returnStatment";
+        return r;
+    }
 };
 
 // 计算括号闭合的位置
@@ -721,6 +728,21 @@ class Compiler
         return {stat, pos2_end_iter};
     }
 
+    StatPtrWithEnd ResolveReturn(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        iter->Expect(return_);
+        auto stat = std::make_shared<ReturnStatment>();
+        iter++;
+        if (!iter->Is(cr_))
+        {
+            auto [expr, end_iter] = ResolveExecutableStatment(iter);
+            stat->expr = expr;
+            iter = end_iter;
+        }
+
+        return {stat, iter};
+    }
     StatPtrWithEnd ResolveFunction(TokenFlowView tfv)
     {
         auto iter = tfv.BeginIter();
@@ -982,7 +1004,7 @@ class Compiler
         }
         if (expr_operator_unary.Includes(iter->GetKwEnum()))
         {
-           return ResolveExpr(std::make_shared<Statement>(), iter);
+            return ResolveExpr(std::make_shared<Statement>(), iter);
         }
 
         THROW_TOKEN(*iter)
@@ -1080,6 +1102,11 @@ class Compiler
         {
             return ResovleAssigmentOrIdentify(iter);
         }
+        else if (iter->Is(return_))
+        {
+            return ResolveReturn(iter);
+        }
+
         return ResolveExecutableStatment(iter);
     }
 

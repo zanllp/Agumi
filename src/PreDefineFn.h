@@ -333,7 +333,7 @@ void AddPreDefine(VM& vm)
     str_op_def[add_] = BIN_OPERATOR(l.StrC() + r.StrC());
     str_op_def[eqeq_] = BIN_OPERATOR(l.StrC() == r.StrC());
     str_op_def[eqeqeq_] = BIN_OPERATOR(l.StrC() == r.StrC());
-    str_op_def[add_equal_] = BIN_OPERATOR(l.Str() += r.StrC());
+    // str_op_def[add_equal_] = BIN_OPERATOR(l.Str() += r.StrC());
     str_op_def[mul_] = BIN_OPERATOR(l.StrC().Repeat(stoi(r.StrC())));
     string_def.binary_operator_overload[ValueType::string] = str_op_def;
     string_def.member_func["byte_len"] = [](Value& _this, Vector<Value> args) -> Value { return static_cast<int>(_this.StrC().length()); };
@@ -424,7 +424,7 @@ void AddPreDefine(VM& vm)
     BIN_OP_NUM(div_, /);
     num_op_def[mod_] = BIN_OPERATOR(fmod(l.NumberC(), r.NumberC()));
     num_op_def[sub_equal_] = BIN_OPERATOR(l.Number() -= r.NumberC());
-    num_op_def[add_equal_] = BIN_OPERATOR(l.Number() += r.NumberC());
+    // num_op_def[add_equal_] = BIN_OPERATOR(l.Number() += r.NumberC());
     num_def.binary_operator_overload[ValueType::number] = num_op_def;
     vm.class_define[ValueType::number] = num_def;
     vm.DefineGlobalFunc("object_entries", [](Vector<Value> args) -> Value {
