@@ -657,8 +657,14 @@ class VM
     {
         SRC_REF(expr, BinaryExpression, stat);
         auto left = Dispatch(expr.left);
-        auto right = Dispatch(expr.right);
         auto type = left.Type();
+        auto op = expr.op.InitKwEnum();
+        // 针对这两种特殊处理
+        if ((op == and_and_ && !left.ToBool()) || (op == or_or_ && left.ToBool()))
+        {
+            return left;
+        }
+        auto right = Dispatch(expr.right);
         auto type_r = right.Type();
 #define ERR_ResolveBinaryExpression THROW_STACK_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
         auto left_type_def = class_define.find(type);
@@ -672,7 +678,7 @@ class VM
         {
             ERR_ResolveBinaryExpression
         }
-        auto op = expr.op.InitKwEnum();
+
         auto target_op_def = target_type_def->second.find(op);
         if (target_op_def == target_type_def->second.end())
         {

@@ -11,3 +11,17 @@ assert(!0, true)
     })
     assert(v, 99)
 }
+
+@{
+    const state = { v: 1 }
+    const effect = () => {
+        state.v = 2
+    }
+    null && effect() // effect不执行
+    assert(state.v, 1)
+    null || effect() // 执行
+    assert(state.v, 2)
+    state.v = 1
+    1 || effect() // 不执行
+    assert(state.v, 1)
+}

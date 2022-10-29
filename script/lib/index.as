@@ -7,6 +7,7 @@ include('./string')
 include('./array')
 include('./kv')
 include('./promise')
+include('./log')
 
 const shell = sys_call
 const global = mem()

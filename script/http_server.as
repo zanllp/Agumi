@@ -26,8 +26,11 @@ start_timer(() => {
 
 make_http_server(8899, {
     on_init: server => {
-        log(f('服务器启动等待连接 端口:{}', server.port))
-        shell(f('open http://127.0.0.1:{}?path=http_server.as', server.port))
+        const blue = log_color.blue('[log]')
+        const url = f('http://127.0.0.1:{}?path=http_server.as', server.port)
+        log(f('{} 服务器启动等待连接 端口:{}',blue, server.port))
+        log(f('{} {}', blue, url))
+        shell(f('open {}', url))
     },
     on_message: (req, resp) => {
         resp.header.set('Server', 'Agumi').set('Content-Type', 'text/html; charset=utf-8')

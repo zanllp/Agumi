@@ -57,7 +57,6 @@ enum KW
     none,
     let_,
     const_,
-    var_,
     class_,
     if_,
     else_,
@@ -325,7 +324,7 @@ class Token : public ViewEnd
 
     bool IsDeclear() const
     {
-        return Is(let_) || Is(const_); // Is(var_) || 不允许var
+        return Is(let_) || Is(const_);
     }
 
     bool operator==(const Token& rhs) const { return pos == rhs.pos && kw == rhs.kw && line == rhs.line && offset == rhs.offset; }
@@ -624,7 +623,6 @@ void Token::Init()
     auto& m = KeyWordMap;
     m.resize(64);
     m[let_] = "let";
-    m[var_] = "var";
     m[const_] = "const";
     m[class_] = "class";
     m[if_] = "if";

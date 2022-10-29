@@ -52,10 +52,9 @@ Value DefineOperator(VM& vm, Vector<Value> args)
 
 void AddPreDefine(VM& vm)
 {
-    auto o1 = Object({{"d", "hello world"}});
-    auto o2 = Object({{"hello", o1}});
-    auto o3 = Object({{"o3", o2}});
-    vm.ctx_stack[0].var["b"] = Object({{"dd", o3}, {"cc", 1}});
+    auto& global = vm.ctx_stack[0].var;
+    vm.DefineGlobalFunc("get_io_mark_color",
+                        VM_FN(return Object({{"end", color_e}, {"red", color_red_s}, {"blue", color_blue_s}, {"green", color_green_s}})));
     vm.DefineGlobalFunc("env", VM_FN(return Object({{"working_dir", vm.working_dir},
                                                     {"process_arg", vm.process_arg},
                                                     {"curr_dir", vm.DefineFunc(VM_FN(return PathCalc(vm.CurrCtx().start->file, "..");))},
@@ -480,9 +479,7 @@ void AddPreDefine(VM& vm)
         vm.RemoveTimer(args.GetOrDefault(0).GetOr(-1.0, ValueType::number));
         return nullptr;
     });
-    vm.DefineGlobalFunc("sys_call", [&](Vector<Value> args) -> Value {
-        return system(args.GetOrDefault(0).ToString().c_str());
-    });
+    vm.DefineGlobalFunc("sys_call", [&](Vector<Value> args) -> Value { return system(args.GetOrDefault(0).ToString().c_str()); });
     vm.DefineGlobalFunc("apply",
                         [&](Vector<Value> args) -> Value { return vm.FuncCall(args.GetOrDefault(0), args.GetOrDefault(1).ArrC().SrcC()); });
     vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value {
@@ -523,18 +520,21 @@ void AddPreDefine(VM& vm)
             [&, event_name](sion::AsyncResponse async_resp) {
                 auto resp = async_resp.resp;
                 auto res = Object();
-                if(async_resp.err_msg.length()) {
+                if (async_resp.err_msg.length())
+                {
                     res["err_msg"] = async_resp.err_msg;
-                } else {
+                }
+                else
+                {
                     res["data"] = resp.StrBody();
                     res["code"] = resp.Code();
                     res["headers"] = Array();
                     for (auto& i : resp.GetHeader().Data())
                     {
-                      auto obj = Object();
-                      obj["k"] = i.first;
-                      obj["v"] = i.second;
-                      res["headers"].Arr().Src().push_back(obj);
+                        auto obj = Object();
+                        obj["k"] = i.first;
+                        obj["v"] = i.second;
+                        res["headers"].Arr().Src().push_back(obj);
                     }
                 }
                 vm.Push2RequiredEventPendingQueue(RequiredEvent(event_name, res));

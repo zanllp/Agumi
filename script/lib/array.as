@@ -46,5 +46,12 @@ define_member_function('array', {
             res[dist - i] = v
         })
         res
+    },
+    aggregate: (this, init, cb) => {
+        const var = { res: init }
+        this.select(v => {
+            var.res = cb(var.res, v)
+        })
+        var.res
     }
 })
