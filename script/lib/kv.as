@@ -1,6 +1,3 @@
-include('./stdafx.as')
-
-
 
 const kv_store = make_ability('KV-Store')
 
@@ -49,10 +46,10 @@ const make_kv = (dir) => {
     const base_file_tpl  = path_calc(base_dir, '_kv_{}.json')
     const all_keys_file = f(base_file_tpl, all_keys)
     use_ability({
-        base_dir, 
+        base_dir,
         base_file_tpl,
         all_keys_file,
-        all_keys 
+        all_keys
         }, kv_store)
 }
 

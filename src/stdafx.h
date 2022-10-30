@@ -27,6 +27,10 @@
 #include "threadpool.h"
 #include "sion/sion.h"
 
+const auto color_red_s = "\033[31m";
+const auto color_green_s = "\033[32m";
+const auto color_blue_s = "\033[34m";
+const auto color_e = "\033[0m";
 namespace agumi
 {
     class String;

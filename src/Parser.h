@@ -22,7 +22,8 @@ enum class StatementType
     indexStatement,
     arrayInit,
     objectInit,
-    blockStatment
+    blockStatment,
+    returnSatement
 };
 
 class Statement
@@ -459,12 +460,18 @@ class BlockStatment : public Statement
     }
 };
 
-class IfStatment : public Statement
+class ReturnStatment : public Statement
 {
   public:
-    // [if,elif,elif,else]
-    Vector<TokenFlowView> blocks;
-    StatementType Type() { return StatementType::ifStatment; }
+    StatPtr expr;
+    StatementType Type() { return StatementType::returnSatement; }
+    Value ToJson()
+    {
+        auto r = Object();
+        r["expr"] = expr->ToJson();
+        r["type"] = "returnStatment";
+        return r;
+    }
 };
 
 // 计算括号闭合的位置
@@ -721,6 +728,21 @@ class Compiler
         return {stat, pos2_end_iter};
     }
 
+    StatPtrWithEnd ResolveReturn(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        iter->Expect(return_);
+        auto stat = std::make_shared<ReturnStatment>();
+        iter++;
+        if (!iter->Is(cr_))
+        {
+            auto [expr, end_iter] = ResolveExecutableStatment(iter);
+            stat->expr = expr;
+            iter = end_iter;
+        }
+
+        return {stat, iter};
+    }
     StatPtrWithEnd ResolveFunction(TokenFlowView tfv)
     {
         auto iter = tfv.BeginIter();
@@ -738,6 +760,7 @@ class Compiler
         else
         {
             iter++;
+            bool has_assignmented_default_val = false;
             while (true)
             {
                 FunctionArgument arg;
@@ -751,8 +774,14 @@ class Compiler
                         auto [val, end_iter] = ResolveExecutableStatment(iter);
                         arg.initialed = true;
                         arg.init = val;
+                        has_assignmented_default_val = true;
                         iter = end_iter;
                     }
+                    if (has_assignmented_default_val && !arg.initialed)
+                    {
+                        THROW_MSG("已分配默认值的参数后不允许未分配默认值 发生在: \t{}", iter->ToPosStr())
+                    }
+
                     stat->arguments.push_back(arg);
                     if (iter->Is(comma_)) // 到下一个参数
                     {
@@ -982,7 +1011,7 @@ class Compiler
         }
         if (expr_operator_unary.Includes(iter->GetKwEnum()))
         {
-           return ResolveExpr(std::make_shared<Statement>(), iter);
+            return ResolveExpr(std::make_shared<Statement>(), iter);
         }
 
         THROW_TOKEN(*iter)
@@ -1080,6 +1109,11 @@ class Compiler
         {
             return ResovleAssigmentOrIdentify(iter);
         }
+        else if (iter->Is(return_))
+        {
+            return ResolveReturn(iter);
+        }
+
         return ResolveExecutableStatment(iter);
     }
 

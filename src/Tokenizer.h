@@ -1,7 +1,7 @@
 #pragma once
+#include "Value.h"
 #include "stdafx.h"
 #include "util.h"
-#include "Value.h"
 #define THROW THROW_MSG("");
 #define THROW_TOKEN(tok) THROW_MSG("未知令牌: {}", (tok).ToDebugStr());
 #define SRC_REF(name, Type, sptr) auto& name = *static_cast<Type*>(sptr.get());
@@ -57,7 +57,6 @@ enum KW
     none,
     let_,
     const_,
-    var_,
     class_,
     if_,
     else_,
@@ -116,7 +115,11 @@ enum KW
     more_than_equal_,
     // <=
     less_than_equal_,
+    // &&
     and_and_,
+    // |
+    or_,
+    // ||
     or_or_,
     // =>
     arrow_,
@@ -125,7 +128,7 @@ enum KW
     // .
     dot_,
     // +=
-    add_equal_,
+    // add_equal_,
     // ++
     add_add_,
     // -=
@@ -136,24 +139,19 @@ enum KW
     at_,
     // ~
     wave_,
-    dot_dot_
+    dot_dot_,
+    return_
 
 };
 // 表达式支持的二元运算符
-Vector<KW> expr_operator{question_mask_, add_,
-                         sub_,           mul_,
-                         div_,           mod_,
-                         eqeq_,          eqeqeq_,
-                         not_eq_,        not_eqeq_,
-                         more_than_,     more_than_equal_,
-                         less_than_,     less_than_equal_,
-                         add_equal_,     sub_equal_,
-                         and_and_,       or_or_,
-                         dot_dot_,       thin_arrow_};
+Vector<KW> expr_operator{question_mask_, add_, sub_, mul_, div_, mod_, eqeq_, eqeqeq_, not_eq_, not_eqeq_, more_than_, more_than_equal_,
+                         less_than_, less_than_equal_,
+                         // add_equal_,
+                         sub_equal_, and_and_, or_or_, dot_dot_, thin_arrow_, or_};
 // 表达式支持的一元运算符
 Vector<KW> expr_operator_unary{negate_, wave_};
 // 多字符的运算符
-Vector<KW> multi_char_operator{eqeq_,    eqeqeq_,    not_eq_,  not_eqeq_, more_than_equal_, less_than_equal_, arrow_,     add_equal_,
+Vector<KW> multi_char_operator{eqeq_,    eqeqeq_,    not_eq_,  not_eqeq_, more_than_equal_, less_than_equal_, arrow_, // add_equal_,
                                add_add_, sub_equal_, sub_sub_, dot_dot_,  and_and_,         or_or_,           thin_arrow_};
 class Token : public ViewEnd
 {
@@ -317,10 +315,7 @@ class Token : public ViewEnd
 
     bool IsKeyWord() const { return KeyWordMap.Includes(kw); }
 
-    bool IsDeclear() const
-    {
-        return Is(let_) || Is(const_); // Is(var_) || 不允许var
-    }
+    bool IsDeclear() const { return Is(let_) || Is(const_); }
 
     bool operator==(const Token& rhs) const { return pos == rhs.pos && kw == rhs.kw && line == rhs.line && offset == rhs.offset; }
 
@@ -618,7 +613,6 @@ void Token::Init()
     auto& m = KeyWordMap;
     m.resize(64);
     m[let_] = "let";
-    m[var_] = "var";
     m[const_] = "const";
     m[class_] = "class";
     m[if_] = "if";
@@ -657,13 +651,15 @@ void Token::Init()
     m[arrow_] = "=>";
     m[dot_] = '.';
     m[add_add_] = "++";
-    m[add_equal_] = "+=";
+    // m[add_equal_] = "+=";
     m[sub_sub_] = "--";
     m[sub_equal_] = "-=";
     m[at_] = "@";
     m[thin_arrow_] = "->";
     m[wave_] = "~";
     m[dot_dot_] = "..";
+    m[or_] = "|";
+    m[return_] = "return";
     for (int i = m.size() - 1; i >= 0; i--)
     {
         if (m[i] != "")

@@ -1,8 +1,10 @@
 
-const f_log = f + log
-const full_log = s + log
 const throw = raise_native_exception
-const assert = (a, b) => (s(a) == s(b)) ? null  : throw(f(`assert error: a: {} b: {}`,a,b))
+const assert = (a, b) => {
+    const stra = json.stringify(a)
+    const strb = json.stringify(b)
+    (stra != strb) && throw(f(`assert error: a: {} b: {}`,a,b))
+}
 const assert_t = (a) => assert(a, true)
 
 array_filter(types, fp.str.not_null).select(type => {

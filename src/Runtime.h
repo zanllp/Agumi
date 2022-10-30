@@ -101,6 +101,9 @@ class TimerPackage
 
 class VM
 {
+  private:
+    bool curr_scope_return = false;
+
   public:
     VM()
     {
@@ -297,7 +300,7 @@ class VM
         auto& scope = ctx_stack[stack_idx].var;
         if (!scope.In(c.kw))
         {
-            THROW_STACK_MSG("token {} is not found", c.kw)
+            THROW_STACK_MSG("[dev only] token {} is not found", c.kw)
         }
         return {scope[c.kw]};
     }
@@ -349,42 +352,6 @@ class VM
         return fn;
     }
 
-    template <typename... Ts> Value FuncCall(Value loc, Ts... args) { return FuncCall(loc, Vector<Value>::From({args...})); }
-
-    Value FuncCall(Value loc, Vector<Value> args)
-    {
-        auto fn_iter = func_mem.find(loc.StrC());
-        if (fn_iter == func_mem.end())
-        {
-            THROW_STACK_MSG("function {} is not defined", loc.ToString())
-        }
-        Context fn_ctx;
-        Value v;
-        auto& fn = fn_iter->second;
-        fn_ctx.closeure = &fn.closure;
-        if (fn.is_native_func)
-        {
-            v = fn.native_fn(args);
-        }
-        else
-        {
-            auto& src_args = fn.src->arguments;
-            for (size_t i = 0; i < src_args.size(); i++)
-            {
-                auto arg = src_args[i];
-                auto key = arg.name.kw;
-                fn_ctx.var[key] = args[i];
-            }
-            PushContext(fn_ctx);
-            for (auto& stat : fn.src->body)
-            {
-                v = Dispatch(stat);
-            }
-            PopContext();
-        }
-        return v;
-    }
-
     void AddTask2Queue(Value task, bool is_micro)
     {
         if (task.Type() != ValueType::function)
@@ -393,18 +360,6 @@ class VM
         }
         auto& q = is_micro ? micro_task_queue : macro_task_queue;
         q.push(task);
-    }
-
-    void PushContext(Context fn_ctx)
-    {
-        CurrScope()[next_stack_key] = fn_ctx.var; // 产生gc关联
-        ctx_stack.push_back(fn_ctx);
-    }
-
-    void PopContext()
-    {
-        ctx_stack.pop_back();
-        CurrScope().Obj().Src().erase(next_stack_key);
     }
 
     void RunQueueTaskUntilEmpty()
@@ -453,7 +408,79 @@ class VM
         return res;
     }
 
+    template <typename... Ts> Value FuncCall(Value loc, Ts... args) { return FuncCall(loc, Vector<Value>::From({args...})); }
+    /**
+     * @brief 在c++调用agumi函数
+     *
+     * @param loc
+     * @param args
+     * @return Value
+     */
+    Value FuncCall(Value loc, Vector<Value> args)
+    {
+        auto fn_iter = func_mem.find(loc.StrC());
+        if (fn_iter == func_mem.end())
+        {
+            THROW_STACK_MSG("function {} is not defined", loc.ToString())
+        }
+        Context fn_ctx;
+        Value v;
+        auto& fn = fn_iter->second;
+        fn_ctx.closeure = &fn.closure;
+        if (fn.is_native_func)
+        {
+            v = fn.native_fn(args);
+        }
+        else
+        {
+            auto& src_args = fn.src->arguments;
+            for (size_t i = 0; i < src_args.size(); i++)
+            {
+                auto arg = src_args[i];
+                auto key = arg.name.kw;
+                if (i < args.size())
+                {
+                    fn_ctx.var[key] = args[i];
+                }
+                else
+                {
+                    if (!arg.initialed)
+                    {
+                        THROW_STACK_MSG(
+                            "function call argument lost at pos: {} (name: {}) and no default value\n function is defined on the {}", i,
+                            key, fn.src->start.ToPosStr())
+                    }
+                    fn_ctx.var[key] = Dispatch(arg.init);
+                }
+            }
+            PushContext(fn_ctx);
+            for (auto& stat : fn.src->body)
+            {
+                v = Dispatch(stat);
+                if (curr_scope_return)
+                {
+                    curr_scope_return = false;
+                    break;
+                }
+            }
+            PopContext();
+        }
+        return v;
+    }
+
   private:
+    void PushContext(Context fn_ctx)
+    {
+        CurrScope()[next_stack_key] = fn_ctx.var; // 产生gc关联
+        ctx_stack.push_back(fn_ctx);
+    }
+
+    void PopContext()
+    {
+        ctx_stack.pop_back();
+        CurrScope().Obj().Src().erase(next_stack_key);
+    }
+
     Value Dispatch(StatPtr stat)
     {
         CurrCtx().start = &stat->start;
@@ -491,9 +518,19 @@ class VM
             return ResolveUnaryExpr(stat);
         case StatementType::blockStatment:
             return ResolveBlock(stat);
+        case StatementType::returnSatement:
+            return ResolveReturn(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
     }
+    /**
+     * @brief 解决函数调用语句
+     *
+     * @param stat
+     * @param fn_loc_optional
+     * @param extra_args 塞一下参数到最前面，例如this
+     * @return Value
+     */
     Value ResolveFuncCall(StatPtr stat, Value fn_loc_optional = nullptr, Vector<Value> extra_args = {})
     {
         SRC_REF(fn_call, FunctionCall, stat)
@@ -526,11 +563,6 @@ class VM
         else
         {
             auto& src_args = fn.src->arguments;
-            auto extra_args_size = extra_args.size();
-            if (src_args.size() > fn_call.arguments.size() + extra_args_size)
-            {
-                THROW_STACK_MSG("传入参数数量错误 需要：{} 实际：{}", src_args.size(), fn_call.arguments.size() + extra_args_size)
-            }
             Vector<Value> args;
             args.insert(args.begin(), extra_args.begin(), extra_args.end());
             for (auto&& i : fn_call.arguments)
@@ -538,18 +570,35 @@ class VM
                 args.push_back(Dispatch(i));
             }
 
+            PushContext(fn_ctx);
             for (size_t i = 0; i < src_args.size(); i++)
             {
                 auto arg = src_args[i];
                 auto key = arg.name.kw;
-                fn_ctx.var[key] = args[i];
+                if (i < args.size())
+                {
+                    fn_ctx.var[key] = args[i];
+                }
+                else
+                {
+                    if (!arg.initialed)
+                    {
+                        THROW_STACK_MSG(
+                            "function call argument lost at pos: {} (name: {}) and no default value\n function is defined on the {}", i,
+                            key, fn.src->start.ToPosStr())
+                    }
+                    fn_ctx.var[key] = Dispatch(arg.init);
+                }
             }
-
-            PushContext(fn_ctx);
             // 执行函数
             for (auto& stat : fn.src->body)
             {
                 v = Dispatch(stat);
+                if (curr_scope_return)
+                {
+                    curr_scope_return = false;
+                    break;
+                }
             }
             PopContext();
         }
@@ -653,12 +702,24 @@ class VM
         }
         return v->get();
     }
+    Value ResolveReturn(StatPtr stat)
+    {
+        SRC_REF(ret, ReturnStatment, stat);
+        curr_scope_return = true;
+        return ret.Type() == StatementType::statement ? nullptr : Dispatch(ret.expr);
+    }
     Value ResolveBinaryExpression(StatPtr stat)
     {
         SRC_REF(expr, BinaryExpression, stat);
         auto left = Dispatch(expr.left);
-        auto right = Dispatch(expr.right);
         auto type = left.Type();
+        auto op = expr.op.InitKwEnum();
+        // 针对这两种特殊处理
+        if ((op == and_and_ && !left.ToBool()) || (op == or_or_ && left.ToBool()))
+        {
+            return left;
+        }
+        auto right = Dispatch(expr.right);
         auto type_r = right.Type();
 #define ERR_ResolveBinaryExpression THROW_STACK_MSG("type:{} {} type:{} is not defined", left.TypeString(), expr.op.kw, right.TypeString())
         auto left_type_def = class_define.find(type);
@@ -672,7 +733,7 @@ class VM
         {
             ERR_ResolveBinaryExpression
         }
-        auto op = expr.op.InitKwEnum();
+
         auto target_op_def = target_type_def->second.find(op);
         if (target_op_def == target_type_def->second.end())
         {
@@ -885,12 +946,13 @@ class VM
                 }
                 else
                 {
-                    auto val = GetValue(kw);
+                    val = GetValue(kw);
                     if (val)
                     {
                         closure.map[kw] = Closure::From(val->get());
                     }
                 }
+                return val;
             };
             switch (s->Type())
             {
@@ -923,6 +985,13 @@ class VM
                     ctx.var[i.name.kw] = true;
                 }
                 virtual_ctx_stack.push_back(ctx);
+                for (auto& i : stat.arguments)
+                {
+                    if (i.initialed)
+                    {
+                        Visitor(i.init, closure_next);
+                    }
+                }
                 for (auto i : stat.body)
                 {
                     Visitor(i, closure_next);
@@ -984,6 +1053,12 @@ class VM
                 {
                     Visitor(i, closure);
                 }
+                return;
+            }
+            case StatementType::unaryExpression:
+            {
+                SRC_REF(unary, UnaryExpression, s)
+                Visitor(unary.stat, closure);
                 return;
             }
             case StatementType::arrayInit:

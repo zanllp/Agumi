@@ -1,7 +1,7 @@
 
 define_member_function('array', {
     where: array_filter,
-    range: (this, start, count) => {
+    range: (this, start = 0, count = -1) => {
         let r = []
         this.select((v,i, stop) => {
             or(i < (start + count), count == -1) ? @{
@@ -10,7 +10,7 @@ define_member_function('array', {
         }, start)
         r
     },
-    join: (this, spec) => {
+    join: (this, spec = ',') => {
         // 设置值和闭包还是有问题
         const res = { v: (this.empty()) ? '' : to_str(this[0]) }
         this.select((v) => {
@@ -34,6 +34,9 @@ define_member_function('array', {
         rhs.select(v => this.push(v))
         this
     },
+    exist: (this, target) => {
+        (this.find_index(target)) != -1
+    },
     reverse: (this) => {
         const res = []
         const size = this.count()
@@ -43,5 +46,12 @@ define_member_function('array', {
             res[dist - i] = v
         })
         res
+    },
+    aggregate: (this, init, cb) => {
+        const var = { res: init }
+        this.select(v => {
+            var.res = cb(var.res, v)
+        })
+        var.res
     }
 })

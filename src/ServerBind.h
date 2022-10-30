@@ -65,8 +65,8 @@ Value MakeServerBind(VM& vm, Vector<Value> args)
 {
     auto params = args.GetOrDefault(0).ObjC();
     auto port = params["port"].Number();
-    auto onAccept = params["onAccept"];
-    auto onInit = params["onInit"];
+    auto onAccept = params["on_accpet"];
+    auto onInit = params["on_init"];
     static int id = 0;
     id++;
     String close_event_name = String::Format("make_server:close:{}", id);
@@ -96,14 +96,14 @@ Value MakeServerBind(VM& vm, Vector<Value> args)
         }
 
         auto conn_iter = Server::connection.find(connection_id);
-        if (conn_iter->second.In("onMessage"))
+        if (conn_iter->second.In("on_message"))
         {
             if (!is_first_message)
             {
                 conn_iter->second["buf"] = conn["buf"];
                 conn_iter->second["message_id"] = conn["message_id"];
             }
-            vm.FuncCall(conn_iter->second["onMessage"], conn_iter->second);
+            vm.FuncCall(conn_iter->second["on_message"], conn_iter->second);
         }
 
         return nullptr;

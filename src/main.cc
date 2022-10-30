@@ -1,10 +1,6 @@
 #include "test.h"
 #include <csignal>
 
-const auto color_red_s = "\033[31m";
-const auto color_green_s = "\033[32m";
-const auto color_blue_s = "\033[34m";
-const auto color_e = "\033[0m";
 
 agumi::String FormatError(agumi::String err, agumi::String stack_trace)
 {
@@ -149,5 +145,5 @@ int main(int argc, char** argv)
         {
             agumi::Test(working_dir);
         }
-        return 0;
+        return 1;
     }

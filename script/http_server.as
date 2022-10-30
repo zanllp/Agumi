@@ -24,13 +24,17 @@ start_timer(() => {
     })
 }, 1000)
 
+const blue_tag = log_color.blue('[log]')
 make_http_server(8899, {
-    onInit: server => {
-        log(f('服务器启动等待连接 端口:{}', server.port))
+    on_init: server => {
+        const url = f('http://127.0.0.1:{}?path=http_server.as', server.port)
+        f_log('{} 服务器启动等待连接 url:{}', blue_tag, url)
+        shell(f('open {}', url))
     },
-    onMessage: (req, resp) => {
+    on_message: (req, resp) => {
         resp.header.set('Server', 'Agumi').set('Content-Type', 'text/html; charset=utf-8')
         const path_req = req.params.path
+        f_log('{} 接受到新请求 path:{}', blue_tag, path_req)
         const has_path = () => {
             const path = path_calc(env().curr_dir(), path_req)
             (fs.exist(path)) ? ok_200(resp, path) : error_404(resp)
