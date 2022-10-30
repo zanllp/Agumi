@@ -9,7 +9,7 @@
     const fn = (a,b = 1 + 1) => {
         a + b
     }
-    assert(fn(), 3)
+    assert(fn(1), 3)
     assert(fn(2,3), 5)
 }
 @{
