@@ -300,7 +300,7 @@ class VM
         auto& scope = ctx_stack[stack_idx].var;
         if (!scope.In(c.kw))
         {
-            THROW_STACK_MSG("token {} is not found", c.kw)
+            THROW_STACK_MSG("[dev only] token {} is not found", c.kw)
         }
         return {scope[c.kw]};
     }
@@ -570,6 +570,7 @@ class VM
                 args.push_back(Dispatch(i));
             }
 
+            PushContext(fn_ctx);
             for (size_t i = 0; i < src_args.size(); i++)
             {
                 auto arg = src_args[i];
@@ -589,7 +590,6 @@ class VM
                     fn_ctx.var[key] = Dispatch(arg.init);
                 }
             }
-            PushContext(fn_ctx);
             // 执行函数
             for (auto& stat : fn.src->body)
             {
@@ -946,12 +946,13 @@ class VM
                 }
                 else
                 {
-                    auto val = GetValue(kw);
+                    val = GetValue(kw);
                     if (val)
                     {
                         closure.map[kw] = Closure::From(val->get());
                     }
                 }
+                return val;
             };
             switch (s->Type())
             {
@@ -984,6 +985,13 @@ class VM
                     ctx.var[i.name.kw] = true;
                 }
                 virtual_ctx_stack.push_back(ctx);
+                for (auto& i : stat.arguments)
+                {
+                    if (i.initialed)
+                    {
+                        Visitor(i.init, closure_next);
+                    }
+                }
                 for (auto i : stat.body)
                 {
                     Visitor(i, closure_next);
@@ -1045,6 +1053,12 @@ class VM
                 {
                     Visitor(i, closure);
                 }
+                return;
+            }
+            case StatementType::unaryExpression:
+            {
+                SRC_REF(unary, UnaryExpression, s)
+                Visitor(unary.stat, closure);
                 return;
             }
             case StatementType::arrayInit:

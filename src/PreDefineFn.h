@@ -480,6 +480,7 @@ void AddPreDefine(VM& vm)
         return nullptr;
     });
     vm.DefineGlobalFunc("sys_call", [&](Vector<Value> args) -> Value { return system(args.GetOrDefault(0).ToString().c_str()); });
+    vm.DefineGlobalFunc("deep_compare", [&](Vector<Value> args) -> Value { return args.GetOrDefault(0).DeepCompare(args.GetOrDefault(1)); });
     vm.DefineGlobalFunc("apply",
                         [&](Vector<Value> args) -> Value { return vm.FuncCall(args.GetOrDefault(0), args.GetOrDefault(1).ArrC().SrcC()); });
     vm.DefineGlobalFunc("fetch_async", [&](Vector<Value> args) -> Value {

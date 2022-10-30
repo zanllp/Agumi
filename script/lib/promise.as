@@ -29,7 +29,7 @@ define_member_function(Promise, {
 })
 
 
-const fetch_as_promsie = (url, params) => {
+const fetch_as_promsie = (url, params = { method: 'get' }) => {
   make_promise((resolve, err) => {
      fetch_async(url, params, resolve)
   })

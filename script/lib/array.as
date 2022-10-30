@@ -1,7 +1,7 @@
 
 define_member_function('array', {
     where: array_filter,
-    range: (this, start, count) => {
+    range: (this, start = 0, count = -1) => {
         let r = []
         this.select((v,i, stop) => {
             or(i < (start + count), count == -1) ? @{
@@ -10,7 +10,7 @@ define_member_function('array', {
         }, start)
         r
     },
-    join: (this, spec) => {
+    join: (this, spec = ',') => {
         // 设置值和闭包还是有问题
         const res = { v: (this.empty()) ? '' : to_str(this[0]) }
         this.select((v) => {

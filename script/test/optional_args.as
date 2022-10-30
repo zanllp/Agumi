@@ -13,7 +13,8 @@
     assert(fn(2,3), 5)
 }
 @{
-    const fn = (a, b=1, c=2, d=3) => {
+    const tri = 3
+    const fn = (a, b=1, c=2, d=tri) => {
         a + b + c + d
     }
     assert(fn(0), 6)
