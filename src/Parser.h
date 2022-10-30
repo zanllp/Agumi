@@ -760,6 +760,7 @@ class Compiler
         else
         {
             iter++;
+            bool has_assignmented_default_val = false;
             while (true)
             {
                 FunctionArgument arg;
@@ -773,8 +774,14 @@ class Compiler
                         auto [val, end_iter] = ResolveExecutableStatment(iter);
                         arg.initialed = true;
                         arg.init = val;
+                        has_assignmented_default_val = true;
                         iter = end_iter;
                     }
+                    if (has_assignmented_default_val && !arg.initialed)
+                    {
+                        THROW_MSG("已分配默认值的参数后不允许未分配默认值 发生在: \t{}", iter->ToPosStr())
+                    }
+
                     stat->arguments.push_back(arg);
                     if (iter->Is(comma_)) // 到下一个参数
                     {
