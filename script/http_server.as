@@ -34,7 +34,7 @@ make_http_server(8899, {
     on_message: (req, resp) => {
         resp.header.set('Server', 'Agumi').set('Content-Type', 'text/html; charset=utf-8')
         const path_req = req.params.path
-        f_log('{} 接受到新请求 path:{}', blue_tag, path_req)
+        logc(f('接受到新请求 path:{}', path_req))
         const has_path = () => {
             const path = path_calc(env().curr_dir(), path_req)
             (fs.exist(path)) ? ok_200(resp, path) : error_404(resp)

@@ -50,6 +50,18 @@ Value DefineOperator(VM& vm, Vector<Value> args)
     return nullptr;
 }
 
+Value GetCallStackInfo(VM& vm, Vector<Value> args)
+{
+    Array arr;
+    for (auto &i : vm.ctx_stack)
+    {
+        arr.Src().push_back(Object({
+            {"pos", i.start->ToPosStr()}
+        }));
+    }
+    return arr;
+}
+
 void AddPreDefine(VM& vm)
 {
     auto& global = vm.ctx_stack[0].var;
@@ -549,6 +561,7 @@ void AddPreDefine(VM& vm)
     vm.class_define[ValueType::boolean] = LocalClassDefine();
     ServerBind(vm);
     vm.DefineGlobalFunc("define_operator", VM_FN_BIND(DefineOperator));
+    vm.DefineGlobalFunc("get_call_stack_info", VM_FN_BIND(GetCallStackInfo));
     auto libPath = PathCalc(__FILE__, "../../script/lib/index.as");
     P("lib path: {}", libPath)
     vm.FuncCall(vm.GlobalVal("include"), {libPath, true});
