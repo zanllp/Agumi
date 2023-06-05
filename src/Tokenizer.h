@@ -140,7 +140,8 @@ enum KW
     // ~
     wave_,
     dot_dot_,
-    return_
+    return_,
+    match_
 
 };
 // 表达式支持的二元运算符
@@ -660,6 +661,7 @@ void Token::Init()
     m[dot_dot_] = "..";
     m[or_] = "|";
     m[return_] = "return";
+    m[match_] = "match";
     for (int i = m.size() - 1; i >= 0; i--)
     {
         if (m[i] != "")

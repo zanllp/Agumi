@@ -23,7 +23,8 @@ enum class StatementType
     arrayInit,
     objectInit,
     blockStatment,
-    returnSatement
+    returnSatement,
+    matchStatment
 };
 
 class Statement
@@ -197,6 +198,31 @@ class ConditionExpression : public Statement
         r["cond"] = cond->ToJson();
         r["left"] = left->ToJson();
         r["right"] = right->ToJson();
+        r["start"] = start.ToPosStr();
+        return r;
+    }
+};
+
+class PatternMatchStatment : public Statement
+{
+  public:
+    StatPtr arg;
+    StatPtr default_val;
+    Vector<std::pair<StatPtr, StatPtr>> pairs;
+    StatementType Type() { return StatementType::matchStatment; }
+
+    Value ToJson()
+    {
+        Value r = Object();
+        r["type"] = "BinaryExpression";
+        r["arg"] = arg->ToJson();
+        r["default_val"] = default_val->ToJson();
+        auto arr = Array();
+        for (auto&& i : pairs)
+        {
+            arr.Src().push_back(Object({{"cond", i.first->ToJson()}, {"value", i.second->ToJson()}}));
+        }
+        r["pairs"] = arr;
         r["start"] = start.ToPosStr();
         return r;
     }
@@ -855,6 +881,56 @@ class Compiler
         return SeekIfExpr(stat, iter);
     }
 
+    StatPtrWithEnd ResolvePartternMatch(TokenFlowView tfv)
+    {
+        auto iter = tfv.BeginIter();
+        iter->Expect(match_);
+        auto stat = std::make_shared<PatternMatchStatment>();
+        stat->start = *iter;
+        iter += 2; // match -> ( -> expr
+        {
+            auto [s, end_iter] = Dispatch(iter);
+            iter = end_iter + 1; // ) ->
+            stat->arg = s;
+        }
+        auto end_iter = CalcEndBrackets(iter);
+        iter++;
+        while (true)
+        {
+            iter = GetNextNotEmptyToken(iter);
+            auto [stat_l, end_iter_l] = ResolveExecutableStatment(iter);
+            iter = end_iter_l;
+            iter->Expect(colon_);
+            iter++;
+            auto [stat_r, end_iter_r] = ResolveExecutableStatment(iter);
+            iter = end_iter_r;
+            if (stat_l->start.kw == "_")
+            {
+                stat->default_val = stat_r;
+            }
+            else
+            {
+                stat->pairs.push_back({stat_l, stat_r});
+            }
+            iter = GetNextNotEmptyToken(iter);
+            if (iter == end_iter)
+            {
+                break;
+            }
+            else
+            {
+                iter->Expect(comma_);
+                iter++;
+            }
+        }
+        if (!stat->default_val)
+        {
+            THROW_MSG("模式匹配未设置默认值 发生在: \t{}", iter->ToPosStr())
+        }
+
+        return {stat, iter + 1};
+    }
+
     StatPtrWithEnd ResolveArrayInit(TokenFlowView tfv)
     {
         auto iter = tfv.BeginIter();
@@ -983,6 +1059,11 @@ class Compiler
             return SeekIfExpr(left_stat, end_iter - 1);
         }
 
+        if (iter->Is(match_))
+        {
+            return ResolvePartternMatch(iter);
+        }
+
         if (iter->Is(curly_brackets_start_))
         {
             return ResolveObjectInit(iter);
@@ -1013,6 +1094,7 @@ class Compiler
         {
             return ResolveExpr(std::make_shared<Statement>(), iter);
         }
+
 
         THROW_TOKEN(*iter)
     }
@@ -1125,7 +1207,8 @@ class Compiler
         token_flow.push_back(end_tok);
         TokenFlowView tfv(token_flow.cbegin(), token_flow.cend());
         auto iter = tfv.BeginIter();
-        auto accept = [&](StatPtrWithEnd res) {
+        auto accept = [&](StatPtrWithEnd res)
+        {
             auto [stat, end] = res;
             iter = end;
             if (stat->IsEmpty())

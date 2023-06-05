@@ -16,6 +16,13 @@ const log_color = @{
     })
 }
 
+const logc = (str, stack_offset = 2) => {
+    const call_stack = get_call_stack_info()
+    const len = call_stack.length()
+    log(format('{} {}', log_color.green(call_stack[len - stack_offset].pos), str))
+}
+
+
 const f_log_factory = () => {
     // !TODO 使用block语法闭包会有问题
     // params PlaceHolder

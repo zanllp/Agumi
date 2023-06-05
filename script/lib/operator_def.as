@@ -52,6 +52,8 @@ types.select(type => {
     define_operator(type, '!', v => v ? false : true)
 })
 
+// define_operator('string', '!', sys_call)
+
 define_operator('number', 'number', '..', (l,r) => {
     const len = r - l
     assert_t(len > 0)
