@@ -6,3 +6,4 @@ hello.txt
 *.token.json
 script/temp/_*
 .DS_Store
+script/temp/*

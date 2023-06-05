@@ -8,6 +8,29 @@ include('./array')
 include('./kv')
 include('./promise')
 include('./log')
+include('./timer')
 
 const shell = sys_call
 const global = mem()
+
+const range = (end, start = 0) => start..end
+
+
+const for = (count, cb) => {
+  range(count).select(cb)
+  null
+}
+
+const cowsay = msg => {
+  log(f(`
+  ____________
+  < {} >
+  ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+  `, msg))
+}
+

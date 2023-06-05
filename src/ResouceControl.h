@@ -15,11 +15,10 @@ class ResouceControl
     ~ResouceControl()
     {
         {
-            P("释放未关闭的socket")
             std::lock_guard<std::mutex> m(scoket_m);
             for (auto&& i : sockets)
             {
-                close(i);
+                P("close socket:{} : res: {}",i, close(i));
             }
             sockets.clear();
         }

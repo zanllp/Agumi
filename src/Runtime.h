@@ -167,43 +167,45 @@ class VM
         auto curr_id = ++id;
         TimerPackage tp;
 
-        tp.func = DefineFunc([&, curr_id, once, fn](Vector<Value>) {
-            if (timer_map.find(curr_id) == timer_map.end())
+        tp.func = DefineFunc(
+            [&, curr_id, once, fn](Vector<Value>)
             {
-                return false;
-            }
-            auto& tp = timer_map[curr_id];
-            if (tp.CanCall())
-            {
-                tp.UpdateCallTime();
-                // P("call {}", fn.ToString())
-                FuncCall(fn);
-                if (once)
+                if (timer_map.find(curr_id) == timer_map.end())
                 {
-                    RemoveTimer(curr_id);
                     return false;
                 }
-                if (timer_map.find(curr_id) != timer_map.end())
+                auto& tp = timer_map[curr_id];
+                if (tp.CanCall())
                 {
-                    AddTask2Queue(tp.func, false);
-                }
-            }
-            else
-            {
-                if (tp.CanImmediatlyPoll())
-                {
-                    // P("poll")
-                    tp.UpdatePollTime();
+                    tp.UpdateCallTime();
+                    // P("call {}", fn.ToString())
+                    FuncCall(fn);
+                    if (once)
+                    {
+                        RemoveTimer(curr_id);
+                        return false;
+                    }
+                    if (timer_map.find(curr_id) != timer_map.end())
+                    {
+                        AddTask2Queue(tp.func, false);
+                    }
                 }
                 else
                 {
-                    // P("sleep")
-                    tp.UpdatePollTime();
-                    std::this_thread::sleep_for(TimerPackage::sleep_time);
+                    if (tp.CanImmediatlyPoll())
+                    {
+                        // P("poll")
+                        tp.UpdatePollTime();
+                    }
+                    else
+                    {
+                        // P("sleep")
+                        tp.UpdatePollTime();
+                        std::this_thread::sleep_for(TimerPackage::sleep_time);
+                    }
+                    AddTask2Queue(tp.func, false);
                 }
-                AddTask2Queue(tp.func, false);
-            }
-        });
+            });
         tp.SetInterval(interval_ms);
         tp.UpdateCallTime();
         tp.UpdatePollTime();
@@ -218,7 +220,8 @@ class VM
         if (required_event_timer_id == -1)
         {
             auto fn = DefineFunc(
-                [&](Vector<Value>) {
+                [&](Vector<Value>)
+                {
                     RequiredEvent event;
                     std::function<void(RequiredEvent)> cb;
                     {
@@ -403,6 +406,10 @@ class VM
         for (int i = ctx_stack.size() - 1; i >= 0; i--)
         {
             auto& ctx = ctx_stack[i];
+            if (!ctx.start)
+            {
+                continue;
+            }
             res += String::Format("\tat {} -- {} \n", i, ctx.start->ToPosStr());
         }
         return res;
@@ -520,6 +527,8 @@ class VM
             return ResolveBlock(stat);
         case StatementType::returnSatement:
             return ResolveReturn(stat);
+        case StatementType::matchStatment:
+            return ResolvePatternMatch(stat);
         }
         THROW_STACK_MSG("未定义类型:{}", (int)stat->Type())
     }
@@ -659,6 +668,68 @@ class VM
             THROW_STACK_MSG("Unary operator {} for {} types is undefined", expr.op.kw, val.TypeString())
         }
         return FuncCall(fn->second, val);
+    }
+
+    Value ResolvePatternMatch(StatPtr stat)
+    {
+        SRC_REF(expr, PatternMatchStatment, stat);
+        auto arg = Dispatch(expr.arg);
+        for (auto&& i : expr.pairs)
+        {
+            auto& cond_stat = *i.first.get();
+            auto t = cond_stat.Type();
+            auto cond_val = Dispatch(i.first);
+            if (t == StatementType::objectInit && arg.Type() == cond_val.Type())
+            {
+                bool all = true;
+                for (auto&& i : cond_val.ObjC().SrcC())
+                {
+                    if (!arg.In(i.first) || !(arg[i.first] == i.second))
+                    {
+                        all = false;
+                        break;
+                    }
+                }
+                if (all)
+                {
+                  return Dispatch(i.second);
+                }
+            }
+            else if (t == StatementType::arrayInit && arg.Type() == cond_val.Type())
+            {
+                bool all = true;
+                auto& cond_arr = cond_val.Arr().Src();
+                for (size_t i = 0; i < cond_arr.size(); i++)
+                {
+                    if (!arg.In(i) || !(arg[i] == cond_arr[i]))
+                    {
+                        all = false;
+                        break;
+                    }
+                }
+                if (all)
+                {
+                  return Dispatch(i.second);
+                }
+
+            }
+            else if (t == StatementType::nullLiteral || cond_stat.IsLiteral())
+            {
+
+                if (cond_val == arg)
+                {
+                    return Dispatch(i.second);
+                }
+            }
+            else
+            {
+                if (cond_val.ToBool())
+                {
+                    return Dispatch(i.second);
+                }
+            }
+        }
+        return Dispatch(expr.default_val);
     }
 
     Value ResolveConditionExpression(StatPtr stat)
@@ -922,7 +993,8 @@ class VM
     {
         SRC_REF(fn_stat, FunctionDeclaration, stat);
         static std::map<String, ClosureMemory> closure_mem;
-        auto generate_func_id = [&](String fn_pos_id) {
+        auto generate_func_id = [&](String fn_pos_id)
+        {
             static std::map<String, int> func_assig_id_set;
             auto iter = func_assig_id_set.find(fn_pos_id);
             String tpl = "{ offset:{}, pos:{} }";
@@ -935,8 +1007,10 @@ class VM
         };
 
         Vector<Context> virtual_ctx_stack;
-        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure) {
-            auto save_value_to_closure = [&](String kw) {
+        std::function<void(StatPtr, ClosureMemory&)> Visitor = [&](StatPtr s, ClosureMemory& closure)
+        {
+            auto save_value_to_closure = [&](String kw)
+            {
                 int virtual_ctx_stack_idx = virtual_ctx_stack.size() - 1;
                 int idx_mut = virtual_ctx_stack_idx;
                 auto val = GetValue(kw, virtual_ctx_stack, idx_mut);
@@ -1117,7 +1191,8 @@ class VM
         {
             const int curr_ctx_idx = ctx_stack.size() - 1;
             auto closure_curr = closure_mem[func_pos_id];
-            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep) {
+            std::function<void(ClosureMemory&, int)> traverse = [&](ClosureMemory& mem, int deep)
+            {
                 for (auto& i : mem.map)
                 {
                     auto& clos = i.second;

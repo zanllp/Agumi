@@ -512,7 +512,7 @@ void AddPreDefine(VM& vm)
                 auto p_i = params_i;
                 auto method_i = p_i["method"];
                 auto headers_i = p_i["headers"];
-                auto data_i = p_i["data"];
+                auto data_i = p_i["data"].ToBool() ? p_i["data"] : p_i["body"] ;
                 if (method_i.NotUndef())
                 {
                     req.SetHttpMethod(method_i.ToString().ToUpperCase());

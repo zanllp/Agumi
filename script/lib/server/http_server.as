@@ -148,6 +148,7 @@ const make_http_server = (port, cb) => {
             use_ability(resp, HttpResponse)
             conn.on_message = (conn) => {
                 buf.push(conn.buf)
+                // log('buf', buf.join(''))
                 const buf_join = buf.join('')
                 const req = parse_http_message(buf_join)
                 (req.is_end) ? cb.on_message(req, resp, buf_join) : null
