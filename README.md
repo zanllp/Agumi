@@ -1,7 +1,7 @@
 # Agumi
 [![test](https://github.com/zanllp/agumi/actions/workflows/test.yml/badge.svg)](https://github.com/zanllp/agumi/actions/workflows/test.yml)
 
-可作为c++的内嵌语言或单独的语言使用。包含闭包，垃圾回收，函数是一等公民，事件循环，自定义运算符重载等特性，针对网络请求及服务器也提供了异步接口。
+可作为c++的内嵌语言或单独的语言使用。包含闭包，垃圾回收, 模式匹配，函数是一等公民，事件循环，自定义运算符重载等特性，针对网络请求及服务器也提供了异步接口。
 ## 编译
 可选的ssl支持
 ### 启用ssl支持
@@ -27,7 +27,11 @@ cmake --build bin
 ```
 2. 斐波那契
 ```js
-const fib = (a) => (a>1) ? (fib(a-1) + fib(a-2)) : a
+const fib = n => match(n) {
+ 0: 0,
+ 1: 1,
+ _: fib(n-1) + fib(n-2)
+}
 fib(10)
 ```
 ![image](https://user-images.githubusercontent.com/25872019/118397323-ff982a00-b685-11eb-9bf6-897e5ea5c23e.png)
