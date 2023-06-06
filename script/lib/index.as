@@ -21,6 +21,8 @@ const for = (count, cb) => {
   null
 }
 
+const to_num = (str) => json.parse(str)
+
 const cowsay = msg => {
   log(f(`
   ____________
