@@ -1,7 +1,6 @@
 include('lib/server/http_server')
 include('lib/message_queue/client')
-
-const port = 8811
+const port = to_num((env().process_arg.port) || 8080)
 const url = f('http://127.0.0.1:{}', port)
 
 const global_store = {
@@ -37,19 +36,22 @@ const get_files_html = (dir = '') => {
 
 const route = (params, resp) => {
   const curr_dir = env().curr_dir()
-  const path = params.path
-  (!path) ? @{
-    const res = get_files_html()
-    resp.set_status(200).set_data(f('<pre>{}</pre>', res.join(cr))).end()
-  } : (is_dir(path)) ? @{
-    const res = get_files_html(path)
-    resp.set_status(200).set_data(f('<pre>{}</pre>', res.join(cr))).end()
-  } : (fs.exist(path)) ? @{
-    // path = path_calc(curr_dir, path)
-    resp.set_status(200).set_data(f('<pre>{}</pre>', fs.read(path))).end()
-  } : @{
-    resp.set_status(404).set_data('<h1>404</h1>').end()
+  const res = match (const path = params.path) {
+    null: {
+      data: f('<pre>{}</pre>', get_files_html().join(cr)),
+      code: 200
+    },
+    is_dir(path): {
+      data: f('<pre>{}</pre>', get_files_html(path).join(cr)),
+      code: 200
+    },
+    fs.exist(path): {
+      data: f('<pre>{}</pre>', fs.read(path)),
+      code: 200
+    },
+    _: { code: 404, data: '<h1>404</h1>' }
   }
+  resp.set_status(res.code).set_data(res.data).end()
 }
 // /*
 make_http_server(port, {
